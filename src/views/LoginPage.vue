@@ -198,7 +198,7 @@ watch(isRegister, () => {
     </el-row>
     <div class="footer">
       <span class="item">©2024 - 2025 Open-AnyLink 版权所有</span>
-      <a class="item" href="https://beian.miit.gov.cn/" target="_blank">陕ICP备2025059454号-1</a>
+      <a class="item" href="https://beian.miit.gov.cn/" target="_blank">陕ICP备2025059454号-2</a>
       <a class="item" href="https://github.com/GatlinHa/open-anylink/" target="_blank"
         >Github源码</a
       >
