@@ -325,12 +325,11 @@ const sessionListSorted = computed(() => {
 const showName = computed(() => {
   switch (selectedSession.value.sessionType) {
     case MsgType.CHAT:
-      return selectedSession.value.objectInfo.nickName || '没有昵称'
+      return selectedSession.value.objectInfo.nickName
     case MsgType.GROUP_CHAT:
       return (
         groupData.groupInfoList[selectedSession.value.remoteId]?.groupName ||
-        selectedSession.value.objectInfo.groupName ||
-        '没有群名称'
+        selectedSession.value.objectInfo.groupName
       )
     default:
       return ''

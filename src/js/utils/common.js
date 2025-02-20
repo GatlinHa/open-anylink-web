@@ -11,7 +11,7 @@ export const maskPhoneNum = (str) => {
 }
 
 // 使用简单的哈希算法，根据字符串生成颜色
-export const getRandomColor = (str) => {
+export const getAvatarColor = (str) => {
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash)

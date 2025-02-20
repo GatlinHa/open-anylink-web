@@ -52,12 +52,11 @@ const hasBeenShowMenu = computed(() => {
 const showName = computed(() => {
   switch (sessionInfo.value.sessionType) {
     case MsgType.CHAT:
-      return sessionInfo.value.objectInfo.nickName || '没有昵称'
+      return sessionInfo.value.objectInfo.nickName
     case MsgType.GROUP_CHAT:
       return (
         groupData.groupInfoList[sessionInfo.value.remoteId]?.groupName ||
-        sessionInfo.value.objectInfo.groupName ||
-        '没有群名称'
+        sessionInfo.value.objectInfo.groupName
       )
     default:
       return ''

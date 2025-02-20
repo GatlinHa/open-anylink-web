@@ -1,7 +1,8 @@
 <script setup>
 import { computed } from 'vue'
-import { getRandomColor, getFontColor } from '@/js/utils/common'
+import { getAvatarColor, getFontColor } from '@/js/utils/common'
 import { STATUS } from '@/const/userConst'
+import default_avatar from '@/assets/default_avatar.png'
 
 const props = defineProps(['showName', 'showId', 'showAvatarThumb', 'userStatus', 'size'])
 
@@ -34,15 +35,15 @@ const isShowImg = computed(() => {
 })
 
 const firstChar = computed(() => {
-  return props.showName ? props.showName.charAt(0) : '*'
+  return props.showName ? props.showName.charAt(0) : ''
 })
 
-const randomColor = computed(() => {
-  return getRandomColor(props.showName || props.showId)
+const avatarColor = computed(() => {
+  return getAvatarColor(props.showName || props.showId)
 })
 
 const fontColor = computed(() => {
-  return getFontColor(randomColor.value)
+  return getFontColor(avatarColor.value)
 })
 
 const statusCircleColor = computed(() => {
@@ -63,9 +64,14 @@ const statusCircleColor = computed(() => {
 <template>
   <div class="user-avatar-box" :style="{ width: avatarSize + 'px', height: avatarSize + 'px' }">
     <el-avatar v-if="isShowImg" :src="props.showAvatarThumb" :size="avatarSize" />
-    <span class="first-char-box" v-else :style="{ backgroundColor: randomColor, color: fontColor }">
+    <span
+      class="first-char-box"
+      v-else-if="firstChar"
+      :style="{ backgroundColor: avatarColor, color: fontColor }"
+    >
       {{ firstChar }}
     </span>
+    <el-avatar v-else :src="default_avatar" :size="avatarSize" />
     <div
       v-if="props.userStatus != null"
       class="status-circle"
