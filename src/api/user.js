@@ -2,25 +2,25 @@ import request from '@/js/utils/request'
 import { userStore } from '@/stores'
 import { CLIENT_TYPE, CLIENT_NAME, CLIENT_VERSION } from '@/const/userConst'
 
-export const userRegisterService = ({ username, password }) => {
+export const userRegisterService = ({ account, nickName, password }) => {
   return request.post('/user/register', {
-    account: username,
-    nickName: '',
+    account: account,
+    nickName: nickName,
     password: password
   })
 }
 
-export const userLoginService = ({ username, password }) => {
+export const userLoginService = ({ account, password }) => {
   const userData = userStore()
   return request.post('/user/login', {
-    account: username,
+    account: account,
     password: password,
     clientId: userData.clientId
   })
 }
 
-export const userLogoutService = ({ username }) => {
-  return request.post('/user/logout', { account: username })
+export const userLogoutService = ({ account }) => {
+  return request.post('/user/logout', { account: account })
 }
 
 export const userInfoService = () => {

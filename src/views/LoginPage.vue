@@ -1,5 +1,5 @@
 <script setup>
-import { User, Lock } from '@element-plus/icons-vue'
+import { User, Lock, Avatar } from '@element-plus/icons-vue'
 import { ref, watch, onMounted } from 'vue'
 import router from '@/router'
 import { userRegisterService, userLoginService } from '@/api/user.js'
@@ -11,7 +11,8 @@ const isRegister = ref(false)
 
 // 提交的整个form表单的数据
 const formModel = ref({
-  username: '',
+  account: '',
+  nickName: '',
   password: '',
   repassword: ''
 })
@@ -21,7 +22,7 @@ const isRemenberMe = ref(false)
 
 // 表单的校验规则
 const rules = {
-  username: [
+  account: [
     { required: true, message: '请输入账号', trigger: 'blur' },
     {
       pattern: /^[a-zA-Z0-9_]{6,32}$/,
@@ -29,6 +30,7 @@ const rules = {
       trigger: 'blur'
     }
   ],
+  nickName: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     {
@@ -86,7 +88,7 @@ const login = async () => {
 onMounted(() => {
   isRemenberMe.value = userData.isRemenberMe
   if (isRemenberMe.value) {
-    formModel.value.username = userData.user.account
+    formModel.value.account = userData.user.account
   }
 
   if (!userData.clientId) {
@@ -100,7 +102,8 @@ const forgetPassword = () => {
 
 watch(isRegister, () => {
   formModel.value = {
-    username: !isRegister.value && isRemenberMe.value ? userData.user.account : '',
+    account: !isRegister.value && isRemenberMe.value ? userData.user.account : '',
+    nickName: '',
     password: '',
     repassword: ''
   }
@@ -121,11 +124,19 @@ watch(isRegister, () => {
         <el-form-item>
           <h1>注册</h1>
         </el-form-item>
-        <el-form-item prop="username">
+        <el-form-item prop="account">
           <el-input
-            v-model="formModel.username"
+            v-model="formModel.account"
             :prefix-icon="User"
             placeholder="请输入账号"
+            clearable
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="nickName">
+          <el-input
+            v-model="formModel.nickName"
+            :prefix-icon="Avatar"
+            placeholder="请输入昵称"
             clearable
           ></el-input>
         </el-form-item>
@@ -162,9 +173,9 @@ watch(isRegister, () => {
         <el-form-item>
           <h1>登录</h1>
         </el-form-item>
-        <el-form-item prop="username">
+        <el-form-item prop="account">
           <el-input
-            v-model="formModel.username"
+            v-model="formModel.account"
             :prefix-icon="User"
             placeholder="请输入账号"
             clearable
