@@ -112,6 +112,7 @@ watch(isRegister, () => {
 
 <template>
   <div class="login-page">
+    <span class="logo">Open AnyLink</span>
     <div class="login-box">
       <el-form
         :model="formModel"
@@ -215,6 +216,20 @@ watch(isRegister, () => {
         >Github源码</a
       >
     </div>
+    <div class="css-box">
+      <ul class="bubble-bgwall">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -224,15 +239,24 @@ watch(isRegister, () => {
   min-height: 768px;
   height: 100vh;
   overflow: auto;
-  background-color: #fff;
+  background-color: transparent;
   display: flex;
+  flex-direction: column;
   position: relative;
   justify-content: center;
   align-items: center;
 
+  .logo {
+    margin-bottom: 100px;
+    color: #409eff;
+    font-size: 50px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  }
+
   .login-box {
     width: 360px;
     height: 480px;
+    background-color: #fff;
     border: #e0e0e0 solid 1px;
     border-radius: 10px;
     padding: 20px;
@@ -264,8 +288,135 @@ watch(isRegister, () => {
     .item {
       margin-left: 5px;
       margin-right: 5px;
-      color: #a0a0a0;
     }
+  }
+}
+
+.css-box {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  background-image: linear-gradient(
+    to left bottom,
+    rgb(51.2, 126.4, 204),
+    rgb(121.3, 187.1, 255),
+    rgb(159.5, 206.5, 255),
+    rgb(197.7, 225.9, 255),
+    rgb(216.8, 235.6, 255),
+    rgb(235.9, 245.3, 255)
+  );
+  z-index: -1;
+}
+
+.bubble-bgwall {
+  overflow: hidden;
+  position: relative;
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+.bubble-bgwall li {
+  display: flex;
+  position: absolute;
+  bottom: -200px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  background-color: rgba(255, 255, 255, 0.15);
+  animation: bubble 20s infinite;
+}
+
+.bubble-bgwall li:nth-child(1) {
+  left: 10%;
+}
+
+.bubble-bgwall li:nth-child(2) {
+  left: 20%;
+  width: 110px;
+  height: 110px;
+  animation-duration: 7s;
+  animation-delay: 2s;
+}
+
+.bubble-bgwall li:nth-child(3) {
+  left: 25%;
+  animation-delay: 4s;
+}
+
+.bubble-bgwall li:nth-child(4) {
+  left: 60%;
+  width: 66px;
+  height: 66px;
+  background-color: rgba(255, 255, 255, 0.3);
+  animation-duration: 8s;
+}
+
+.bubble-bgwall li:nth-child(5) {
+  left: 70%;
+}
+
+.bubble-bgwall li:nth-child(6) {
+  left: 60%;
+  width: 180px;
+  height: 180px;
+  background-color: rgba(255, 255, 255, 0.2);
+  animation-delay: 3s;
+}
+
+.bubble-bgwall li:nth-child(7) {
+  left: 32%;
+  width: 160px;
+  height: 160px;
+  animation-delay: 2s;
+}
+
+.bubble-bgwall li:nth-child(8) {
+  left: 50%;
+  width: 65px;
+  height: 65px;
+  animation-duration: 15s;
+  animation-delay: 4s;
+}
+
+.bubble-bgwall li:nth-child(9) {
+  left: 25%;
+  width: 90px;
+  height: 90px;
+  background-color: rgba(255, 255, 255, 0.3);
+  animation-duration: 12s;
+  animation-delay: 2s;
+}
+
+.bubble-bgwall li:nth-child(10) {
+  left: 80%;
+  width: 180px;
+  height: 180px;
+  animation-delay: 5s;
+}
+
+@keyframes bubble {
+  0% {
+    opacity: 0.5;
+    transform: translateY(0);
+  }
+
+  25% {
+    opacity: 0.75;
+    transform: translateY(-400px);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-600px);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-1000px);
   }
 }
 </style>
