@@ -53,7 +53,7 @@ watch(
 <template>
   <transition name="fade">
     <div class="card-dialog" v-show="dialogVisible" ref="elementRef">
-      <el-icon class="close-button" @click="dialogVisible = false"><Close /></el-icon>
+      <el-icon class="close-button" @click="close"><Close /></el-icon>
       <div class="main">
         <el-avatar class="avatar" :src="userData.user.avatarThumb || avatar" />
 
