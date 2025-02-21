@@ -52,6 +52,7 @@ import AddOprMenu from './components/AddOprMenu.vue'
 import MessageGroupRightSide from './components/MessageGroupRightSide.vue'
 import EmojiBox from './components/EmojiBox.vue'
 import EmojiIcon from '@/assets/svg/emoji.svg'
+import HashNoData from '@/components/common/HasNoData.vue'
 
 const userData = userStore()
 const settingData = settingStore()
@@ -940,7 +941,7 @@ const onSendEmoji = (key) => {
   <el-container class="msg-container-hole" @click="onClickMsgContainer">
     <el-aside class="msg-aside bdr-r" :style="{ width: asideWidth + 'px' }">
       <div class="msg-aside-main">
-        <div class="header">
+        <div class="header bdr-b">
           <SearchBox
             @showContactCard="onShowContactCard"
             @showGroupCard="onShowGroupCard"
@@ -969,6 +970,11 @@ const onSendEmoji = (key) => {
               @noneSelected="onNoneSelected"
               @showUpdateMarkDialog="onShowUpdateMarkDialog"
             ></SessionItem>
+            <HashNoData
+              v-if="sessionListSorted.length === 0"
+              :size="100"
+              style="height: 100%"
+            ></HashNoData>
           </div>
         </SessionMenu>
       </div>
@@ -1218,12 +1224,13 @@ const onSendEmoji = (key) => {
       overflow: hidden; // 禁用它的滚动条
 
       .header {
-        padding: 10px 10px 10px 0;
+        padding: 10px 10px 9px 0;
         display: flex;
         align-items: center;
       }
 
       .context-menu-container {
+        height: 100%;
         overflow: hidden;
 
         .session-list {
