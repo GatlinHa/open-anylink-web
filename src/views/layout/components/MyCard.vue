@@ -3,8 +3,6 @@ import { ref, computed, watch } from 'vue'
 import { Close, Male, Female } from '@element-plus/icons-vue'
 import { userStore } from '@/stores'
 import avatar from '@/assets/default_avatar.png'
-import { ElLoading } from 'element-plus'
-import { el_loading_options } from '@/const/commonConst'
 
 const props = defineProps(['isShow'])
 const emit = defineEmits(['close'])
@@ -38,10 +36,7 @@ watch(
   (newValue) => {
     dialogVisible.value = newValue
     if (dialogVisible.value) {
-      const loadingInstance = ElLoading.service(el_loading_options)
-      userData.updateUser().finally(() => {
-        loadingInstance.close()
-      })
+      userData.updateUser()
       setTimeout(() => {
         document.addEventListener('click', clickListener)
       }, 0)
