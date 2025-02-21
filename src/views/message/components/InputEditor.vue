@@ -68,10 +68,13 @@ const getContent = async () => {
         const file = base64ToFile(insert.image, uuidv4()) // base64转file
         el_loading_options.text = '图片上传中...' //上传中加一个loading效果
         const loadingInstance = ElLoading.service(el_loading_options)
-        const res = await mtsUploadService({ file: file }) //上传图片至服务端
-        loadingInstance.close()
-        imageData.setImage(props.sessionId, res.data.data) // 缓存image数据
-        content = content + `{${res.data.data.objectId}}`
+        try {
+          const res = await mtsUploadService({ file: file }) //上传图片至服务端
+          imageData.setImage(props.sessionId, res.data.data) // 缓存image数据
+          content = content + `{${res.data.data.objectId}}`
+        } finally {
+          loadingInstance.close()
+        }
       }
     }
   }
