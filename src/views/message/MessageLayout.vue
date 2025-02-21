@@ -1129,7 +1129,7 @@ const onSendEmoji = (key) => {
                       </InputTool>
                     </div>
                     <div class="right-tools">
-                      <InputTool tips="聊天记录">
+                      <InputTool tips="聊天记录" @click="ElMessage.warning('功能开发中')">
                         <template #iconSlot>
                           <Clock />
                         </template>
