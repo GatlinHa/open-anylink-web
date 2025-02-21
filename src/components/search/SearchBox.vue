@@ -32,9 +32,9 @@ const onShowComponents = () => {
 }
 
 const onOpen = () => {
-  nextTick(() => {
+  setTimeout(() => {
     inputRef.value?.focus()
-  })
+  }, 50)
 }
 
 const onShowContactCard = (contactInfo) => {
