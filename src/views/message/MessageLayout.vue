@@ -30,7 +30,7 @@ import {
   groupCardStore,
   groupStore
 } from '@/stores'
-import backgroupImage from '@/assets/messagebx_bg.webp'
+import backgroupImage from '@/assets/svg/messagebx_bg.svg'
 import {
   msgChatPullMsgService,
   msgChatCreateSessionService,
@@ -983,12 +983,10 @@ const onSendEmoji = (key) => {
     </el-aside>
 
     <el-main class="msg-box">
-      <el-image
-        class="backgroup-image"
-        v-if="!selectedSessionId"
-        :src="backgroupImage"
-        fit="cover"
-      ></el-image>
+      <div v-if="!selectedSessionId" class="backgroup">
+        <backgroupImage class="backgroup-image" v-if="!selectedSessionId"></backgroupImage>
+        <span class="welcome">欢迎使用 Open-AnyLink</span>
+      </div>
 
       <el-container v-else class="container">
         <el-header class="header bdr-b">
@@ -1242,11 +1240,26 @@ const onSendEmoji = (key) => {
 
   .msg-box {
     padding: 0;
+    display: flex;
+    justify-content: center;
     overflow: hidden; // 禁用它的滚动条
 
-    .backgroup-image {
-      width: 100%;
-      height: 100%;
+    .backgroup {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      .backgroup-image {
+        width: 600px;
+        height: 400px;
+      }
+
+      .welcome {
+        text-align: center;
+        color: #409eff;
+        font-size: 40px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      }
     }
 
     .container {
