@@ -11,7 +11,7 @@ const noTokenReqList = ['/user/login', '/user/register', '/user/validateAccount'
 
 const instance = axios.create({
   baseURL,
-  timeout: 5000
+  timeout: 10000
 })
 
 // 请求拦截器
