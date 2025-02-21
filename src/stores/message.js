@@ -140,7 +140,7 @@ export const messageStore = defineStore('anylink-message', () => {
    * @param {*} msgId 消息id
    */
   const removeMsgRecord = (sessionId, msgId) => {
-    if (msgId in msgRecordsList.value[sessionId]) {
+    if (msgRecordsList.value[sessionId] && msgId in msgRecordsList.value[sessionId]) {
       delete msgRecordsList.value[sessionId][msgId]
     }
   }
