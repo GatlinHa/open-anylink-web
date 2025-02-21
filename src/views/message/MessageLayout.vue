@@ -1056,7 +1056,7 @@ const onSendEmoji = (key) => {
               >
                 <MessageItem
                   v-for="item in msgIdsShow"
-                  :key="item"
+                  :key="selectedSessionId + '-' + item"
                   :sessionId="selectedSessionId"
                   :msgId="item"
                   :extend="msgExtend[item]"
