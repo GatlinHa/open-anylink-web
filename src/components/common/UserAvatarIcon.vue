@@ -99,6 +99,19 @@ const statusCircleColor = computed(() => {
     display: flex;
     justify-content: center;
     align-items: center;
+
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.2) 25%, rgba(0, 0, 0, 0.5) 100%),
+      v-bind(avatarColor); // 组合渐变色与动态背景色
+    position: relative;
+    // 调整高光位置
+    &::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+    }
   }
 
   .status-circle {
