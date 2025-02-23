@@ -215,9 +215,10 @@ const showDetailContent = computed(() => {
   if (isShowDraft.value) {
     return sessionInfo.value.draft
   } else {
-    if (lastMsg.value.content) {
+    const replaceContent = lastMsg.value.content?.replace(/\{\d+\}/g, '{图片}') // 把内容中的`{xxxxxx}`格式的图片统一转成`{图片}`
+    if (replaceContent) {
       if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
-        const content = jsonParseSafe(lastMsg.value.content)
+        const content = jsonParseSafe(replaceContent)
         switch (lastMsg.value.msgType) {
           case MsgType.SYS_GROUP_CREATE:
             return getSysGroupCreateMsgTips(content)
@@ -252,12 +253,12 @@ const showDetailContent = computed(() => {
           case MsgType.SYS_GROUP_DROP:
             return getSysGroupDrop(content)
           case MsgType.GROUP_CHAT:
-            return getGroupChatMsgTips(lastMsg.value.content)
+            return getGroupChatMsgTips(replaceContent)
           default:
             return ''
         }
       } else {
-        return lastMsg.value.content
+        return replaceContent
       }
     } else {
       return '...'
