@@ -265,13 +265,31 @@ const onVideoCall = () => {
         </div>
       </div>
       <div class="action">
-        <el-icon class="action-button" size="20" title="发送消息" @click="goToSessionTab">
+        <el-icon
+          class="action-button"
+          size="20"
+          title="发送消息"
+          color="#409eff"
+          @click="goToSessionTab"
+        >
           <ChatRound />
         </el-icon>
-        <el-icon class="action-button" size="20" title="语音通话" @click="onVoiceCall">
+        <el-icon
+          class="action-button"
+          size="20"
+          title="语音通话"
+          color="#409eff"
+          @click="onVoiceCall"
+        >
           <Microphone />
         </el-icon>
-        <el-icon class="action-button" size="20" title="视频通话" @click="onVideoCall">
+        <el-icon
+          class="action-button"
+          size="20"
+          title="视频通话"
+          color="#409eff"
+          @click="onVideoCall"
+        >
           <VideoCamera />
         </el-icon>
       </div>

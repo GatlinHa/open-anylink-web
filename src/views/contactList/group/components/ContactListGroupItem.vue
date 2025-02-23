@@ -41,13 +41,31 @@ const onVideoCall = () => {
       <slot name="showMore_1"></slot>
       <slot name="showMore_2"></slot>
       <div class="action">
-        <el-icon class="action-button" size="20" title="发送消息" @click="goToSessionTab">
+        <el-icon
+          class="action-button"
+          size="20"
+          title="发送消息"
+          color="#409eff"
+          @click="goToSessionTab"
+        >
           <ChatRound />
         </el-icon>
-        <el-icon class="action-button" size="20" title="多人语音" @click="onVoiceCall">
+        <el-icon
+          class="action-button"
+          size="20"
+          title="多人语音"
+          color="#409eff"
+          @click="onVoiceCall"
+        >
           <Microphone />
         </el-icon>
-        <el-icon class="action-button" size="20" title="视频会议" @click="onVideoCall">
+        <el-icon
+          class="action-button"
+          size="20"
+          title="视频会议"
+          color="#409eff"
+          @click="onVideoCall"
+        >
           <VideoCamera />
         </el-icon>
       </div>

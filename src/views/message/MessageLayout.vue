@@ -1013,6 +1013,7 @@ const onSendEmoji = (key) => {
             <el-icon
               class="action-button"
               size="20"
+              color="#409eff"
               :title="selectedSession.sessionType === MsgType.GROUP_CHAT ? '多人语音' : '语音通话'"
               @click="onVoiceCall"
             >
@@ -1021,6 +1022,7 @@ const onSendEmoji = (key) => {
             <el-icon
               class="action-button"
               size="20"
+              color="#409eff"
               :title="selectedSession.sessionType === MsgType.GROUP_CHAT ? '视频会议' : '视频通话'"
               @click="onVideoCall"
             >
@@ -1029,12 +1031,19 @@ const onSendEmoji = (key) => {
             <el-icon
               class="action-button"
               size="20"
+              color="#409eff"
               :title="selectedSession.sessionType === MsgType.GROUP_CHAT ? '邀请进群' : '创建群组'"
               @click="onInviteToGroup"
             >
               <CirclePlus />
             </el-icon>
-            <el-icon class="action-button" size="20" title="更多设置" @click="onMoreSetting">
+            <el-icon
+              class="action-button"
+              size="20"
+              color="#409eff"
+              title="更多设置"
+              @click="onMoreSetting"
+            >
               <MoreFilled />
             </el-icon>
           </div>
