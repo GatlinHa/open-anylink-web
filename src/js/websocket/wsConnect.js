@@ -1,7 +1,7 @@
 import { Msg, MsgType } from '@/proto/msg'
 import { userStore } from '@/stores'
 import { v4 as uuidv4 } from 'uuid'
-import { generateSign } from '@/js/utils/common'
+import { generateSign } from '../utils/crypto'
 import {
   chatConstructor,
   heartBeatConstructor,

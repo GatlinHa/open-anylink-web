@@ -2,9 +2,12 @@
 import { ref } from 'vue'
 import { userModifyPassword } from '@/api/user'
 import { ElMessage } from 'element-plus'
+import { userStore } from '@/stores'
 
 defineProps(['modelValue'])
 const emit = defineEmits(['update:modelValue'])
+
+const userData = userStore()
 
 const form = ref()
 const formModel = ref({
@@ -59,8 +62,9 @@ const onComfirm = async () => {
   await form.value.validate()
   isLoading.value = true
   const res = userModifyPassword({
-    oldPassword: formModel.value.old_password,
-    password: formModel.value.new_password
+    account: userData.user.account,
+    oldPasswordStr: formModel.value.old_password,
+    newPasswordStr: formModel.value.new_password
   })
   res.then(() => {
     ElMessage.success('密码修改成功')

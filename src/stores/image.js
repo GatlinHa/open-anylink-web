@@ -66,7 +66,7 @@ export const imageStore = defineStore('anylink-image', () => {
     if (imageIds.size > 0) {
       const res = await mtsImageService({ objectIds: [...imageIds].join(',') })
       res.data.data.forEach((item) => {
-        imageStore().setImage(sessionId, item) // 缓存image数据
+        setImage(sessionId, item) // 缓存image数据
       })
     }
   }

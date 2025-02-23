@@ -1,5 +1,3 @@
-import CryptoJS from 'crypto-js'
-
 export const maskPhoneNum = (str) => {
   if (str.length < 7) {
     return '*'
@@ -153,15 +151,6 @@ export const messageBoxShowTime = (datatime) => {
   const minutes = currentDate.getMinutes().toString().padStart(2, '0')
 
   return `${year}-${month}-${day} ${hours}:${minutes}`
-}
-
-export const generateSign = (key, content) => {
-  try {
-    const hash = CryptoJS.HmacSHA256(content, key)
-    return CryptoJS.enc.Base64.stringify(hash)
-  } catch (e) {
-    return null
-  }
 }
 
 export const combineId = (fromId, toId) => {

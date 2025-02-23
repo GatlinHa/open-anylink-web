@@ -1,13 +1,13 @@
 import axios from 'axios'
 import { userStore } from '@/stores'
 import router from '@/router'
-import { generateSign } from './common'
+import { generateSign } from './crypto'
 import { v4 as uuidv4 } from 'uuid'
 import { ElMessage } from 'element-plus'
 import { CLIENT_TYPE, CLIENT_NAME, CLIENT_VERSION } from '@/const/userConst'
 
 const baseURL = import.meta.env.VITE_BASE_URL
-const noTokenReqList = ['/user/login', '/user/register', '/user/validateAccount']
+const noTokenReqList = ['/user/nonce', '/user/login', '/user/register', '/user/validateAccount']
 
 const instance = axios.create({
   baseURL,
