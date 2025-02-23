@@ -189,6 +189,10 @@ export const messageStore = defineStore('anylink-message', () => {
    * 分组信息
    */
   const partitions = ref({})
+  /**
+   * 是否已经加载过分组信息
+   */
+  const isPartitionsLoaded = ref(false)
 
   /**
    * 加载会话列表
@@ -209,11 +213,18 @@ export const messageStore = defineStore('anylink-message', () => {
    * @returns
    */
   const loadPartitions = async () => {
+    // 如果已经加载过，直接返回
+    if (isPartitionsLoaded.value) {
+      return
+    }
+
     if (Object.keys(partitions.value).length === 0) {
       const res = await msgQueryPartitionService()
       res.data.data.forEach((item) => {
         partitions.value[item.partitionId] = item
       })
+      // 标记为已加载
+      isPartitionsLoaded.value = true
     }
   }
 

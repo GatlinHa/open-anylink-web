@@ -233,8 +233,8 @@ const selectedSession = computed(() => {
 
 onMounted(async () => {
   await messageData.loadSessionList()
-  await messageData.loadPartitions()
   await groupData.loadGroupInfoList()
+  messageData.loadPartitions() // 异步加载
 
   asideWidth.value = settingData.sessionListDrag[myAccount.value] || 300
   inputBoxHeight.value = settingData.inputBoxDrag[myAccount.value] || 300
