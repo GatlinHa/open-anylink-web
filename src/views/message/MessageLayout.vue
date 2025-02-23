@@ -85,9 +85,7 @@ const myAccount = computed(() => {
 })
 
 //当前被选中的session
-const selectedSessionId = computed(() => {
-  return messageData.selectedSessionId || ''
-})
+const selectedSessionId = ref('')
 
 // 消息拉取是否结束
 const pullMsgDone = computed(() => {
@@ -423,7 +421,7 @@ const handleSelectedSession = async (sessionId) => {
   router.replace({ query: { sessionId: sessionId } })
 
   if (selectedSessionId.value !== sessionId) {
-    messageData.setSelectedSessionId(sessionId)
+    selectedSessionId.value = sessionId
     initSession(sessionId)
     locateSession(sessionId)
 
@@ -796,7 +794,7 @@ const onOpenSessionMenu = (sessionId) => {
 }
 
 const onNoneSelected = () => {
-  messageData.setSelectedSessionId('')
+  selectedSessionId.value = ''
 }
 
 const onVoiceCall = () => {
