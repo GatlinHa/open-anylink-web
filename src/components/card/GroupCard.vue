@@ -55,7 +55,9 @@ watch(
   () => groupCardData.isShow,
   (newValue) => {
     if (newValue) {
-      groupCardData.setShowModel('info')
+      if (!groupCardData.showModel) {
+        groupCardData.setShowModel('info')
+      }
       newMyNickNameInGroup.value = showMembers.value[myAccount.value].nickName
       settingOption.value = 'chatSetting'
       isJoinGroupApproval.value = groupInfo.value.joinGroupApproval

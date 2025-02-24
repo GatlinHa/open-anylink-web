@@ -98,11 +98,8 @@ const onAnnouncementInSideHeightDragUpdate = ({ height }) => {
 }
 
 const onEditAnnouncement = () => {
+  groupCardData.setShowModel('editAnnouncement')
   emit('showGroupCard', { groupId: groupId.value })
-  setTimeout(() => {
-    // 这里要延迟打开，否则会与GroupCard的初始化ShowModel冲突
-    groupCardData.setShowModel('editAnnouncement')
-  }, 100)
 }
 
 const onSwitchSearchMode = () => {
