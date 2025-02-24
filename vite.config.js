@@ -19,6 +19,12 @@ export default defineConfig({
         // 获取请求中带 /api 的请求
         target: 'http://localhost:8080', // 后台服务器的源
         changeOrigin: true // 修改源
+      },
+      '/oss/': {
+        // 获取图片的请求
+        target: 'https://bk0528.oss-cn-beijing.aliyuncs.com', // 对象存储oss的源
+        changeOrigin: true, // 修改源
+        rewrite: (path) => path.replace(/^\/oss\//, '')
       }
     }
   },

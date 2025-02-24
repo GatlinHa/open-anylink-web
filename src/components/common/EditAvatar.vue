@@ -31,7 +31,7 @@ const avatar = computed(() => {
 // 打开的时候触发
 const onOpen = () => {
   fileName.value = avatar.value?.split('/').pop()
-  srcImg.value = avatar.value
+  srcImg.value = import.meta.env.VITE_OSS_CORS_FLAG + avatar.value
   previewImg.value = srcImg.value
   resetData.value = {
     previewImg: previewImg.value
