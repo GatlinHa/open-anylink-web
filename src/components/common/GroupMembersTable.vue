@@ -309,6 +309,7 @@ const onShowUserCard = (account) => {
   const loadingInstance = ElLoading.service(el_loading_options)
   userQueryService({ account: account })
     .then((res) => {
+      userCardData.setUserInfo(res.data.data)
       if (sessionId in messageData.sessionList) {
         messageData.updateSession({
           sessionId: sessionId,
@@ -323,7 +324,17 @@ const onShowUserCard = (account) => {
           }
         })
       }
-      userCardData.setUserInfo(res.data.data)
+
+      groupData.setOneOfGroupMembers({
+        groupId: props.groupId,
+        account: account,
+        userInfo: {
+          ...validMembers.value[account],
+          nickName: res.data.data.nickName,
+          avatar: res.data.data.avatar,
+          avatarThumb: res.data.data.avatarThumb
+        }
+      })
     })
     .finally(() => {
       loadingInstance.close()

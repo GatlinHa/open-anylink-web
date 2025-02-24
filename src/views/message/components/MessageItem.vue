@@ -418,16 +418,30 @@ const isSelf = computed(() => {
   return userData.user.account === msg.value.fromId
 })
 
+const objectInfo = computed(() => {
+  if (msg.value.msgType === MsgType.GROUP_CHAT) {
+    const groupId = messageData.sessionList[props.sessionId]?.remoteId
+    const members = groupData.groupMembersList[groupId]
+    return members ? members[msg.value.fromId] : { account: msg.value.fromId }
+  } else {
+    if (myAccount.value === msg.value.fromId) {
+      return userData.user
+    } else {
+      return messageData.sessionList[props.sessionId].objectInfo
+    }
+  }
+})
+
 const account = computed(() => {
-  return props.obj.account
+  return objectInfo.value.account
 })
 
 const nickName = computed(() => {
-  return props.obj.nickName
+  return objectInfo.value.nickName
 })
 
 const avatarThumb = computed(() => {
-  return props.obj.avatarThumb
+  return objectInfo.value.avatarThumb
 })
 
 const sysShowTime = computed(() => {

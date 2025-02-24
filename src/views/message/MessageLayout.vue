@@ -123,7 +123,7 @@ const hasNoMoreMsg = computed(() => {
   return pullMsgDone.value || firstMsgId.value === BEGIN_MSG_ID
 })
 
-const allMembers = computed(() => {
+const groupMembers = computed(() => {
   return groupData.groupMembersList[selectedSession.value?.remoteId]
 })
 
@@ -134,7 +134,7 @@ const isNotInGroup = computed(() => {
 const isMutedInGroup = computed(() => {
   if (selectedSession.value.sessionType === MsgType.GROUP_CHAT) {
     const groupInfo = groupData.groupInfoList[selectedSession.value.remoteId]
-    const me = allMembers.value[myAccount.value]
+    const me = groupMembers.value[myAccount.value]
     if (me.mutedMode === 1 || (groupInfo.allMuted && me.mutedMode !== 2)) {
       return true
     } else {
@@ -343,7 +343,7 @@ const getMsgSenderObj = (msgId) => {
   const msg = messageData.getMsg(selectedSessionId.value, msgId)
   if (selectedSession.value.sessionType === MsgType.GROUP_CHAT) {
     // 如果此时memberList还没有加载完成，先return account给MessageItem子组件
-    return allMembers.value ? allMembers.value[msg.fromId] : { account: msg.fromId }
+    return groupMembers.value ? groupMembers.value[msg.fromId] : { account: msg.fromId }
   } else {
     if (myAccount.value === msg.fromId) {
       return userData.user
@@ -427,16 +427,15 @@ const handleSelectedSession = async (sessionId) => {
 
     // 如果是群组，要加载成员列表（显示消息需要account，nickName，avatar信息）
     if (selectedSession.value.sessionType === MsgType.GROUP_CHAT) {
-      const groupId = selectedSession.value.remoteId
       // 没有members数据才需要加载成员列表，加载过了就不重复加载了
-      if (!groupData.groupMembersList[groupId]) {
-        const res = await groupInfoService({ groupId: groupId })
+      if (!groupMembers.value) {
+        const res = await groupInfoService({ groupId: selectedSession.value.remoteId })
         groupData.setGroupInfo({
-          groupId: groupId,
+          groupId: selectedSession.value.remoteId,
           groupInfo: res.data.data.groupInfo || {}
         })
         groupData.setGroupMembers({
-          groupId: groupId,
+          groupId: selectedSession.value.remoteId,
           members: res.data.data.members || {}
         })
       }
@@ -631,18 +630,34 @@ const onShowUserCard = ({ sessionId, account }) => {
       .then((res) => {
         userCardData.setUserInfo(res.data.data)
         userCardData.setIsShow(true)
-        // 如果是单聊，需要更新session中的objectInfo. 因为群成员有可能不在sessionList中，所以不更新
-        if (messageData.sessionList[sessionId].sessionType === MsgType.CHAT) {
+        const sessionIdWithThisAccount = combineId(account, myAccount.value)
+        // 如果有和这个用户的session，则更新一下session
+        if (sessionIdWithThisAccount in messageData.sessionList) {
           messageData.updateSession({
-            sessionId: sessionId,
+            sessionId: sessionIdWithThisAccount,
             objectInfo: {
-              ...messageData.sessionList[sessionId].objectInfo,
+              ...messageData.sessionList[sessionIdWithThisAccount].objectInfo,
               nickName: res.data.data.nickName,
               signature: res.data.data.signature,
+              avatar: res.data.data.avatar,
               avatarThumb: res.data.data.avatarThumb,
               gender: res.data.data.gender,
               phoneNum: res.data.data.phoneNum,
               email: res.data.data.email
+            }
+          })
+        }
+
+        if (messageData.sessionList[sessionId].sessionType === MsgType.GROUP_CHAT) {
+          const groupId = selectedSession.value.remoteId
+          groupData.setOneOfGroupMembers({
+            groupId: groupId,
+            account: account,
+            userInfo: {
+              ...groupMembers.value[account],
+              nickName: res.data.data.nickName,
+              avatar: res.data.data.avatar,
+              avatarThumb: res.data.data.avatarThumb
             }
           })
         }
@@ -825,9 +840,7 @@ const onInviteToGroup = () => {
 
 const iAmAdmin = computed(() => {
   if (selectedSession.value.sessionType === MsgType.GROUP_CHAT) {
-    const groupId = selectedSession.value.remoteId
-    const members = groupData.groupMembersList[groupId]
-    return members[myAccount.value].role > 0
+    return groupMembers.value[myAccount.value].role > 0
   } else {
     return false
   }
