@@ -43,7 +43,12 @@ const isValid = computed(() => {
 
 <template>
   <div class="group-avatar-box">
-    <el-avatar v-if="props.avatarThumb" :src="props.avatarThumb" :size="avatarSize" />
+    <el-avatar
+      class="avatar"
+      v-if="props.avatarThumb"
+      :src="props.avatarThumb"
+      :size="avatarSize"
+    />
     <div v-else class="svg-avatar" :style="{ width: avatarSize + 'px', height: avatarSize + 'px' }">
       <groupChatIcon :style="{ width: svgSize + 'px', height: svgSize + 'px' }"></groupChatIcon>
     </div>
@@ -51,6 +56,14 @@ const isValid = computed(() => {
 </template>
 
 <style lang="scss" scoped>
+.avatar {
+  border: 1px solid #fff;
+}
+
+.avatar ::v-deep img {
+  margin: 0;
+}
+
 .svg-avatar {
   border-radius: 50%;
   background-color: v-bind('isValid ? "rgb(121.3, 187.1, 255)" : "rgb(177.3, 179.4, 183.6)"');
