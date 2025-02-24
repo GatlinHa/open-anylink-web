@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { Close, Male, Female } from '@element-plus/icons-vue'
 import { userStore } from '@/stores'
 import avatar from '@/assets/default_avatar.png'
+import router from '@/router'
 
 const props = defineProps(['isShow'])
 const emit = defineEmits(['close'])
@@ -31,6 +32,11 @@ const close = () => {
   emit('close')
 }
 
+const onClickAvatar = () => {
+  close()
+  router.push('/setting/personal')
+}
+
 watch(
   () => props.isShow,
   (newValue) => {
@@ -50,8 +56,11 @@ watch(
     <div class="card-dialog" v-show="dialogVisible" ref="elementRef">
       <el-icon class="close-button" @click="close"><Close /></el-icon>
       <div class="main">
-        <el-avatar class="avatar" :src="userData.user.avatarThumb || avatar" />
-
+        <el-avatar
+          class="avatar"
+          :src="userData.user.avatarThumb || avatar"
+          @click="onClickAvatar"
+        />
         <div class="gender">
           <el-icon v-if="userData.user.gender === 1" color="#508afe"><Male /></el-icon>
           <el-icon v-if="userData.user.gender === 2" color="#ff5722"><Female /></el-icon>
