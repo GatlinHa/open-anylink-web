@@ -220,9 +220,9 @@ const onExit = async () => {
         </NaviMenu>
       </el-menu>
 
-      <div class="exit-button" @click="onExit()" title="退出">
-        <el-icon :size="20"><SwitchButton /></el-icon>
-      </div>
+      <el-icon class="exit-button" title="退出" :size="20" @click="onExit()"
+        ><SwitchButton />
+      </el-icon>
     </el-aside>
     <el-main style="padding: 0">
       <router-view></router-view>
@@ -298,6 +298,10 @@ const onExit = async () => {
       justify-content: center;
       align-items: center;
       cursor: pointer;
+
+      &:hover {
+        background-color: #337ecc;
+      }
     }
   }
 
