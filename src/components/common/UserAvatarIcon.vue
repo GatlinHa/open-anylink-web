@@ -63,7 +63,7 @@ const statusCircleColor = computed(() => {
 
 <template>
   <div class="user-avatar-box" :style="{ width: avatarSize + 'px', height: avatarSize + 'px' }">
-    <el-avatar v-if="isShowImg" :src="props.showAvatarThumb" :size="avatarSize" />
+    <el-avatar class="avatar" v-if="isShowImg" :src="props.showAvatarThumb" :size="avatarSize" />
     <span
       class="first-char-box"
       v-else-if="firstChar"
@@ -71,7 +71,7 @@ const statusCircleColor = computed(() => {
     >
       {{ firstChar }}
     </span>
-    <el-avatar v-else :src="default_avatar" :size="avatarSize" />
+    <el-avatar class="avatar" v-else :src="default_avatar" :size="avatarSize" />
     <div
       v-if="props.userStatus != null"
       class="status-circle"
@@ -120,6 +120,14 @@ const statusCircleColor = computed(() => {
     position: absolute;
     bottom: 0;
     right: 0;
+  }
+
+  .avatar {
+    border: 1px solid #fff;
+  }
+
+  .avatar ::v-deep img {
+    margin: 0;
   }
 }
 </style>

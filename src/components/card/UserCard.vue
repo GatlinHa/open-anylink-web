@@ -375,6 +375,7 @@ const onVideoCall = () => {
         height: 100px;
         position: absolute;
         top: 35px;
+        border: 2px solid #fff;
       }
 
       .gender {

@@ -133,6 +133,11 @@ watch(
       height: 100px;
       position: absolute;
       top: 40px;
+      border: 2px solid #fff;
+    }
+
+    .avatar ::v-deep img {
+      margin: 0;
     }
 
     .gender {
