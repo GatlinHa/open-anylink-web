@@ -173,11 +173,13 @@ const onVideoCall = () => {
           </el-text>
           <div class="info-item phone">
             <span class="label">手机：</span>
-            <span class="value">{{ userCardData.userInfo.phoneNum || '-' }}</span>
+            <span class="value">安全要求不予展示</span>
+            <!-- <span class="value">{{ userCardData.userInfo.phoneNum || '-' }}</span> -->
           </div>
           <div class="info-item email">
             <span class="label">邮箱：</span>
-            <span class="value">{{ userCardData.userInfo.email || '-' }}</span>
+            <span class="value">安全要求不予展示</span>
+            <!-- <span class="value">{{ userCardData.userInfo.email || '-' }}</span> -->
           </div>
           <div class="info-item nickname">
             <span class="label">部门：</span>
