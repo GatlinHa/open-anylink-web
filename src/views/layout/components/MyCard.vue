@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { Close, Male, Female } from '@element-plus/icons-vue'
 import { userStore } from '@/stores'
-import avatar from '@/assets/default_avatar.png'
+import avatar from '@/assets/image/default_avatar.png'
 import router from '@/router'
 
 const props = defineProps(['isShow'])

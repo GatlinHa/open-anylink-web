@@ -10,7 +10,7 @@ import {
   Microphone,
   VideoCamera
 } from '@element-plus/icons-vue'
-import avatar from '@/assets/default_avatar.png'
+import avatar from '@/assets/image/default_avatar.png'
 import { userStore, messageStore, userCardStore } from '@/stores'
 import { combineId } from '@/js/utils/common'
 import { MsgType } from '@/proto/msg'

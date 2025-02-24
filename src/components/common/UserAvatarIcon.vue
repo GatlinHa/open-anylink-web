@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { getAvatarColor, getFontColor } from '@/js/utils/common'
 import { STATUS } from '@/const/userConst'
-import default_avatar from '@/assets/default_avatar.png'
+import default_avatar from '@/assets/image/default_avatar.png'
 
 const props = defineProps(['showName', 'showId', 'showAvatarThumb', 'userStatus', 'size'])
 
