@@ -210,11 +210,23 @@ watch(isRegister, () => {
       </el-form>
     </div>
     <div class="footer">
-      <span class="item">©2024 - 2025 Open-AnyLink 版权所有</span>
-      <a class="item" href="https://beian.miit.gov.cn/" target="_blank">陕ICP备2025059454号-2</a>
-      <a class="item" href="https://github.com/GatlinHa/open-anylink/" target="_blank"
-        >Github源码</a
-      >
+      <div class="row">
+        <span class="item">©2024 - 2025 Open-AnyLink 版权所有</span>
+      </div>
+      <div class="row">
+        <a class="item" href="https://github.com/GatlinHa/open-anylink/" target="_blank">
+          Github源码
+        </a>
+      </div>
+      <div class="row">
+        <p class="item" style="margin: 0">
+          <img src="@/assets/image/head-logo.png" width="20" />
+          <a href="https://beian.mps.gov.cn/#/query/webSearch?code=61011602000694" target="_blank">
+            陕公网安备61011602000694号
+          </a>
+        </p>
+        <a class="item" href="https://beian.miit.gov.cn/" target="_blank">陕ICP备2025059454号-2</a>
+      </div>
     </div>
     <div class="css-box">
       <ul class="bubble-bgwall">
@@ -278,16 +290,25 @@ watch(isRegister, () => {
   }
 
   .footer {
-    width: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     font-size: 12px;
     position: absolute;
     bottom: 20px;
 
+    .row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
     .item {
       margin-left: 5px;
       margin-right: 5px;
+      display: flex;
+      align-items: center;
     }
   }
 }
