@@ -112,7 +112,12 @@ watch(isRegister, () => {
 
 <template>
   <div class="login-page">
-    <span class="logo">Open AnyLink</span>
+    <div class="login-title">
+      <span class="logo">Open AnyLink</span>
+      <span class="feature">开源·轻量·分布式</span>
+      <span class="desc">企业IM即时通信解决方案</span>
+    </div>
+
     <div class="login-box">
       <el-form
         :model="formModel"
@@ -258,11 +263,40 @@ watch(isRegister, () => {
   justify-content: center;
   align-items: center;
 
-  .logo {
-    margin-bottom: 100px;
-    color: #409eff;
-    font-size: 50px;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  .login-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    top: 10%;
+
+    .logo {
+      font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
+      font-weight: 700; /* 增强品牌识别度 */
+      font-size: 50px; /* 36px */
+      letter-spacing: -0.5px; /* 紧凑型字距 */
+      color: #1a365d; /* 深品牌蓝 */
+      display: block;
+    }
+
+    .feature {
+      font-family:
+        'SF Pro Text',
+        -apple-system,
+        sans-serif;
+      font-weight: 500; /* 中等字重保持可读性 */
+      font-size: 20px; /* 16px */
+      color: #4a5568; /* 中灰色降低视觉干扰 */
+      display: block;
+    }
+
+    .desc {
+      font-family: 'Segoe UI Semibold', sans-serif;
+      font-size: 30px; /* 18px */
+      color: #2b6cb0; /* 品牌辅助蓝 */
+      letter-spacing: 0.25px;
+      display: block;
+    }
   }
 
   .login-box {
@@ -272,6 +306,8 @@ watch(isRegister, () => {
     border: #e0e0e0 solid 1px;
     border-radius: 10px;
     padding: 20px;
+    position: absolute;
+    top: 25%;
 
     .el-form {
       display: flex;
