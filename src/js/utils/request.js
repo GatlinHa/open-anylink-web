@@ -7,7 +7,14 @@ import { ElMessage } from 'element-plus'
 import { CLIENT_TYPE, CLIENT_NAME, CLIENT_VERSION } from '@/const/userConst'
 
 const baseURL = import.meta.env.VITE_BASE_URL
-const noTokenReqList = ['/user/nonce', '/user/login', '/user/register', '/user/validateAccount']
+const noTokenReqList = [
+  '/user/getCaptcha',
+  '/user/verifyCaptcha',
+  '/user/nonce',
+  '/user/login',
+  '/user/register',
+  '/user/validateAccount'
+]
 
 const instance = axios.create({
   baseURL,
