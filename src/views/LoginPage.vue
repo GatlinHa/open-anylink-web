@@ -320,8 +320,7 @@ watch(isRegister, () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: absolute;
-    top: 10%;
+    margin-bottom: 50px;
 
     .logo {
       font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
@@ -362,8 +361,6 @@ watch(isRegister, () => {
     display: flex;
     flex-direction: column;
     justify-content: start;
-    position: absolute;
-    top: 25%;
 
     .el-form {
       display: flex;
