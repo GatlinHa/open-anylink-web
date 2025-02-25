@@ -22,6 +22,14 @@ export const userNonceService = ({ account }) => {
   })
 }
 
+export const userGetCaptchaService = () => {
+  return request.get('/user/getCaptcha')
+}
+
+export const userVerifyCaptchaService = (obj) => {
+  return request.post('/user/verifyCaptcha', obj)
+}
+
 export const userLoginService = async ({ account, password }) => {
   const obj = await encryptPasswordObj(account, password)
   return request.post('/user/login', {

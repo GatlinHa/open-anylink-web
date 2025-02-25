@@ -1,8 +1,13 @@
 <script setup>
-import { User, Lock, Avatar } from '@element-plus/icons-vue'
+import { User, Lock, Avatar, Key } from '@element-plus/icons-vue'
 import { ref, watch, onMounted } from 'vue'
 import router from '@/router'
-import { userRegisterService, userLoginService } from '@/api/user.js'
+import {
+  userRegisterService,
+  userLoginService,
+  userGetCaptchaService,
+  userVerifyCaptchaService
+} from '@/api/user.js'
 import { userStore } from '@/stores'
 import { generateClientId } from '@/js/utils/common'
 import { ElMessage } from 'element-plus'
@@ -14,7 +19,8 @@ const formModel = ref({
   account: '',
   nickName: '',
   password: '',
-  repassword: ''
+  repassword: '',
+  captchaCode: ''
 })
 // 表单对象
 const form = ref()
@@ -56,13 +62,25 @@ const rules = {
       },
       trigger: 'blur'
     }
-  ]
+  ],
+  captchaCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 }
 
 const userData = userStore()
 
 const register = async () => {
   await form.value.validate() // 注册之前预校验
+  try {
+    await userVerifyCaptchaService({
+      id: captchaId.value,
+      code: formModel.value.captchaCode
+    })
+  } catch (error) {
+    // 触发form表单报错提醒
+    formModel.value.captchaCode = ''
+    await form.value.validate()
+  }
+
   await userRegisterService(formModel.value)
   ElMessage.success('注册成功')
   isRegister.value = false
@@ -100,12 +118,34 @@ const forgetPassword = () => {
   ElMessage.warning('功能开发中')
 }
 
+const switchLogin = () => {
+  isRegister.value = false
+}
+
+const captchaId = ref('')
+const captchaImage = ref('')
+
+const switchRegister = () => {
+  getCaptchaImage()
+  isRegister.value = true
+}
+
+const getCaptchaImage = () => {
+  captchaId.value = ''
+  captchaImage.value = ''
+  userGetCaptchaService().then(async (res) => {
+    captchaId.value = res.data.data.id
+    captchaImage.value = res.data.data.base64
+  })
+}
+
 watch(isRegister, () => {
   formModel.value = {
     account: !isRegister.value && isRemenberMe.value ? userData.user.account : '',
     nickName: '',
     password: '',
-    repassword: ''
+    repassword: '',
+    captchaCode: ''
   }
 })
 </script>
@@ -119,6 +159,8 @@ watch(isRegister, () => {
     </div>
 
     <div class="login-box">
+      <span v-if="isRegister" class="login-header">注册</span>
+      <span v-else class="login-header">登录</span>
       <el-form
         :model="formModel"
         :rules="rules"
@@ -127,9 +169,6 @@ watch(isRegister, () => {
         autocomplete="off"
         v-if="isRegister"
       >
-        <el-form-item>
-          <h1>注册</h1>
-        </el-form-item>
         <el-form-item prop="account">
           <el-input
             v-model="formModel.account"
@@ -164,21 +203,35 @@ watch(isRegister, () => {
             show-password
           ></el-input>
         </el-form-item>
+        <el-form-item prop="captchaCode" class="captcha-form-item">
+          <el-input
+            v-model="formModel.captchaCode"
+            :prefix-icon="Key"
+            placeholder="请输入验证码"
+            class="captcha-input"
+          ></el-input>
+          <div class="captcha-image">
+            <img
+              v-if="captchaImage"
+              :src="captchaImage"
+              @click="getCaptchaImage"
+              style="cursor: pointer"
+            />
+            <img v-else src="@/assets/gif/loading.gif" style="width: 40px; height: 40px" />
+          </div>
+        </el-form-item>
         <el-form-item>
           <el-button @click="register" class="button" type="primary" auto-insert-space>
             注册
           </el-button>
         </el-form-item>
         <el-form-item class="flex">
-          <el-link type="primary" :underline="false" @click="isRegister = false">
+          <el-link type="primary" :underline="false" @click="switchLogin">
             ← 已有账号，立即登录
           </el-link>
         </el-form-item>
       </el-form>
       <el-form :model="formModel" :rules="rules" ref="form" size="large" autocomplete="off" v-else>
-        <el-form-item>
-          <h1>登录</h1>
-        </el-form-item>
         <el-form-item prop="account">
           <el-input
             v-model="formModel.account"
@@ -208,7 +261,7 @@ watch(isRegister, () => {
           <el-button @click="login" class="button" type="primary" auto-insert-space>登录</el-button>
         </el-form-item>
         <el-form-item class="flex">
-          <el-link type="primary" :underline="false" @click="isRegister = true">
+          <el-link type="primary" :underline="false" @click="switchRegister">
             没有账号？立即注册 →
           </el-link>
         </el-form-item>
@@ -306,6 +359,9 @@ watch(isRegister, () => {
     border: #e0e0e0 solid 1px;
     border-radius: 10px;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
     position: absolute;
     top: 25%;
 
@@ -322,6 +378,33 @@ watch(isRegister, () => {
         display: flex;
         justify-content: space-between;
       }
+    }
+
+    .login-header {
+      display: block;
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .captcha-form-item {
+      display: flex;
+      align-items: center;
+    }
+
+    .captcha-input {
+      flex: 1; /* 占据剩余空间 */
+      min-width: 0; /* 防止内容溢出 */
+    }
+
+    .captcha-image {
+      width: 100px;
+      height: 40px;
+      flex-shrink: 0; /* 禁止图片缩小 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-left: 20px;
     }
   }
 
