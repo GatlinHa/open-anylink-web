@@ -134,9 +134,7 @@ watch(
       position: absolute;
       top: 40px;
       border: 2px solid #fff;
-    }
 
-    .avatar {
       :deep(img) {
         margin: 0;
       }

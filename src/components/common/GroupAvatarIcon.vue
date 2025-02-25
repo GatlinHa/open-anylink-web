@@ -58,9 +58,7 @@ const isValid = computed(() => {
 <style lang="scss" scoped>
 .avatar {
   border: 1px solid #fff;
-}
 
-.avatar {
   :deep(img) {
     margin: 0;
   }
