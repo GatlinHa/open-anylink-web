@@ -116,6 +116,7 @@ const displayPhone = computed(() => {
               type="date"
               placeholder="请选择日期"
               value-format="YYYY-MM-DD"
+              style="width: 300px"
             />
           </el-form-item>
           <el-form-item label="个性签名：" prop="level">
