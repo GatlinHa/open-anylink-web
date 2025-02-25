@@ -340,6 +340,7 @@ watch(isRegister, () => {
       font-size: 20px; /* 16px */
       color: #4a5568; /* 中灰色降低视觉干扰 */
       display: block;
+      margin-bottom: 30px;
     }
 
     .desc {
