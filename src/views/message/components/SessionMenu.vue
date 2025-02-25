@@ -4,16 +4,24 @@ import { Top, Bottom, MuteNotification, Bell, CircleClose, Edit } from '@element
 import { messageStore } from '@/stores'
 
 const props = defineProps(['sessionId'])
-const emit = defineEmits(['selectMenu'])
+const emit = defineEmits(['selectMenu', 'closeMenu'])
 
 const messageData = messageStore()
 
 const top = computed(() => {
-  return messageData.sessionList[props.sessionId].top
+  if (props.sessionId) {
+    return messageData.sessionList[props.sessionId].top
+  } else {
+    return undefined
+  }
 })
 
 const dnd = computed(() => {
-  return messageData.sessionList[props.sessionId].dnd
+  if (props.sessionId) {
+    return messageData.sessionList[props.sessionId].dnd
+  } else {
+    return undefined
+  }
 })
 
 const menu = computed(() => {
@@ -62,9 +70,13 @@ onUnmounted(() => {
 })
 
 const handleSessionMenu = (e) => {
+  isShowMenu.value = props.sessionId && true
+  if (!isShowMenu.value) {
+    return
+  }
+
   e.preventDefault() //阻止浏览器默认行为
   e.stopPropagation() // 阻止冒泡
-  isShowMenu.value = true
   x.value = e.clientX
   y.value = e.clientY
 
@@ -84,6 +96,7 @@ const handleEscEvent = (event) => {
 
 const closeMenu = () => {
   isShowMenu.value = false
+  emit('closeMenu')
 }
 
 const handleClick = (item) => {

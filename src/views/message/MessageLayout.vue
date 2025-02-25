@@ -814,6 +814,10 @@ const onOpenSessionMenu = (sessionId) => {
   showMenuSessionId.value = sessionId
 }
 
+const onCloseSessionMenu = () => {
+  showMenuSessionId.value = ''
+}
+
 const onNoneSelected = () => {
   messageData.setSelectedSessionId('')
 }
@@ -969,7 +973,11 @@ const onSendEmoji = (key) => {
           </AddOprMenu>
         </div>
 
-        <SessionMenu :sessionId="showMenuSessionId" @selectMenu="onSelectMenu">
+        <SessionMenu
+          :sessionId="showMenuSessionId"
+          @selectMenu="onSelectMenu"
+          @closeMenu="onCloseSessionMenu"
+        >
           <div class="session-list my-scrollbar" ref="sessionListRef">
             <SessionItem
               :ref="(el) => setSessionItemRef(item.sessionId, el)"
