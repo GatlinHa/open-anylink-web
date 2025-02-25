@@ -60,8 +60,10 @@ const isValid = computed(() => {
   border: 1px solid #fff;
 }
 
-.avatar ::v-deep img {
-  margin: 0;
+.avatar {
+  :deep(img) {
+    margin: 0;
+  }
 }
 
 .svg-avatar {
