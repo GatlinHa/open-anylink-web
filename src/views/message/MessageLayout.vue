@@ -1,6 +1,6 @@
 eslint-disable prettier/prettier
 <script setup>
-import { ref, onMounted, computed, nextTick, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue'
 import {
   Microphone,
   VideoCamera,
@@ -85,7 +85,9 @@ const myAccount = computed(() => {
 })
 
 //当前被选中的session
-const selectedSessionId = ref('')
+const selectedSessionId = computed(() => {
+  return messageData.selectedSessionId || ''
+})
 
 // 消息拉取是否结束
 const pullMsgDone = computed(() => {
@@ -242,7 +244,7 @@ onMounted(async () => {
   wsConnect.bindGroupSystemMsgEvent(onReceiveGroupSystemMsg(msgListDiv, capacity)) //绑定接收群系统消息事件
 
   // 这里要接收从其他页面跳转过来传递的sessionId参数
-  const routerSessionId = router.currentRoute.value.query.sessionId || selectedSessionId.value
+  const routerSessionId = router.currentRoute.value.query.sessionId
   if (routerSessionId) {
     if (routerSessionId in messageData.sessionList) {
       handleSelectedSession(routerSessionId)
@@ -259,6 +261,10 @@ onMounted(async () => {
         })
     }
   }
+})
+
+onUnmounted(() => {
+  messageData.setSelectedSessionId('')
 })
 
 const handleMsgListWheel = async () => {
@@ -421,7 +427,7 @@ const handleSelectedSession = async (sessionId) => {
   router.replace({ query: { sessionId: sessionId } })
 
   if (selectedSessionId.value !== sessionId) {
-    selectedSessionId.value = sessionId
+    messageData.setSelectedSessionId(sessionId)
     initSession(sessionId)
     locateSession(sessionId)
 
@@ -809,7 +815,7 @@ const onOpenSessionMenu = (sessionId) => {
 }
 
 const onNoneSelected = () => {
-  selectedSessionId.value = ''
+  messageData.setSelectedSessionId('')
 }
 
 const onVoiceCall = () => {

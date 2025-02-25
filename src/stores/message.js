@@ -10,6 +10,15 @@ import { ElMessage } from 'element-plus'
 // 消息功能相关需要缓存的数据，不持久化存储
 export const messageStore = defineStore('anylink-message', () => {
   /**
+   * message页面当前被选中的sessionId
+   */
+  const selectedSessionId = ref('')
+
+  const setSelectedSessionId = (id) => {
+    selectedSessionId.value = id
+  }
+
+  /**
    * 会话列表
    * 格式：{sessionId_1: session_1, sessionId_2: session_2, ...}
    */
@@ -170,6 +179,7 @@ export const messageStore = defineStore('anylink-message', () => {
   )
 
   const clear = () => {
+    selectedSessionId.value = ''
     sessionList.value = {}
     msgRecordsList.value = {}
     partitions.value = {}
@@ -227,6 +237,8 @@ export const messageStore = defineStore('anylink-message', () => {
   }
 
   return {
+    selectedSessionId,
+    setSelectedSessionId,
     sessionList,
     addSession,
     deleteSession,
