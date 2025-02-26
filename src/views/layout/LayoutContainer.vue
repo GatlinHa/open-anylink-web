@@ -24,6 +24,8 @@ import {
 import UserCard from '@/components/card/UserCard.vue'
 import GroupCard from '@/components/card/GroupCard.vue'
 import { MsgType } from '@/proto/msg'
+import contactusIcon from '@/assets/svg/contactus.svg'
+import githubIcon from '@/assets/svg/github.svg'
 
 const myAvatar = ref()
 const userData = userStore()
@@ -176,53 +178,59 @@ const onExit = async () => {
 <template>
   <el-container class="layout-container" @mousemove="onMouseMove">
     <el-aside width="100px">
-      <span class="avatar">
-        <UserAvatarIcon
-          ref="myAvatar"
-          :showName="userData.user.nickName"
-          :showId="userData.user.account"
-          :showAvatarThumb="userData.user.avatarThumb"
-          @click="isShowMyCard = true"
+      <div>
+        <span class="avatar">
+          <UserAvatarIcon
+            ref="myAvatar"
+            :showName="userData.user.nickName"
+            :showId="userData.user.account"
+            :showAvatarThumb="userData.user.avatarThumb"
+            @click="isShowMyCard = true"
+          >
+          </UserAvatarIcon>
+          <div class="user-status">
+            <div class="status-circle" :style="{ backgroundColor: statusCircleColor }"></div>
+            <span class="status-desc">{{ userStatusDesc }}</span>
+          </div>
+        </span>
+
+        <el-menu
+          active-text-color="#ecf5ff"
+          background-color="#409eff"
+          :default-active="$route.meta.active_1"
+          text-color="#fff"
+          router
         >
-        </UserAvatarIcon>
-        <div class="user-status">
-          <div class="status-circle" :style="{ backgroundColor: statusCircleColor }"></div>
-          <span class="status-desc">{{ userStatusDesc }}</span>
-        </div>
-      </span>
+          <NaviMenu funcName="消息" index="/message">
+            <template #iconSlot>
+              <ChatRound />
+            </template>
+          </NaviMenu>
+          <NaviMenu funcName="通讯录" index="/contactList">
+            <template #iconSlot>
+              <Notebook />
+            </template>
+          </NaviMenu>
+          <NaviMenu funcName="会议" index="/meeting">
+            <template #iconSlot>
+              <VideoCameraFilled />
+            </template>
+          </NaviMenu>
+          <NaviMenu funcName="设置" index="/setting">
+            <template #iconSlot>
+              <Setting />
+            </template>
+          </NaviMenu>
+        </el-menu>
+      </div>
 
-      <el-menu
-        active-text-color="#ecf5ff"
-        background-color="#409eff"
-        :default-active="$route.meta.active_1"
-        text-color="#fff"
-        router
-      >
-        <NaviMenu funcName="消息" index="/message">
-          <template #iconSlot>
-            <ChatRound />
-          </template>
-        </NaviMenu>
-        <NaviMenu funcName="通讯录" index="/contactList">
-          <template #iconSlot>
-            <Notebook />
-          </template>
-        </NaviMenu>
-        <NaviMenu funcName="会议" index="/meeting">
-          <template #iconSlot>
-            <VideoCameraFilled />
-          </template>
-        </NaviMenu>
-        <NaviMenu funcName="设置" index="/setting">
-          <template #iconSlot>
-            <Setting />
-          </template>
-        </NaviMenu>
-      </el-menu>
-
-      <el-icon class="exit-button" title="退出" :size="20" @click="onExit()"
-        ><SwitchButton />
-      </el-icon>
+      <div class="footer">
+        <el-icon class="footer-item" title="联系我们"><contactusIcon /></el-icon>
+        <el-icon class="footer-item" title="源码地址"><githubIcon /></el-icon>
+        <el-icon class="footer-item" title="退出" :size="20" @click="onExit()"
+          ><SwitchButton />
+        </el-icon>
+      </div>
     </el-aside>
     <el-main style="padding: 0">
       <router-view></router-view>
@@ -242,7 +250,10 @@ const onExit = async () => {
   user-select: none;
 
   .el-aside {
-    background-color: #409eff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, #409eff, rgb(159.5, 206.5, 255));
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
     position: relative;
@@ -253,7 +264,7 @@ const onExit = async () => {
       justify-content: center;
       align-items: center;
       margin-top: 20px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
 
       .el-avatar {
         width: 40px;
@@ -280,27 +291,39 @@ const onExit = async () => {
     }
 
     .el-menu {
+      background-color: transparent;
       border-right: none;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    .exit-button {
-      position: absolute;
-      bottom: 30px;
-      left: 30px;
-      width: 40px;
-      height: 40px;
-      border-radius: 16px;
-      color: #fff;
+    .footer {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      cursor: pointer;
 
-      &:hover {
-        background-color: #337ecc;
+      .footer-item {
+        width: 40px;
+        height: 40px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        border-radius: 16px;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+
+        &:hover {
+          background-color: #337ecc;
+        }
+      }
+
+      .svg-icon {
+        fill: #fff;
+        width: 20px;
+        height: 20px;
       }
     }
   }
