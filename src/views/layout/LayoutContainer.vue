@@ -27,6 +27,7 @@ import GroupCard from '@/components/card/GroupCard.vue'
 import { MsgType } from '@/proto/msg'
 import contactusIcon from '@/assets/svg/contactus.svg'
 import githubIcon from '@/assets/svg/github.svg'
+import SourceCode from '@/views/layout/components/SourceCode.vue'
 
 const myAvatar = ref()
 const userData = userStore()
@@ -35,6 +36,7 @@ const searchData = searchStore()
 const groupData = groupStore()
 const isShowMyCard = ref(false)
 const contactUsRef = ref(null)
+const sourceCodeRef = ref(null)
 
 const userStatusDesc = computed(() => {
   switch (userData.user.status) {
@@ -230,7 +232,9 @@ const onExit = async () => {
         <el-icon class="footer-item" title="联系我们" @click="contactUsRef.show($event)">
           <contactusIcon />
         </el-icon>
-        <el-icon class="footer-item" title="源码"><githubIcon /></el-icon>
+        <el-icon class="footer-item" title="源码" @click="sourceCodeRef.show()">
+          <githubIcon />
+        </el-icon>
         <el-icon class="footer-item" title="退出" :size="20" @click="onExit()">
           <SwitchButton />
         </el-icon>
@@ -243,6 +247,7 @@ const onExit = async () => {
     <UserCard></UserCard>
     <GroupCard></GroupCard>
     <ContactUs ref="contactUsRef"></ContactUs>
+    <SourceCode ref="sourceCodeRef"></SourceCode>
   </el-container>
 </template>
 
