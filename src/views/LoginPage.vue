@@ -27,6 +27,13 @@ const formModel = ref({
 const form = ref()
 const isRemenberMe = ref(false)
 
+const demoData = [
+  { account: import.meta.env.VITE_DEMO_ACCOUNT_1, password: import.meta.env.VITE_DEMO_PASSWORD_1 },
+  { account: import.meta.env.VITE_DEMO_ACCOUNT_2, password: import.meta.env.VITE_DEMO_PASSWORD_2 },
+  { account: import.meta.env.VITE_DEMO_ACCOUNT_3, password: import.meta.env.VITE_DEMO_PASSWORD_3 },
+  { account: import.meta.env.VITE_DEMO_ACCOUNT_4, password: import.meta.env.VITE_DEMO_PASSWORD_4 }
+]
+
 // 表单的校验规则
 const rules = {
   account: [
@@ -99,6 +106,12 @@ const login = async () => {
     .catch(() => {
       formModel.value.password = ''
     })
+}
+
+const onLoginDemoAccount = (index) => {
+  formModel.value.account = demoData[index].account
+  formModel.value.password = demoData[index].password
+  login()
 }
 
 onMounted(() => {
@@ -298,6 +311,20 @@ watch(isRegister, () => {
             </el-link>
           </el-form-item>
         </el-form>
+        <div v-if="!isRegister" class="demo-info">
+          <el-divider class="separation-line" content-position="center">演示账号</el-divider>
+          <div class="demo-detail">
+            <span
+              v-for="(item, index) in demoData"
+              :key="item.account"
+              class="demo-item"
+              title="点击快捷登录"
+              @click="onLoginDemoAccount(index)"
+            >
+              账号{{ index + 1 }}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -388,6 +415,7 @@ watch(isRegister, () => {
         color: #2b6cb0; /* 品牌辅助蓝 */
         letter-spacing: 0.25px;
         display: block;
+        padding-bottom: 50px;
       }
     }
 
@@ -414,6 +442,40 @@ watch(isRegister, () => {
           width: 100%;
           display: flex;
           justify-content: space-between;
+        }
+      }
+
+      .demo-info {
+        .demo-detail {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-around;
+
+          .demo-item {
+            display: flex;
+            flex-direction: row;
+            font-size: 14px;
+            font-weight: bold;
+            color: #409eff;
+            padding: 2px 10px 2px 10px;
+            margin-left: 5px;
+            margin-right: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+
+            &:hover {
+              background-color: #dedfe0;
+            }
+          }
+        }
+
+        .separation-line {
+          :deep(.el-divider__text) {
+            font-size: 14px;
+            font-weight: normal;
+            color: gray;
+            white-space: nowrap;
+          }
         }
       }
 
