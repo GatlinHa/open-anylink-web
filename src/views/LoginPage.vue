@@ -11,6 +11,7 @@ import {
 import { userStore } from '@/stores'
 import { generateClientId } from '@/js/utils/common'
 import { ElMessage } from 'element-plus'
+import { flowLimiteWrapper } from '@/js/utils/flowLimite'
 
 const isRegister = ref(false)
 
@@ -71,10 +72,7 @@ const userData = userStore()
 const register = async () => {
   await form.value.validate() // 注册之前预校验
   try {
-    await userVerifyCaptchaService({
-      id: captchaId.value,
-      code: formModel.value.captchaCode
-    })
+    await verifyCaptchaWrapper()
   } catch (error) {
     // 触发form表单报错提醒
     formModel.value.captchaCode = ''
@@ -126,18 +124,41 @@ const captchaId = ref('')
 const captchaImage = ref('')
 
 const switchRegister = () => {
-  getCaptchaImage()
+  getCaptchaImageWrapper().catch(() => {
+    // do nothing
+  })
   isRegister.value = true
 }
 
-const getCaptchaImage = () => {
-  captchaId.value = ''
-  captchaImage.value = ''
-  userGetCaptchaService().then(async (res) => {
-    captchaId.value = res.data.data.id
-    captchaImage.value = res.data.data.base64
+const onClickCaptcha = () => {
+  getCaptchaImageWrapper().catch(() => {
+    // do nothing
   })
 }
+
+// 60s内只能被执行10次
+const getCaptchaImageWrapper = flowLimiteWrapper(
+  async () => {
+    captchaId.value = ''
+    captchaImage.value = ''
+    return userGetCaptchaService().then((res) => {
+      captchaId.value = res.data.data.id
+      captchaImage.value = res.data.data.base64
+    })
+  },
+  10,
+  60000
+)
+const verifyCaptchaWrapper = flowLimiteWrapper(
+  async () => {
+    return userVerifyCaptchaService({
+      id: captchaId.value,
+      code: formModel.value.captchaCode
+    })
+  },
+  10,
+  60000
+)
 
 watch(isRegister, () => {
   formModel.value = {
@@ -214,7 +235,7 @@ watch(isRegister, () => {
             <img
               v-if="captchaImage"
               :src="captchaImage"
-              @click="getCaptchaImage"
+              @click="onClickCaptcha"
               style="cursor: pointer"
             />
             <img v-else src="@/assets/gif/loading.gif" style="width: 40px; height: 40px" />
