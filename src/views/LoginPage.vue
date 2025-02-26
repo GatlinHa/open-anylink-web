@@ -155,7 +155,7 @@ watch(isRegister, () => {
     <div class="login-title">
       <span class="logo">Open AnyLink</span>
       <span class="feature">开源·轻量·分布式</span>
-      <span class="desc">企业IM即时通信解决方案</span>
+      <span class="desc">企业IM即时通讯解决方案</span>
     </div>
 
     <div class="login-box">
