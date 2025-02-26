@@ -93,8 +93,7 @@ const register = async () => {
 
 const login = async () => {
   await form.value.validate() // 登录之前预校验
-  const response = userLoginService(formModel.value)
-  response
+  loginWrapper()
     .then(async (res) => {
       userData.setAt(res.data.data.accessToken)
       userData.setRt(res.data.data.refreshToken)
@@ -149,7 +148,13 @@ const onClickCaptcha = () => {
   })
 }
 
-// 60s内只能被执行10次
+const loginWrapper = flowLimiteWrapper(
+  async () => {
+    return userLoginService(formModel.value)
+  },
+  5,
+  60000
+)
 const getCaptchaImageWrapper = flowLimiteWrapper(
   async () => {
     captchaId.value = ''
