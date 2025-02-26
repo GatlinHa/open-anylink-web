@@ -278,7 +278,7 @@ watch(isRegister, () => {
       </div>
       <div class="row">
         <p class="item" style="margin: 0">
-          <img src="@/assets/image/head-logo.png" width="20" />
+          <img src="@/assets/image/beian-logo.png" width="16" />
           <a href="https://beian.mps.gov.cn/#/query/webSearch?code=61011602000694" target="_blank">
             陕公网安备61011602000694号
           </a>
