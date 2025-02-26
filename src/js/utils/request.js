@@ -12,8 +12,7 @@ const noTokenReqList = [
   '/user/verifyCaptcha',
   '/user/nonce',
   '/user/login',
-  '/user/register',
-  '/user/validateAccount'
+  '/user/register'
 ]
 
 const instance = axios.create({
@@ -25,25 +24,23 @@ const instance = axios.create({
 instance.interceptors.request.use(
   async (config) => {
     const userData = userStore()
+    const traceId = uuidv4()
     if (config.url === '/user/refreshToken') {
       const token = userData.getRefreshToken()
-      const traceId = uuidv4()
       const timestamp = Math.floor(new Date().getTime() / 1000)
       const sign = generateSign(userData.rt.secret, `${traceId}${timestamp}`)
-      config.headers.traceId = traceId
       config.headers.timestamp = timestamp
       config.headers.sign = sign
       config.headers.refreshToken = token
     } else if (!noTokenReqList.includes(config.url)) {
       const token = await userData.getAccessToken()
-      const traceId = uuidv4()
       const timestamp = Math.floor(new Date().getTime() / 1000)
       const sign = generateSign(userData.at.secret, `${traceId}${timestamp}`)
-      config.headers.traceId = traceId
       config.headers.timestamp = timestamp
       config.headers.sign = sign
       config.headers.accessToken = token
     }
+    config.headers.traceId = traceId
     config.headers.clientType = CLIENT_TYPE
     config.headers.clientName = CLIENT_NAME
     config.headers.clientVersion = CLIENT_VERSION
