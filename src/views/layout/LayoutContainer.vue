@@ -7,6 +7,7 @@ import {
   SwitchButton
 } from '@element-plus/icons-vue'
 import { onMounted, onUnmounted, ref, computed } from 'vue'
+import ContactUs from '@/views/layout/components/ContactUs.vue'
 import { userStore, messageStore, searchStore, groupStore } from '@/stores'
 import router from '@/router'
 import MyCard from '@/views/layout/components/MyCard.vue'
@@ -33,6 +34,7 @@ const messageData = messageStore()
 const searchData = searchStore()
 const groupData = groupStore()
 const isShowMyCard = ref(false)
+const contactUsRef = ref(null)
 
 const userStatusDesc = computed(() => {
   switch (userData.user.status) {
@@ -225,10 +227,12 @@ const onExit = async () => {
       </div>
 
       <div class="footer">
-        <el-icon class="footer-item" title="联系我们"><contactusIcon /></el-icon>
-        <el-icon class="footer-item" title="源码地址"><githubIcon /></el-icon>
-        <el-icon class="footer-item" title="退出" :size="20" @click="onExit()"
-          ><SwitchButton />
+        <el-icon class="footer-item" title="联系我们" @click="contactUsRef.show($event)">
+          <contactusIcon />
+        </el-icon>
+        <el-icon class="footer-item" title="源码"><githubIcon /></el-icon>
+        <el-icon class="footer-item" title="退出" :size="20" @click="onExit()">
+          <SwitchButton />
         </el-icon>
       </div>
     </el-aside>
@@ -238,6 +242,7 @@ const onExit = async () => {
     <MyCard :isShow="isShowMyCard" @close="isShowMyCard = false"></MyCard>
     <UserCard></UserCard>
     <GroupCard></GroupCard>
+    <ContactUs ref="contactUsRef"></ContactUs>
   </el-container>
 </template>
 
