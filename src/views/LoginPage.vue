@@ -173,121 +173,134 @@ watch(isRegister, () => {
 
 <template>
   <div class="login-page">
-    <div class="login-title">
-      <span class="logo">Open AnyLink</span>
-      <span class="feature">开源·轻量·分布式</span>
-      <span class="desc">企业IM即时通讯解决方案</span>
+    <div class="main">
+      <div class="login-title">
+        <span class="logo">Open AnyLink</span>
+        <span class="feature">开源·轻量·分布式</span>
+        <span class="desc">企业IM即时通讯解决方案</span>
+      </div>
+      <div class="login-box">
+        <span v-if="isRegister" class="login-header">注册</span>
+        <span v-else class="login-header">登录</span>
+        <el-form
+          :model="formModel"
+          :rules="rules"
+          ref="form"
+          size="large"
+          autocomplete="off"
+          v-if="isRegister"
+        >
+          <el-form-item prop="account">
+            <el-input
+              v-model="formModel.account"
+              :prefix-icon="User"
+              placeholder="请输入账号"
+              clearable
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="nickName">
+            <el-input
+              v-model="formModel.nickName"
+              :prefix-icon="Avatar"
+              placeholder="请输入昵称"
+              clearable
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input
+              v-model="formModel.password"
+              :prefix-icon="Lock"
+              type="password"
+              placeholder="请输入密码"
+              show-password
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="repassword">
+            <el-input
+              v-model="formModel.repassword"
+              :prefix-icon="Lock"
+              type="password"
+              placeholder="请输入再次密码"
+              show-password
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="captchaCode" class="captcha-form-item">
+            <el-input
+              v-model="formModel.captchaCode"
+              :prefix-icon="Key"
+              placeholder="请输入验证码"
+              class="captcha-input"
+            ></el-input>
+            <div class="captcha-image">
+              <img
+                v-if="captchaImage"
+                :src="captchaImage"
+                @click="onClickCaptcha"
+                style="cursor: pointer"
+              />
+              <img v-else src="@/assets/gif/loading.gif" style="width: 40px; height: 40px" />
+            </div>
+          </el-form-item>
+          <el-form-item>
+            <el-button @click="register" class="button" type="primary" auto-insert-space>
+              注册
+            </el-button>
+          </el-form-item>
+          <el-form-item class="flex">
+            <el-link type="primary" :underline="false" @click="switchLogin">
+              ← 已有账号，立即登录
+            </el-link>
+          </el-form-item>
+        </el-form>
+        <el-form
+          :model="formModel"
+          :rules="rules"
+          ref="form"
+          size="large"
+          autocomplete="off"
+          v-else
+        >
+          <el-form-item prop="account">
+            <el-input
+              v-model="formModel.account"
+              :prefix-icon="User"
+              placeholder="请输入账号"
+              clearable
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input
+              v-model="formModel.password"
+              name="password"
+              :prefix-icon="Lock"
+              type="password"
+              placeholder="请输入密码"
+              show-password
+              @keyup.enter="login"
+            ></el-input>
+          </el-form-item>
+          <el-form-item class="flex">
+            <div class="flex">
+              <el-checkbox v-model="isRemenberMe">记住我</el-checkbox>
+              <el-link type="primary" :underline="false" @click="forgetPassword">
+                忘记密码？
+              </el-link>
+            </div>
+          </el-form-item>
+          <el-form-item>
+            <el-button @click="login" class="button" type="primary" auto-insert-space>
+              登录
+            </el-button>
+          </el-form-item>
+          <el-form-item class="flex">
+            <el-link type="primary" :underline="false" @click="switchRegister">
+              没有账号？立即注册 →
+            </el-link>
+          </el-form-item>
+        </el-form>
+      </div>
     </div>
 
-    <div class="login-box">
-      <span v-if="isRegister" class="login-header">注册</span>
-      <span v-else class="login-header">登录</span>
-      <el-form
-        :model="formModel"
-        :rules="rules"
-        ref="form"
-        size="large"
-        autocomplete="off"
-        v-if="isRegister"
-      >
-        <el-form-item prop="account">
-          <el-input
-            v-model="formModel.account"
-            :prefix-icon="User"
-            placeholder="请输入账号"
-            clearable
-          ></el-input>
-        </el-form-item>
-        <el-form-item prop="nickName">
-          <el-input
-            v-model="formModel.nickName"
-            :prefix-icon="Avatar"
-            placeholder="请输入昵称"
-            clearable
-          ></el-input>
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input
-            v-model="formModel.password"
-            :prefix-icon="Lock"
-            type="password"
-            placeholder="请输入密码"
-            show-password
-          ></el-input>
-        </el-form-item>
-        <el-form-item prop="repassword">
-          <el-input
-            v-model="formModel.repassword"
-            :prefix-icon="Lock"
-            type="password"
-            placeholder="请输入再次密码"
-            show-password
-          ></el-input>
-        </el-form-item>
-        <el-form-item prop="captchaCode" class="captcha-form-item">
-          <el-input
-            v-model="formModel.captchaCode"
-            :prefix-icon="Key"
-            placeholder="请输入验证码"
-            class="captcha-input"
-          ></el-input>
-          <div class="captcha-image">
-            <img
-              v-if="captchaImage"
-              :src="captchaImage"
-              @click="onClickCaptcha"
-              style="cursor: pointer"
-            />
-            <img v-else src="@/assets/gif/loading.gif" style="width: 40px; height: 40px" />
-          </div>
-        </el-form-item>
-        <el-form-item>
-          <el-button @click="register" class="button" type="primary" auto-insert-space>
-            注册
-          </el-button>
-        </el-form-item>
-        <el-form-item class="flex">
-          <el-link type="primary" :underline="false" @click="switchLogin">
-            ← 已有账号，立即登录
-          </el-link>
-        </el-form-item>
-      </el-form>
-      <el-form :model="formModel" :rules="rules" ref="form" size="large" autocomplete="off" v-else>
-        <el-form-item prop="account">
-          <el-input
-            v-model="formModel.account"
-            :prefix-icon="User"
-            placeholder="请输入账号"
-            clearable
-          ></el-input>
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input
-            v-model="formModel.password"
-            name="password"
-            :prefix-icon="Lock"
-            type="password"
-            placeholder="请输入密码"
-            show-password
-            @keyup.enter="login"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="flex">
-          <div class="flex">
-            <el-checkbox v-model="isRemenberMe">记住我</el-checkbox>
-            <el-link type="primary" :underline="false" @click="forgetPassword">忘记密码？</el-link>
-          </div>
-        </el-form-item>
-        <el-form-item>
-          <el-button @click="login" class="button" type="primary" auto-insert-space>登录</el-button>
-        </el-form-item>
-        <el-form-item class="flex">
-          <el-link type="primary" :underline="false" @click="switchRegister">
-            没有账号？立即注册 →
-          </el-link>
-        </el-form-item>
-      </el-form>
-    </div>
     <div class="footer">
       <div class="row">
         <span class="item">©2024 - 2025 Open-AnyLink 版权所有</span>
@@ -333,97 +346,103 @@ watch(isRegister, () => {
   background-color: transparent;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   position: relative;
-  justify-content: center;
-  align-items: center;
 
-  .login-title {
+  .main {
     display: flex;
+    flex-grow: 1;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
-    margin-bottom: 50px;
 
-    .logo {
-      font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
-      font-weight: 700; /* 增强品牌识别度 */
-      font-size: 50px; /* 36px */
-      letter-spacing: -0.5px; /* 紧凑型字距 */
-      color: #1a365d; /* 深品牌蓝 */
-      display: block;
-    }
-
-    .feature {
-      font-family:
-        'SF Pro Text',
-        -apple-system,
-        sans-serif;
-      font-weight: 500; /* 中等字重保持可读性 */
-      font-size: 20px; /* 16px */
-      color: #4a5568; /* 中灰色降低视觉干扰 */
-      display: block;
-      margin-bottom: 30px;
-    }
-
-    .desc {
-      font-family: 'Segoe UI Semibold', sans-serif;
-      font-size: 30px; /* 18px */
-      color: #2b6cb0; /* 品牌辅助蓝 */
-      letter-spacing: 0.25px;
-      display: block;
-    }
-  }
-
-  .login-box {
-    width: 360px;
-    height: 480px;
-    background-color: #fff;
-    border: #e0e0e0 solid 1px;
-    border-radius: 10px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: start;
-
-    .el-form {
+    .login-title {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      user-select: none;
-      .button {
-        width: 100%;
+      align-items: center;
+
+      .logo {
+        font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
+        font-weight: 700; /* 增强品牌识别度 */
+        font-size: 50px; /* 36px */
+        letter-spacing: -0.5px; /* 紧凑型字距 */
+        color: #1a365d; /* 深品牌蓝 */
+        display: block;
       }
-      .flex {
-        width: 100%;
+
+      .feature {
+        font-family:
+          'SF Pro Text',
+          -apple-system,
+          sans-serif;
+        font-weight: 500; /* 中等字重保持可读性 */
+        font-size: 20px; /* 16px */
+        color: #4a5568; /* 中灰色降低视觉干扰 */
+        display: block;
+        margin-bottom: 30px;
+      }
+
+      .desc {
+        font-family: 'Segoe UI Semibold', sans-serif;
+        font-size: 30px; /* 18px */
+        color: #2b6cb0; /* 品牌辅助蓝 */
+        letter-spacing: 0.25px;
+        display: block;
+      }
+    }
+
+    .login-box {
+      width: 360px;
+      height: 480px;
+      background-color: #fff;
+      border: #e0e0e0 solid 1px;
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: start;
+
+      .el-form {
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
+        justify-content: center;
+        user-select: none;
+        .button {
+          width: 100%;
+        }
+        .flex {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+        }
       }
-    }
 
-    .login-header {
-      display: block;
-      font-size: 32px;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
+      .login-header {
+        display: block;
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
 
-    .captcha-form-item {
-      display: flex;
-      align-items: center;
-    }
+      .captcha-form-item {
+        display: flex;
+        align-items: center;
+      }
 
-    .captcha-input {
-      flex: 1; /* 占据剩余空间 */
-      min-width: 0; /* 防止内容溢出 */
-    }
+      .captcha-input {
+        flex: 1; /* 占据剩余空间 */
+        min-width: 0; /* 防止内容溢出 */
+      }
 
-    .captcha-image {
-      width: 100px;
-      height: 40px;
-      flex-shrink: 0; /* 禁止图片缩小 */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-left: 20px;
+      .captcha-image {
+        width: 100px;
+        height: 40px;
+        flex-shrink: 0; /* 禁止图片缩小 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: 20px;
+      }
     }
   }
 
@@ -432,8 +451,7 @@ watch(isRegister, () => {
     flex-direction: column;
     justify-content: center;
     font-size: 12px;
-    position: absolute;
-    bottom: 20px;
+    margin-bottom: 10px;
 
     .row {
       display: flex;
