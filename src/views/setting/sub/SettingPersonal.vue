@@ -15,9 +15,11 @@ const formModel = ref({})
 const isLoading = ref(false)
 const isShowEditAvatar = ref(false)
 
-onMounted(() => {
-  formModel.value = cloneDeep(userData.user)
-  formModel.value.birthday = showTimeFormat(userData.user.birthday)
+onMounted(async () => {
+  userData.updateUser().then(() => {
+    formModel.value = cloneDeep(userData.user)
+    formModel.value.birthday = showTimeFormat(userData.user.birthday)
+  })
 })
 
 const onNewAvatar = ({ avatar, avatarThumb }) => {

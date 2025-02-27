@@ -26,6 +26,10 @@ const emailDesc = computed(() => {
     return '已绑定邮箱：' + userData.user.email
   }
 })
+
+const onUpdateUser = () => {
+  userData.updateUser()
+}
 </script>
 
 <template>
@@ -71,8 +75,8 @@ const emailDesc = computed(() => {
   </div>
 
   <EditPassword v-model="isShowEditPassword"></EditPassword>
-  <EditPhone v-model="isShowEditPhone"></EditPhone>
-  <EditEmail v-model="isShowEditEmail"></EditEmail>
+  <EditPhone v-model="isShowEditPhone" @success="onUpdateUser"></EditPhone>
+  <EditEmail v-model="isShowEditEmail" @success="onUpdateUser"></EditEmail>
 </template>
 
 <style lang="scss" scoped>
