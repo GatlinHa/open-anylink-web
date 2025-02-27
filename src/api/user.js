@@ -30,6 +30,16 @@ export const userVerifyCaptchaService = (obj) => {
   return request.post('/user/verifyCaptcha', obj)
 }
 
+export const userForgetService = async (obj) => {
+  const passwordObjObj = await encryptPasswordObj(obj.account, obj.password)
+  delete obj.password
+  return request.post('/user/forget', {
+    clientId: userStore().clientId,
+    ...obj,
+    ...passwordObjObj
+  })
+}
+
 export const userLoginService = async ({ account, password }) => {
   const obj = await encryptPasswordObj(account, password)
   return request.post('/user/login', {
