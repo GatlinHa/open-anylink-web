@@ -153,6 +153,15 @@ export const showTimeFormat = (datatime) => {
   return `${year}-${month}-${day} ${hours}:${minutes}`
 }
 
+export const showTimeFormatDay = (datatime) => {
+  const currentDate = new Date(datatime)
+  const year = currentDate.getFullYear()
+  const month = (currentDate.getMonth() + 1).toString().padStart(2, '0')
+  const day = currentDate.getDate().toString().padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
 export const combineId = (fromId, toId) => {
   if (fromId < toId) {
     return fromId + '@' + toId

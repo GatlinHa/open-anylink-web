@@ -4,8 +4,8 @@ import { userStore } from '@/stores'
 import router from '@/router'
 import { userModifySelfService } from '@/api/user'
 import defaultImg from '@/assets/image/select_avatar.jpg'
-import { cloneDeep, isEqual } from 'lodash'
-import { maskPhoneNum, showTimeFormat } from '@/js/utils/common'
+import { cloneDeep } from 'lodash'
+import { maskPhoneNum, showTimeFormatDay } from '@/js/utils/common'
 import EditAvatar from '@/components/common/EditAvatar.vue'
 import { ElMessage } from 'element-plus'
 
@@ -18,7 +18,7 @@ const isShowEditAvatar = ref(false)
 onMounted(async () => {
   userData.updateUser().then(() => {
     formModel.value = cloneDeep(userData.user)
-    formModel.value.birthday = showTimeFormat(userData.user.birthday)
+    formModel.value.birthday = showTimeFormatDay(userData.user.birthday)
   })
 })
 
@@ -28,7 +28,7 @@ const onNewAvatar = ({ avatar, avatarThumb }) => {
 }
 
 const onSave = () => {
-  if (isEqual(formModel.value, userData.user)) {
+  if (!isSomeChanged()) {
     ElMessage.warning('您还没有修改任何信息哦！')
     return
   }
@@ -42,6 +42,17 @@ const onSave = () => {
   res.finally(() => {
     isLoading.value = false
   })
+}
+
+const isSomeChanged = () => {
+  return !(
+    formModel.value.nickName === userData.user.nickName &&
+    formModel.value.gender === userData.user.gender &&
+    formModel.value.birthday === showTimeFormatDay(userData.user.birthday) &&
+    formModel.value.signature === userData.user.signature &&
+    formModel.value.avatar === userData.user.avatar &&
+    formModel.value.avatarThumb === userData.user.avatarThumb
+  )
 }
 
 const displayPhone = computed(() => {
