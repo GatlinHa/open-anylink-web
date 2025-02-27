@@ -651,7 +651,7 @@ const onResendMsg = () => {
   }
 
   .system-message {
-    width: 60%;
+    max-width: 600px;
     padding: 10px;
     display: flex;
     flex-direction: column;
