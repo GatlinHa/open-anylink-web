@@ -335,12 +335,7 @@ watch(isRegister, () => {
 
     <div class="footer">
       <div class="row">
-        <span class="item">©2024 - 2025 Open-AnyLink 版权所有</span>
-      </div>
-      <div class="row">
-        <a class="item" href="https://github.com/GatlinHa/open-anylink/" target="_blank">
-          Github源码
-        </a>
+        <span class="item">©2024 - 2025 Open-AnyLink</span>
       </div>
       <div class="row">
         <p class="item" style="margin: 0">
