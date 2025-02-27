@@ -142,7 +142,7 @@ export const messageSysShowTime = (datetime) => {
   }
 }
 
-export const messageBoxShowTime = (datatime) => {
+export const showTimeFormat = (datatime) => {
   const currentDate = new Date(datatime)
   const year = currentDate.getFullYear()
   const month = (currentDate.getMonth() + 1).toString().padStart(2, '0')

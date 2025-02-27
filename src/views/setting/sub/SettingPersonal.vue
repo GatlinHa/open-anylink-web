@@ -5,7 +5,7 @@ import router from '@/router'
 import { userModifySelfService } from '@/api/user'
 import defaultImg from '@/assets/image/select_avatar.jpg'
 import { cloneDeep, isEqual } from 'lodash'
-import { maskPhoneNum } from '@/js/utils/common'
+import { maskPhoneNum, showTimeFormat } from '@/js/utils/common'
 import EditAvatar from '@/components/common/EditAvatar.vue'
 import { ElMessage } from 'element-plus'
 
@@ -17,6 +17,7 @@ const isShowEditAvatar = ref(false)
 
 onMounted(() => {
   formModel.value = cloneDeep(userData.user)
+  formModel.value.birthday = showTimeFormat(userData.user.birthday)
 })
 
 const onNewAvatar = ({ avatar, avatarThumb }) => {

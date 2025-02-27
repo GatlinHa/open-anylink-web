@@ -4,7 +4,7 @@ import { ElImage } from 'element-plus'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
 import { userStore, messageStore, groupStore, groupCardStore, imageStore } from '@/stores'
-import { messageSysShowTime, messageBoxShowTime, jsonParseSafe } from '@/js/utils/common'
+import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/common'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import { emojis } from '@/js/utils/emojis'
 
@@ -463,7 +463,7 @@ const isContinuousSession = computed(() => {
 })
 
 const msgTime = computed(() => {
-  return messageBoxShowTime(msg.value.msgTime)
+  return showTimeFormat(msg.value.msgTime)
 })
 
 const onLoadMore = () => {
