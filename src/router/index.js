@@ -151,6 +151,13 @@ const router = createRouter({
               meta: {
                 active_1: '/setting' // 一级导航default-active
               }
+            },
+            {
+              path: '/setting/notify',
+              component: () => import('@/views/setting/sub/SettingNotify.vue'),
+              meta: {
+                active_1: '/setting' // 一级导航default-active
+              }
             }
           ]
         }

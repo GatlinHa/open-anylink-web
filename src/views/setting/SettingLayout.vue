@@ -1,5 +1,5 @@
 <script setup>
-import { User, Key } from '@element-plus/icons-vue'
+import { User, Key, Bell } from '@element-plus/icons-vue'
 </script>
 
 <template>
@@ -10,12 +10,16 @@ import { User, Key } from '@element-plus/icons-vue'
         <el-menu :default-active="$route.path" text-color="black" style="border: 0" router>
           <el-menu-item index="/setting/personal">
             <el-icon><User /></el-icon>
-            <span>个人信息</span>
+            <span>个人设置</span>
           </el-menu-item>
 
           <el-menu-item index="/setting/security">
             <el-icon><Key /></el-icon>
             <span>安全设置</span>
+          </el-menu-item>
+          <el-menu-item index="/setting/notify">
+            <el-icon><Bell /></el-icon>
+            <span>通知设置</span>
           </el-menu-item>
         </el-menu>
       </el-aside>
