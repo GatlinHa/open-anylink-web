@@ -2,6 +2,14 @@
 import contactListIcon from '@/assets/svg/contactList.svg'
 import groupIcon from '@/assets/svg/group.svg'
 import organizationIcon from '@/assets/svg/organization.svg'
+import { onMounted } from 'vue'
+import { messageStore } from '@/stores'
+
+const messageData = messageStore()
+
+onMounted(async () => {
+  await messageData.loadSessionList()
+})
 </script>
 
 <template>

@@ -33,7 +33,6 @@ const partitioEditing = ref({})
 const newPartitionId = ref({})
 
 onMounted(async () => {
-  await messageData.loadSessionList()
   await messageData.loadPartitions()
   await groupData.loadGroupInfoList()
   initDone.value = true
