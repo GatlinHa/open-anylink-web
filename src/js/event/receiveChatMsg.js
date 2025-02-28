@@ -2,6 +2,7 @@ import { nextTick } from 'vue'
 import { messageStore } from '@/stores'
 import { msgChatCreateSessionService } from '@/api/message'
 import { MsgType } from '@/proto/msg'
+import { playMsgReceive } from '../utils/audio'
 
 export const onReceiveChatMsg = (msgListDiv = null, capacity = null) => {
   return async (msg) => {
@@ -46,6 +47,8 @@ export const onReceiveChatMsg = (msgListDiv = null, capacity = null) => {
         msgTime: now
       }
     ])
+
+    playMsgReceive()
 
     // 如果是当前正打开的会话
     if (msgListDiv && capacity && messageData.selectedSessionId === sessionId) {

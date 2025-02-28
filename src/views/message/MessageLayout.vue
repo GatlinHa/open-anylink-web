@@ -53,6 +53,7 @@ import MessageGroupRightSide from './components/MessageGroupRightSide.vue'
 import EmojiBox from './components/EmojiBox.vue'
 import EmojiIcon from '@/assets/svg/emoji.svg'
 import HashNoData from '@/components/common/HasNoData.vue'
+import { playMsgSend } from '@/js/utils/audio'
 
 const userData = userStore()
 const settingData = settingStore()
@@ -542,6 +543,7 @@ const handleSendMessage = (content, resendSeq = '') => {
     msg.msgId = msgId
     msg.status = 'ok'
     messageData.addMsgRecords(selectedSessionId.value, [msg]) //添加服务端返回msgId为key的msg
+    playMsgSend()
   }
 
   wsConnect.sendMsg(
