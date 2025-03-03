@@ -605,6 +605,7 @@ watch(tabMode, () => {
         color: #4a5568; /* 中灰色降低视觉干扰 */
         display: block;
         margin-bottom: 30px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
       }
 
       .desc {
@@ -614,6 +615,7 @@ watch(tabMode, () => {
         letter-spacing: 0.25px;
         display: block;
         padding-bottom: 50px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
       }
     }
 
