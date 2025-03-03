@@ -589,8 +589,9 @@ watch(tabMode, () => {
         font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
         font-weight: 700; /* 增强品牌识别度 */
         font-size: 50px; /* 36px */
-        letter-spacing: -0.5px; /* 紧凑型字距 */
+        letter-spacing: 2px;
         color: #1a365d; /* 深品牌蓝 */
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         display: block;
       }
 

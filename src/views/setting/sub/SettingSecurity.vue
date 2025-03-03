@@ -86,6 +86,7 @@ const onUpdateUser = () => {
   line-height: 60px;
   padding-left: 15px;
   font-size: 18px;
+  font-weight: bold;
 }
 
 .el-main {
