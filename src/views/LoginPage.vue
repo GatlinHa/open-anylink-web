@@ -30,8 +30,9 @@ const formModel = ref({
 const form = ref()
 const isRemenberMe = ref(false)
 
-const demoFlag = import.meta.env.VITE_DEMO_FLAG
+const demoFlag = import.meta.env.VITE_DEMO_FLAG === 'true'
 const demoData = JSON.parse(import.meta.env.VITE_DEMO_ACCOUNTS)
+const accountPlaceholder = demoFlag ? '请使用演示账号登录' : '请输入账号'
 
 // 表单的校验规则
 const rules = {
@@ -99,6 +100,11 @@ const rules = {
 const userData = userStore()
 
 const register = async () => {
+  if (demoFlag) {
+    ElMessage.warning('演示环境不支持注册账号，请用演示账号登录')
+    tabMode.value = 'login'
+    return
+  }
   await form.value.validate() // 注册之前预校验
   try {
     await verifyCaptchaWrapper()
@@ -129,6 +135,11 @@ const login = async () => {
 }
 
 const resetPasswrod = async () => {
+  if (demoFlag) {
+    ElMessage.warning('演示环境不支持找回密码，请用演示账号登录')
+    tabMode.value = 'login'
+    return
+  }
   await form.value.validate() // 预校验
   try {
     await forgetWrapper()
@@ -314,9 +325,12 @@ watch(tabMode, () => {
         <span class="desc">企业IM即时通讯解决方案</span>
       </div>
       <div class="login-box">
-        <span v-if="tabMode === 'register'" class="login-header">注册</span>
-        <span v-else-if="tabMode === 'login'" class="login-header">登录</span>
-        <span v-else-if="tabMode === 'forget'" class="login-header">找回密码</span>
+        <div class="login-header">
+          <span v-if="tabMode === 'register'">注册</span>
+          <span v-else-if="tabMode === 'login'">登录</span>
+          <span v-else-if="tabMode === 'forget'">找回密码</span>
+          <el-tag v-if="demoFlag" type="primary" size="large">演示环境</el-tag>
+        </div>
         <el-form
           :model="formModel"
           :rules="rules"
@@ -329,7 +343,7 @@ watch(tabMode, () => {
             <el-input
               v-model="formModel.account"
               :prefix-icon="User"
-              placeholder="请输入账号"
+              :placeholder="accountPlaceholder"
               clearable
             ></el-input>
           </el-form-item>
@@ -399,7 +413,7 @@ watch(tabMode, () => {
             <el-input
               v-model="formModel.account"
               :prefix-icon="User"
-              placeholder="请输入账号"
+              :placeholder="accountPlaceholder"
               clearable
             ></el-input>
           </el-form-item>
@@ -445,7 +459,7 @@ watch(tabMode, () => {
             <el-input
               v-model="formModel.account"
               :prefix-icon="User"
-              placeholder="请输入账号"
+              :placeholder="accountPlaceholder"
               clearable
             ></el-input>
           </el-form-item>
@@ -509,14 +523,14 @@ watch(tabMode, () => {
             </div>
           </el-form-item>
         </el-form>
-        <div v-if="demoFlag === 'true' && tabMode === 'login'" class="demo-info">
+        <div v-if="demoFlag && tabMode === 'login'" class="demo-info">
           <el-divider class="separation-line" content-position="center">演示账号</el-divider>
           <div class="demo-detail">
             <span
               v-for="(item, index) in demoData"
               :key="item.account"
               class="demo-item"
-              title="点击快捷登录"
+              :title="`点击快捷登录账号${item.account}`"
               @click="onLoginDemoAccount(index)"
             >
               账号{{ index + 1 }}
@@ -580,6 +594,7 @@ watch(tabMode, () => {
       display: flex;
       flex-direction: column;
       align-items: center;
+      margin-bottom: 100px;
 
       .logo {
         font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
@@ -610,7 +625,6 @@ watch(tabMode, () => {
         color: #2b6cb0; /* 品牌辅助蓝 */
         letter-spacing: 0.25px;
         display: block;
-        padding-bottom: 50px;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
       }
     }
@@ -677,7 +691,9 @@ watch(tabMode, () => {
       }
 
       .login-header {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         font-size: 32px;
         font-weight: bold;
         margin-bottom: 20px;
