@@ -538,6 +538,20 @@ watch(tabMode, () => {
           </div>
         </div>
       </div>
+      <div class="css-box">
+        <ul class="bubble-bgwall">
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+        </ul>
+      </div>
     </div>
 
     <div class="footer">
@@ -553,20 +567,6 @@ watch(tabMode, () => {
         </p>
         <a class="item" href="https://beian.miit.gov.cn/" target="_blank">陕ICP备2025059454号-2</a>
       </div>
-    </div>
-    <div class="css-box">
-      <ul class="bubble-bgwall">
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-      </ul>
     </div>
   </div>
 </template>
@@ -594,7 +594,7 @@ watch(tabMode, () => {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 100px;
+      padding-bottom: 50px;
 
       .logo {
         font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
@@ -724,17 +724,19 @@ watch(tabMode, () => {
   }
 
   .footer {
+    width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     font-size: 12px;
-    margin-bottom: 10px;
+    position: absolute;
+    bottom: 10px;
 
     .row {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 5px;
+      padding: 2px;
     }
 
     .item {
