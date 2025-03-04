@@ -562,7 +562,7 @@ watch(tabMode, () => {
         </span>
       </div>
       <div class="row">
-        <span class="item">©2024 - 2025 Open-AnyLink</span>
+        <span class="item">©2024 - 2025 Open AnyLink</span>
       </div>
       <div class="row">
         <p class="item" style="margin: 0">

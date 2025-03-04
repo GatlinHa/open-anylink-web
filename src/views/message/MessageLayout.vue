@@ -1018,7 +1018,7 @@ const onSendEmoji = (key) => {
     <el-main class="msg-box">
       <div v-if="!selectedSessionId" class="backgroup">
         <backgroupImage class="backgroup-image" v-if="!selectedSessionId"></backgroupImage>
-        <span class="welcome">欢迎使用 Open-AnyLink</span>
+        <span class="welcome">欢迎使用 Open AnyLink</span>
       </div>
 
       <el-container v-else class="container">
