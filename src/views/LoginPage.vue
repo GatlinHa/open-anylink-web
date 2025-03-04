@@ -325,7 +325,7 @@ watch(tabMode, () => {
   <div class="login-page">
     <div class="login-title">
       <span class="logo">Open AnyLink</span>
-      <span class="feature">开源·轻量·分布式</span>
+      <span class="feature">开源·轻量·安全·分布式</span>
       <span class="desc">企业IM即时通讯解决方案</span>
     </div>
     <div class="login-box">
@@ -504,7 +504,7 @@ watch(tabMode, () => {
           <el-input
             v-model="formModel.forgetCode"
             :prefix-icon="Key"
-            placeholder="请输入验证码（填1234）"
+            placeholder="请输入验证码"
             class="forgetcode-input"
           ></el-input>
           <el-button

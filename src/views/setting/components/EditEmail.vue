@@ -139,9 +139,9 @@ onMounted(() => {
       >
         <el-input
           v-model="formModel.verify_code"
-          placeholder="填1111"
+          placeholder="请输入验证码"
           autocomplete="off"
-          style="width: 100px"
+          style="width: 120px"
         />
         <el-button
           type="info"
