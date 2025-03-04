@@ -5,8 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode development",
+    "demo": "vite --mode demo-dev",
+    "demo-dev": "vite --mode demo-dev",
     "build": "vite build --mode development",
     "build:prod": "vite build --mode production",
+    "build:demo": "vite build --mode demo-prod",
+    "build:demo-prod": "vite build --mode demo-prod",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
     "format": "prettier --write src/",

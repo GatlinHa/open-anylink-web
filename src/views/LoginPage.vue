@@ -30,12 +30,8 @@ const formModel = ref({
 const form = ref()
 const isRemenberMe = ref(false)
 
-const demoData = [
-  { account: import.meta.env.VITE_DEMO_ACCOUNT_1, password: import.meta.env.VITE_DEMO_PASSWORD_1 },
-  { account: import.meta.env.VITE_DEMO_ACCOUNT_2, password: import.meta.env.VITE_DEMO_PASSWORD_2 },
-  { account: import.meta.env.VITE_DEMO_ACCOUNT_3, password: import.meta.env.VITE_DEMO_PASSWORD_3 },
-  { account: import.meta.env.VITE_DEMO_ACCOUNT_4, password: import.meta.env.VITE_DEMO_PASSWORD_4 }
-]
+const demoFlag = import.meta.env.VITE_DEMO_FLAG
+const demoData = JSON.parse(import.meta.env.VITE_DEMO_ACCOUNTS)
 
 // 表单的校验规则
 const rules = {
@@ -513,7 +509,7 @@ watch(tabMode, () => {
             </div>
           </el-form-item>
         </el-form>
-        <div v-if="tabMode === 'login'" class="demo-info">
+        <div v-if="demoFlag === 'true' && tabMode === 'login'" class="demo-info">
           <el-divider class="separation-line" content-position="center">演示账号</el-divider>
           <div class="demo-detail">
             <span
@@ -650,6 +646,7 @@ watch(tabMode, () => {
           display: flex;
           flex-direction: row;
           justify-content: space-around;
+          flex-wrap: wrap;
 
           .demo-item {
             display: flex;
@@ -657,9 +654,9 @@ watch(tabMode, () => {
             font-size: 14px;
             font-weight: bold;
             color: #409eff;
-            padding: 2px 10px 2px 10px;
-            margin-left: 5px;
-            margin-right: 5px;
+            padding: 5px 10px 5px 10px;
+            margin-left: 10px;
+            margin-right: 10px;
             border-radius: 4px;
             cursor: pointer;
 
