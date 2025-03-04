@@ -526,15 +526,16 @@ watch(tabMode, () => {
         <div v-if="demoFlag && tabMode === 'login'" class="demo-info">
           <el-divider class="separation-line" content-position="center">演示账号</el-divider>
           <div class="demo-detail">
-            <span
+            <el-tag
               v-for="(item, index) in demoData"
               :key="item.account"
-              class="demo-item"
               :title="`点击快捷登录账号${item.account}`"
+              class="demo-item"
+              type="success"
               @click="onLoginDemoAccount(index)"
             >
               账号{{ index + 1 }}
-            </span>
+            </el-tag>
           </div>
         </div>
       </div>
@@ -670,13 +671,7 @@ watch(tabMode, () => {
           .demo-item {
             display: flex;
             flex-direction: row;
-            font-size: 14px;
-            font-weight: bold;
-            color: #409eff;
-            padding: 5px 10px 5px 10px;
-            margin-left: 10px;
-            margin-right: 10px;
-            border-radius: 4px;
+            margin: 3px 12px 3px 12px;
             cursor: pointer;
 
             &:hover {
