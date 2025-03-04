@@ -5,11 +5,14 @@ import { maskPhoneNum } from '@/js/utils/common'
 import EditEmail from '@/views/setting/components/EditEmail.vue'
 import EditPassword from '@/views/setting/components/EditPassword.vue'
 import EditPhone from '@/views/setting/components/EditPhone.vue'
+import { ElMessage } from 'element-plus'
 
 const userData = userStore()
 const isShowEditPassword = ref(false)
 const isShowEditPhone = ref(false)
 const isShowEditEmail = ref(false)
+
+const demoFlag = import.meta.env.VITE_DEMO_FLAG === 'true'
 
 const phoneDesc = computed(() => {
   if (!userData.user.phoneNum) {
@@ -30,6 +33,30 @@ const emailDesc = computed(() => {
 const onUpdateUser = () => {
   userData.updateUser()
 }
+
+const onShowEditPassword = () => {
+  if (demoFlag) {
+    ElMessage.warning('演示环境不支持修改密码')
+    return
+  }
+  isShowEditPassword.value = true
+}
+
+const onShowEditPhone = () => {
+  if (demoFlag) {
+    ElMessage.warning('演示环境不支持修改手机号码')
+    return
+  }
+  isShowEditPhone.value = true
+}
+
+const onShowEditEmail = () => {
+  if (demoFlag) {
+    ElMessage.warning('演示环境不支持修改邮箱')
+    return
+  }
+  isShowEditEmail.value = true
+}
 </script>
 
 <template>
@@ -43,7 +70,7 @@ const onUpdateUser = () => {
             <div class="desc">当前密码强度 ：低</div>
           </div>
           <div class="modify">
-            <el-button type="primary" text @click="isShowEditPassword = true"> 修改 </el-button>
+            <el-button type="primary" text @click="onShowEditPassword"> 修改 </el-button>
           </div>
         </div>
 
@@ -53,7 +80,7 @@ const onUpdateUser = () => {
             <div class="desc">{{ phoneDesc }}</div>
           </div>
           <div class="modify">
-            <el-button type="primary" text @click="isShowEditPhone = true">
+            <el-button type="primary" text @click="onShowEditPhone">
               {{ userData.user.phoneNum ? '修改' : '绑定' }}
             </el-button>
           </div>
@@ -65,7 +92,7 @@ const onUpdateUser = () => {
             <div class="desc">{{ emailDesc }}</div>
           </div>
           <div class="modify">
-            <el-button type="primary" text @click="isShowEditEmail = true">
+            <el-button type="primary" text @click="onShowEditEmail">
               {{ userData.user.email ? '修改' : '绑定' }}
             </el-button>
           </div>
