@@ -10,16 +10,22 @@ Open AnyLink是一款面向企业的IM即时通讯解决方案，旨在帮助企
 
 ## 项目构成
 
-| 项目   | 项目名           | 地址                                                                                                                                                                                                                                                                                                                                                                                                                                              | 技术栈                                                                                                                                                                                                                                                                                             |
-| ------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Web端  | open-anylink-web | [github](https://github.com/GatlinHa/open-anylink-web) <a href="https://github.com/GatlinHa/open-anylink-web/stargazers"><img src="https://img.shields.io/github/stars/GatlinHa/open-anylink-web" alt="star"></a><br/>[gitee](https://gitee.com/lijingbo-2021/open-anylink-web) <a href="https://gitee.com/lijingbo-2021/open-anylink-web/stargazers"><img src="https://gitee.com//lijingbo-2021/open-anylink-web/badge/star.svg" alt="star"></a> | 框架：`Vue3`<br/> 构建打包：`Vite` <br/>UI组件：`Element-Plus`                                                                                                                                                                                                                                     |
-| 服务端 | open-anylink     | [github](https://github.com/GatlinHa/open-anylink) <a href="https://github.com/GatlinHa/open-anylink/stargazers"><img src="https://img.shields.io/github/stars/GatlinHa/open-anylink" alt="star"></a><br/>[gitee](https://gitee.com/lijingbo-2021/open-anylink) <a href="https://gitee.com/lijingbo-2021/open-anylink-web/stargazers"><img src="https://gitee.com//lijingbo-2021/open-anylink/badge/star.svg" alt="star"></a>                     | 框架：`spring Boot` `spring cloud`<br/>长连接：`Netty`<br/>私有协议：`protobuf`<br/>配置中心：`Nacos Config`<br/>注册中心：`Nacos Discovery`<br/>关系型数据库：`MySQL` `MyBatis-Plus`(driver)<br/>非关系型数据库：`MongoDB`<br/>缓存：`Redis`<br/>消息队列：`Kafka MQ` <br/>对象存储：`Mino` `OSS` |
+| 项目   | 项目名           | 地址                                                                                                                                                                                                                                                                                                                                                                                                                                              | 技术栈                                                                                                                                                                                                                                                                                          |
+| ------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Web端  | open-anylink-web | [github](https://github.com/GatlinHa/open-anylink-web) <a href="https://github.com/GatlinHa/open-anylink-web/stargazers"><img src="https://img.shields.io/github/stars/GatlinHa/open-anylink-web" alt="star"></a><br/>[gitee](https://gitee.com/lijingbo-2021/open-anylink-web) <a href="https://gitee.com/lijingbo-2021/open-anylink-web/stargazers"><img src="https://gitee.com//lijingbo-2021/open-anylink-web/badge/star.svg" alt="star"></a> | 框架：`Vue3`<br/> 构建打包：`Vite` <br/>UI组件：`Element-Plus`                                                                                                                                                                                                                                  |
+| 服务端 | open-anylink     | [github](https://github.com/GatlinHa/open-anylink) <a href="https://github.com/GatlinHa/open-anylink/stargazers"><img src="https://img.shields.io/github/stars/GatlinHa/open-anylink" alt="star"></a><br/>[gitee](https://gitee.com/lijingbo-2021/open-anylink) <a href="https://gitee.com/lijingbo-2021/open-anylink-web/stargazers"><img src="https://gitee.com//lijingbo-2021/open-anylink/badge/star.svg" alt="star"></a>                     | 框架：`spring Boot` `spring cloud`<br/>长连接：`Netty`<br/>私有协议：`protobuf`<br/>配置中心：`Nacos Config`<br/>注册中心：`Nacos Discovery`<br/>关系型数据库：`MySQL` `MyBatis-Plus`(driver)<br/>NoSQL数据库：`MongoDB`<br/>缓存：`Redis`<br/>消息队列：`Kafka MQ` <br/>对象存储：`Mino` `OSS` |
 
 - 本项目是其中的`Web端`。
 
-## 更新记录
+## 版本更新记录
 
-- xx/xx/xx: V1.0.0发布，基本功能见`项目功能清单`
+- 2025/3/5: V1.0.0发布，基本功能包括：
+  - 单聊、群聊
+  - 个人信息、群管理
+  - 文本、表情、图片消息
+  - 在线消息、离线消息、消息漫游、多端在线、多端同步、已读未读
+  - 联系人备注、联系人分组
+  - 建群删群、群昵称、群备注、群组组、群头像、群公告、群系统消息、群转让
 
 ## 项目功能清单（含规划及开发中）
 
@@ -220,24 +226,24 @@ git clone https://gitee.com/lijingbo-2021/open-anylink.git
   ```shell
   mvn clean package
   ```
-- 分别在单独命令窗口依次启动6个微服务
+- 分别在单独命令窗口依次启动6个微服务，注意替换jar包的版本号
   ```shell
-  java -jar ./anylink-agw/target/anylink-agw-0.2.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848
+  java -jar ./anylink-agw/target/anylink-agw-1.0.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848
   ```
   ```shell
-  java -jar ./anylink-chat/target/anylink-chat-0.2.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --dubbo.registry.parameters.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848 --dubbo.registry.address=nacos://localhost:8848
+  java -jar ./anylink-chat/target/anylink-chat-1.0.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --dubbo.registry.parameters.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848 --dubbo.registry.address=nacos://localhost:8848
   ```
   ```shell
-  java -jar ./anylink-groupmng/target/anylink-groupmng-0.2.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --dubbo.registry.parameters.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848 --dubbo.registry.address=nacos://localhost:8848
+  java -jar ./anylink-groupmng/target/anylink-groupmng-1.0.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --dubbo.registry.parameters.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848 --dubbo.registry.address=nacos://localhost:8848
   ```
   ```shell
-  java -jar ./anylink-mts/target/anylink-mts-0.2.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848
+  java -jar ./anylink-mts/target/anylink-mts-1.0.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848
   ```
   ```shell
-  java -jar ./anylink-netty/target/anylink-netty-0.2.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --dubbo.registry.parameters.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848 --dubbo.registry.address=nacos://localhost:8848
+  java -jar ./anylink-netty/target/anylink-netty-1.0.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --dubbo.registry.parameters.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848 --dubbo.registry.address=nacos://localhost:8848
   ```
   ```shell
-  java -jar ./anylink-user/target/anylink-user-0.2.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --dubbo.registry.parameters.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848 --dubbo.registry.address=nacos://localhost:8848
+  java -jar ./anylink-user/target/anylink-user-1.0.0.jar --spring.profiles.active=dev --spring.cloud.nacos.config.namespace=dev20250303001 --spring.cloud.nacos.discovery.namespace=dev20250303001 --dubbo.registry.parameters.namespace=dev20250303001 --spring.cloud.nacos.config.server-addr=localhost:8848 --spring.cloud.nacos.discovery.server-addr=localhost:8848 --dubbo.registry.address=nacos://localhost:8848
   ```
 
 ## 开源项目免责声明
