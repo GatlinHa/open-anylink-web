@@ -29,6 +29,7 @@ const formModel = ref({
 // 表单对象
 const form = ref()
 const isRemenberMe = ref(false)
+const isReadProtocol = ref(false)
 
 const demoFlag = import.meta.env.VITE_DEMO_FLAG === 'true'
 const demoData = JSON.parse(import.meta.env.VITE_DEMO_ACCOUNTS)
@@ -119,6 +120,11 @@ const register = async () => {
 }
 
 const login = async () => {
+  if (demoFlag && !isReadProtocol.value) {
+    ElMessage.warning('请阅读并同意协议')
+    return
+  }
+
   await form.value.validate() // 登录之前预校验
   loginWrapper()
     .then(async (res) => {
@@ -155,7 +161,6 @@ const resetPasswrod = async () => {
 const onLoginDemoAccount = (index) => {
   formModel.value.account = demoData[index].account
   formModel.value.password = demoData[index].password
-  login()
 }
 
 onMounted(() => {
@@ -417,7 +422,7 @@ watch(tabMode, () => {
               clearable
             ></el-input>
           </el-form-item>
-          <el-form-item prop="password">
+          <el-form-item prop="password" style="margin-bottom: 10px">
             <el-input
               v-model="formModel.password"
               name="password"
@@ -428,15 +433,22 @@ watch(tabMode, () => {
               @keyup.enter="login"
             ></el-input>
           </el-form-item>
-          <el-form-item>
+          <el-form-item style="margin-bottom: 10px">
             <div class="flex">
               <el-checkbox v-model="isRemenberMe">记住我</el-checkbox>
               <el-link type="primary" :underline="false" @click="forgetPassword">
                 忘记密码？
               </el-link>
             </div>
+            <el-checkbox v-if="demoFlag" v-model="isReadProtocol">
+              我已阅读并同意<a href="doc/demostatement/user-agreement.html" target="_blank">
+                用户使用协议
+              </a>
+              、
+              <a href="doc/demostatement/privacy-policy.html" target="_blank">隐私政策 </a>
+            </el-checkbox>
           </el-form-item>
-          <el-form-item>
+          <el-form-item style="margin-bottom: 10px">
             <el-button @click="login" class="button" type="primary" auto-insert-space>
               登录
             </el-button>
@@ -529,7 +541,6 @@ watch(tabMode, () => {
             <el-tag
               v-for="(item, index) in demoData"
               :key="item.account"
-              :title="`点击快捷登录账号${item.account}`"
               class="demo-item"
               type="primary"
               @click="onLoginDemoAccount(index)"
