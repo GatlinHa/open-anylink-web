@@ -440,11 +440,11 @@ watch(tabMode, () => {
             </el-link>
           </div>
           <el-checkbox v-if="demoFlag" v-model="isReadProtocol">
-            我已阅读并同意<a href="doc/demostatement/user-agreement.html" target="_blank">
+            我已阅读并同意<a href="src/assets/html/user-agreement.html" target="_blank">
               用户使用协议
             </a>
             、
-            <a href="doc/demostatement/privacy-policy.html" target="_blank">隐私政策 </a>
+            <a href="src/assets/html/privacy-policy.html" target="_blank">隐私政策 </a>
           </el-checkbox>
         </el-form-item>
         <el-form-item style="margin-bottom: 10px">
@@ -567,7 +567,7 @@ watch(tabMode, () => {
     <div class="footer">
       <div v-if="demoFlag" class="row">
         <span class="item" style="color: red">
-          重要提醒：本演示环境所展示均为虚拟测试数据，且不收集个人信息，请勿发布或使用个人信息！
+          特别声明：本演示环境为技术演示用途，不收集真实用户个人信息，所有演示数据均为虚拟测试数据，请勿发布或使用个人信息！
         </span>
       </div>
       <div class="row">
