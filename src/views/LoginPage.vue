@@ -602,7 +602,7 @@ watch(tabMode, () => {
     flex-direction: column;
     align-items: center;
     position: absolute;
-    top: 40px;
+    top: 8%;
 
     .logo {
       font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
@@ -647,7 +647,7 @@ watch(tabMode, () => {
     flex-direction: column;
     justify-content: start;
     position: absolute;
-    top: 235px;
+    top: 30%;
 
     .el-form {
       display: flex;
