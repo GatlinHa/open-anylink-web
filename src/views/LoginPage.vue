@@ -440,11 +440,9 @@ watch(tabMode, () => {
             </el-link>
           </div>
           <el-checkbox v-if="demoFlag" v-model="isReadProtocol">
-            我已阅读并同意<a href="src/assets/html/user-agreement.html" target="_blank">
-              用户使用协议
-            </a>
+            我已阅读并同意<a href="html/user-agreement.html" target="_blank"> 用户使用协议 </a>
             、
-            <a href="src/assets/html/privacy-policy.html" target="_blank">隐私政策 </a>
+            <a href="html/privacy-policy.html" target="_blank">隐私政策 </a>
           </el-checkbox>
         </el-form-item>
         <el-form-item style="margin-bottom: 10px">
