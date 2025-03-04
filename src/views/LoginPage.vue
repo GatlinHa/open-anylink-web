@@ -555,6 +555,11 @@ watch(tabMode, () => {
     </div>
 
     <div class="footer">
+      <div v-if="demoFlag" class="row">
+        <span class="item" style="color: red">
+          重要提醒：本演示环境所展示均为虚假数据，且不收集个人信息，请勿发布或使用个人信息！
+        </span>
+      </div>
       <div class="row">
         <span class="item">©2024 - 2025 Open-AnyLink</span>
       </div>
