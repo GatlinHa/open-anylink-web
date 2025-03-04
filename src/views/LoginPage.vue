@@ -531,7 +531,7 @@ watch(tabMode, () => {
               :key="item.account"
               :title="`点击快捷登录账号${item.account}`"
               class="demo-item"
-              type="success"
+              type="primary"
               @click="onLoginDemoAccount(index)"
             >
               账号{{ index + 1 }}
