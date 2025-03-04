@@ -323,247 +323,245 @@ watch(tabMode, () => {
 
 <template>
   <div class="login-page">
-    <div class="main">
-      <div class="login-title">
-        <span class="logo">Open AnyLink</span>
-        <span class="feature">开源·轻量·分布式</span>
-        <span class="desc">企业IM即时通讯解决方案</span>
+    <div class="login-title">
+      <span class="logo">Open AnyLink</span>
+      <span class="feature">开源·轻量·分布式</span>
+      <span class="desc">企业IM即时通讯解决方案</span>
+    </div>
+    <div class="login-box">
+      <div class="login-header">
+        <span v-if="tabMode === 'register'">注册</span>
+        <span v-else-if="tabMode === 'login'">登录</span>
+        <span v-else-if="tabMode === 'forget'">找回密码</span>
+        <el-tag v-if="demoFlag" type="primary" size="large">演示环境</el-tag>
       </div>
-      <div class="login-box">
-        <div class="login-header">
-          <span v-if="tabMode === 'register'">注册</span>
-          <span v-else-if="tabMode === 'login'">登录</span>
-          <span v-else-if="tabMode === 'forget'">找回密码</span>
-          <el-tag v-if="demoFlag" type="primary" size="large">演示环境</el-tag>
-        </div>
-        <el-form
-          :model="formModel"
-          :rules="rules"
-          ref="form"
-          size="large"
-          autocomplete="off"
-          v-if="tabMode === 'register'"
-        >
-          <el-form-item prop="account">
-            <el-input
-              v-model="formModel.account"
-              :prefix-icon="User"
-              :placeholder="accountPlaceholder"
-              clearable
-            ></el-input>
-          </el-form-item>
-          <el-form-item prop="nickName">
-            <el-input
-              v-model="formModel.nickName"
-              :prefix-icon="Avatar"
-              placeholder="请输入昵称"
-              clearable
-            ></el-input>
-          </el-form-item>
-          <el-form-item prop="password">
-            <el-input
-              v-model="formModel.password"
-              :prefix-icon="Lock"
-              type="password"
-              placeholder="请输入密码"
-              show-password
-            ></el-input>
-          </el-form-item>
-          <el-form-item prop="repassword">
-            <el-input
-              v-model="formModel.repassword"
-              :prefix-icon="Lock"
-              type="password"
-              placeholder="请输入再次密码"
-              show-password
-            ></el-input>
-          </el-form-item>
-          <el-form-item prop="captchaCode" class="captcha-form-item">
-            <el-input
-              v-model="formModel.captchaCode"
-              :prefix-icon="Key"
-              placeholder="请输入验证码"
-              class="captcha-input"
-            ></el-input>
-            <div class="captcha-image">
-              <img
-                v-if="captchaImage"
-                :src="captchaImage"
-                @click="onClickCaptcha"
-                style="cursor: pointer"
-              />
-              <img v-else src="@/assets/gif/loading.gif" style="width: 40px; height: 40px" />
-            </div>
-          </el-form-item>
-          <el-form-item>
-            <el-button @click="register" class="button" type="primary" auto-insert-space>
-              注册
-            </el-button>
-          </el-form-item>
-          <el-form-item>
-            <el-link type="primary" :underline="false" @click="switchLogin">
-              已有账号，立即登录
+      <el-form
+        :model="formModel"
+        :rules="rules"
+        ref="form"
+        size="large"
+        autocomplete="off"
+        v-if="tabMode === 'register'"
+      >
+        <el-form-item prop="account">
+          <el-input
+            v-model="formModel.account"
+            :prefix-icon="User"
+            :placeholder="accountPlaceholder"
+            clearable
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="nickName">
+          <el-input
+            v-model="formModel.nickName"
+            :prefix-icon="Avatar"
+            placeholder="请输入昵称"
+            clearable
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input
+            v-model="formModel.password"
+            :prefix-icon="Lock"
+            type="password"
+            placeholder="请输入密码"
+            show-password
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="repassword">
+          <el-input
+            v-model="formModel.repassword"
+            :prefix-icon="Lock"
+            type="password"
+            placeholder="请输入再次密码"
+            show-password
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="captchaCode" class="captcha-form-item">
+          <el-input
+            v-model="formModel.captchaCode"
+            :prefix-icon="Key"
+            placeholder="请输入验证码"
+            class="captcha-input"
+          ></el-input>
+          <div class="captcha-image">
+            <img
+              v-if="captchaImage"
+              :src="captchaImage"
+              @click="onClickCaptcha"
+              style="cursor: pointer"
+            />
+            <img v-else src="@/assets/gif/loading.gif" style="width: 40px; height: 40px" />
+          </div>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="register" class="button" type="primary" auto-insert-space>
+            注册
+          </el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-link type="primary" :underline="false" @click="switchLogin">
+            已有账号，立即登录
+          </el-link>
+        </el-form-item>
+      </el-form>
+      <el-form
+        :model="formModel"
+        :rules="rules"
+        ref="form"
+        size="large"
+        autocomplete="off"
+        v-else-if="tabMode === 'login'"
+      >
+        <el-form-item prop="account">
+          <el-input
+            v-model="formModel.account"
+            :prefix-icon="User"
+            :placeholder="accountPlaceholder"
+            clearable
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="password" style="margin-bottom: 10px">
+          <el-input
+            v-model="formModel.password"
+            name="password"
+            :prefix-icon="Lock"
+            type="password"
+            placeholder="请输入密码"
+            show-password
+            @keyup.enter="login"
+          ></el-input>
+        </el-form-item>
+        <el-form-item style="margin-bottom: 10px">
+          <div class="flex">
+            <el-checkbox v-model="isRemenberMe">记住我</el-checkbox>
+            <el-link type="primary" :underline="false" @click="forgetPassword">
+              忘记密码？
             </el-link>
-          </el-form-item>
-        </el-form>
-        <el-form
-          :model="formModel"
-          :rules="rules"
-          ref="form"
-          size="large"
-          autocomplete="off"
-          v-else-if="tabMode === 'login'"
-        >
-          <el-form-item prop="account">
-            <el-input
-              v-model="formModel.account"
-              :prefix-icon="User"
-              :placeholder="accountPlaceholder"
-              clearable
-            ></el-input>
-          </el-form-item>
-          <el-form-item prop="password" style="margin-bottom: 10px">
-            <el-input
-              v-model="formModel.password"
-              name="password"
-              :prefix-icon="Lock"
-              type="password"
-              placeholder="请输入密码"
-              show-password
-              @keyup.enter="login"
-            ></el-input>
-          </el-form-item>
-          <el-form-item style="margin-bottom: 10px">
-            <div class="flex">
-              <el-checkbox v-model="isRemenberMe">记住我</el-checkbox>
-              <el-link type="primary" :underline="false" @click="forgetPassword">
-                忘记密码？
-              </el-link>
-            </div>
-            <el-checkbox v-if="demoFlag" v-model="isReadProtocol">
-              我已阅读并同意<a href="doc/demostatement/user-agreement.html" target="_blank">
-                用户使用协议
-              </a>
-              、
-              <a href="doc/demostatement/privacy-policy.html" target="_blank">隐私政策 </a>
-            </el-checkbox>
-          </el-form-item>
-          <el-form-item style="margin-bottom: 10px">
-            <el-button @click="login" class="button" type="primary" auto-insert-space>
-              登录
-            </el-button>
-          </el-form-item>
-          <el-form-item>
+          </div>
+          <el-checkbox v-if="demoFlag" v-model="isReadProtocol">
+            我已阅读并同意<a href="doc/demostatement/user-agreement.html" target="_blank">
+              用户使用协议
+            </a>
+            、
+            <a href="doc/demostatement/privacy-policy.html" target="_blank">隐私政策 </a>
+          </el-checkbox>
+        </el-form-item>
+        <el-form-item style="margin-bottom: 10px">
+          <el-button @click="login" class="button" type="primary" auto-insert-space>
+            登录
+          </el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-link type="primary" :underline="false" @click="switchRegister">
+            没有账号？立即注册
+          </el-link>
+        </el-form-item>
+      </el-form>
+      <el-form
+        :model="formModel"
+        :rules="rules"
+        ref="form"
+        size="large"
+        autocomplete="off"
+        v-else-if="tabMode === 'forget'"
+      >
+        <el-form-item prop="account">
+          <el-input
+            v-model="formModel.account"
+            :prefix-icon="User"
+            :placeholder="accountPlaceholder"
+            clearable
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="forgetKey">
+          <el-input
+            v-model="formModel.forgetKey"
+            :prefix-icon="Postcard"
+            placeholder="请输入手机号码或邮箱"
+            clearable
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input
+            v-model="formModel.password"
+            name="password"
+            :prefix-icon="Lock"
+            type="password"
+            placeholder="请输入密码"
+            show-password
+            @keyup.enter="login"
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="repassword">
+          <el-input
+            v-model="formModel.repassword"
+            :prefix-icon="Lock"
+            type="password"
+            placeholder="请输入再次密码"
+            show-password
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="forgetCode" class="forgetcode-form-item">
+          <el-input
+            v-model="formModel.forgetCode"
+            :prefix-icon="Key"
+            placeholder="请输入验证码（填1234）"
+            class="forgetcode-input"
+          ></el-input>
+          <el-button
+            class="forgetcode-button"
+            :disabled="forgetRemainSec !== totalSec"
+            @click="onSendForgetCodde"
+            style="margin-left: 20px"
+          >
+            {{ forgetRemainSec === totalSec ? '获取验证码' : forgetRemainSec + '秒后重新发送' }}
+          </el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="resetPasswrod" class="button" type="primary" auto-insert-space>
+            重置
+          </el-button>
+        </el-form-item>
+        <el-form-item>
+          <div class="flex">
             <el-link type="primary" :underline="false" @click="switchRegister">
               没有账号？立即注册
             </el-link>
-          </el-form-item>
-        </el-form>
-        <el-form
-          :model="formModel"
-          :rules="rules"
-          ref="form"
-          size="large"
-          autocomplete="off"
-          v-else-if="tabMode === 'forget'"
-        >
-          <el-form-item prop="account">
-            <el-input
-              v-model="formModel.account"
-              :prefix-icon="User"
-              :placeholder="accountPlaceholder"
-              clearable
-            ></el-input>
-          </el-form-item>
-          <el-form-item prop="forgetKey">
-            <el-input
-              v-model="formModel.forgetKey"
-              :prefix-icon="Postcard"
-              placeholder="请输入手机号码或邮箱"
-              clearable
-            ></el-input>
-          </el-form-item>
-          <el-form-item prop="password">
-            <el-input
-              v-model="formModel.password"
-              name="password"
-              :prefix-icon="Lock"
-              type="password"
-              placeholder="请输入密码"
-              show-password
-              @keyup.enter="login"
-            ></el-input>
-          </el-form-item>
-          <el-form-item prop="repassword">
-            <el-input
-              v-model="formModel.repassword"
-              :prefix-icon="Lock"
-              type="password"
-              placeholder="请输入再次密码"
-              show-password
-            ></el-input>
-          </el-form-item>
-          <el-form-item prop="forgetCode" class="forgetcode-form-item">
-            <el-input
-              v-model="formModel.forgetCode"
-              :prefix-icon="Key"
-              placeholder="请输入验证码（填1234）"
-              class="forgetcode-input"
-            ></el-input>
-            <el-button
-              class="forgetcode-button"
-              :disabled="forgetRemainSec !== totalSec"
-              @click="onSendForgetCodde"
-              style="margin-left: 20px"
-            >
-              {{ forgetRemainSec === totalSec ? '获取验证码' : forgetRemainSec + '秒后重新发送' }}
-            </el-button>
-          </el-form-item>
-          <el-form-item>
-            <el-button @click="resetPasswrod" class="button" type="primary" auto-insert-space>
-              重置
-            </el-button>
-          </el-form-item>
-          <el-form-item>
-            <div class="flex">
-              <el-link type="primary" :underline="false" @click="switchRegister">
-                没有账号？立即注册
-              </el-link>
-              <el-link type="primary" :underline="false" @click="switchLogin">
-                已有账号，立即登录
-              </el-link>
-            </div>
-          </el-form-item>
-        </el-form>
-        <div v-if="demoFlag && tabMode === 'login'" class="demo-info">
-          <el-divider class="separation-line" content-position="center">演示账号</el-divider>
-          <div class="demo-detail">
-            <el-tag
-              v-for="(item, index) in demoData"
-              :key="item.account"
-              class="demo-item"
-              type="primary"
-              @click="onLoginDemoAccount(index)"
-            >
-              账号{{ index + 1 }}
-            </el-tag>
+            <el-link type="primary" :underline="false" @click="switchLogin">
+              已有账号，立即登录
+            </el-link>
           </div>
+        </el-form-item>
+      </el-form>
+      <div v-if="demoFlag && tabMode === 'login'" class="demo-info">
+        <el-divider class="separation-line" content-position="center">演示账号</el-divider>
+        <div class="demo-detail">
+          <el-tag
+            v-for="(item, index) in demoData"
+            :key="item.account"
+            class="demo-item"
+            type="primary"
+            @click="onLoginDemoAccount(index)"
+          >
+            账号{{ index + 1 }}
+          </el-tag>
         </div>
       </div>
-      <div class="css-box">
-        <ul class="bubble-bgwall">
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-        </ul>
-      </div>
+    </div>
+    <div class="css-box">
+      <ul class="bubble-bgwall">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
     </div>
 
     <div class="footer">
@@ -596,141 +594,134 @@ watch(tabMode, () => {
   overflow: auto;
   background-color: transparent;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   position: relative;
 
-  .main {
+  .login-title {
     display: flex;
-    flex-grow: 1;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    position: absolute;
+    top: 40px;
 
-    .login-title {
+    .logo {
+      font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
+      font-weight: 700; /* 增强品牌识别度 */
+      font-size: 50px; /* 36px */
+      letter-spacing: 2px;
+      color: #1a365d; /* 深品牌蓝 */
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      display: block;
+    }
+
+    .feature {
+      font-family:
+        'SF Pro Text',
+        -apple-system,
+        sans-serif;
+      font-weight: 500; /* 中等字重保持可读性 */
+      font-size: 20px; /* 16px */
+      color: #4a5568; /* 中灰色降低视觉干扰 */
+      display: block;
+      margin-bottom: 30px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .desc {
+      font-family: 'Segoe UI Semibold', sans-serif;
+      font-size: 30px; /* 18px */
+      color: #2b6cb0; /* 品牌辅助蓝 */
+      letter-spacing: 0.25px;
+      display: block;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  .login-box {
+    width: 360px;
+    background-color: #fff;
+    border: #e0e0e0 solid 1px;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    position: absolute;
+    top: 235px;
+
+    .el-form {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding-bottom: 50px;
-
-      .logo {
-        font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
-        font-weight: 700; /* 增强品牌识别度 */
-        font-size: 50px; /* 36px */
-        letter-spacing: 2px;
-        color: #1a365d; /* 深品牌蓝 */
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        display: block;
+      justify-content: center;
+      user-select: none;
+      .button {
+        width: 100%;
       }
-
-      .feature {
-        font-family:
-          'SF Pro Text',
-          -apple-system,
-          sans-serif;
-        font-weight: 500; /* 中等字重保持可读性 */
-        font-size: 20px; /* 16px */
-        color: #4a5568; /* 中灰色降低视觉干扰 */
-        display: block;
-        margin-bottom: 30px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      }
-
-      .desc {
-        font-family: 'Segoe UI Semibold', sans-serif;
-        font-size: 30px; /* 18px */
-        color: #2b6cb0; /* 品牌辅助蓝 */
-        letter-spacing: 0.25px;
-        display: block;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      .flex {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
       }
     }
 
-    .login-box {
-      width: 360px;
-      height: 480px;
-      background-color: #fff;
-      border: #e0e0e0 solid 1px;
-      border-radius: 10px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: start;
-
-      .el-form {
+    .demo-info {
+      .demo-detail {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-        user-select: none;
-        .button {
-          width: 100%;
-        }
-        .flex {
-          width: 100%;
-          display: flex;
-          justify-content: space-between;
-        }
-      }
+        flex-direction: row;
+        justify-content: space-around;
+        flex-wrap: wrap;
 
-      .demo-info {
-        .demo-detail {
+        .demo-item {
           display: flex;
           flex-direction: row;
-          justify-content: space-around;
-          flex-wrap: wrap;
+          margin: 3px 12px 3px 12px;
+          cursor: pointer;
 
-          .demo-item {
-            display: flex;
-            flex-direction: row;
-            margin: 3px 12px 3px 12px;
-            cursor: pointer;
-
-            &:hover {
-              background-color: #dedfe0;
-            }
-          }
-        }
-
-        .separation-line {
-          :deep(.el-divider__text) {
-            font-size: 14px;
-            font-weight: normal;
-            color: gray;
-            white-space: nowrap;
+          &:hover {
+            background-color: #dedfe0;
           }
         }
       }
 
-      .login-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 32px;
-        font-weight: bold;
-        margin-bottom: 20px;
+      .separation-line {
+        :deep(.el-divider__text) {
+          font-size: 14px;
+          font-weight: normal;
+          color: gray;
+          white-space: nowrap;
+        }
       }
+    }
 
-      .captcha-form-item,
-      .forgetcode-form-item {
-        display: flex;
-        align-items: center;
-      }
+    .login-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
 
-      .captcha-input,
-      .forgetcode-input {
-        flex: 1; /* 占据剩余空间 */
-        min-width: 0; /* 防止内容溢出 */
-      }
+    .captcha-form-item,
+    .forgetcode-form-item {
+      display: flex;
+      align-items: center;
+    }
 
-      .captcha-image {
-        width: 100px;
-        height: 40px;
-        flex-shrink: 0; /* 禁止图片缩小 */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-left: 20px;
-      }
+    .captcha-input,
+    .forgetcode-input {
+      flex: 1; /* 占据剩余空间 */
+      min-width: 0; /* 防止内容溢出 */
+    }
+
+    .captcha-image {
+      width: 100px;
+      height: 40px;
+      flex-shrink: 0; /* 禁止图片缩小 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-left: 20px;
     }
   }
 
