@@ -120,12 +120,13 @@ const register = async () => {
 }
 
 const login = async () => {
+  await form.value.validate() // 登录之前预校验
+
   if (demoFlag && !isReadProtocol.value) {
     ElMessage.warning('请阅读并同意协议')
     return
   }
 
-  await form.value.validate() // 登录之前预校验
   loginWrapper()
     .then(async (res) => {
       userData.setAt(res.data.data.accessToken)
@@ -587,8 +588,7 @@ watch(tabMode, () => {
 
 <style lang="scss" scoped>
 .login-page {
-  min-width: 1024px;
-  min-height: 768px;
+  min-height: 960px;
   height: 100vh;
   overflow: auto;
   background-color: transparent;
@@ -761,6 +761,7 @@ watch(tabMode, () => {
       margin-right: 5px;
       display: flex;
       align-items: center;
+      text-align: center;
     }
   }
 }
