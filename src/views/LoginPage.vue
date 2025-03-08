@@ -328,6 +328,7 @@ watch(tabMode, () => {
       <span class="feature">开源·轻量·安全·分布式</span>
       <span class="desc">企业IM即时通讯解决方案</span>
     </div>
+    <a href="/" class="return-home">返回首页</a>
     <div class="login-box">
       <div class="login-header">
         <span v-if="tabMode === 'register'">注册</span>
@@ -632,6 +633,22 @@ watch(tabMode, () => {
       letter-spacing: 0.25px;
       display: block;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  .return-home {
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+    padding: 5px 15px 5px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    position: absolute;
+    right: 40px;
+    top: 20px;
+
+    &:hover {
+      background: #1d4ed8;
     }
   }
 
