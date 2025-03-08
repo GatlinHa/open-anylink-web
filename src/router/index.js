@@ -170,23 +170,24 @@ router.beforeEach(async (to, from, next) => {
   const userData = userStore()
   const isLogin = await userData.isLogin()
 
-  // 如果没有登录，且访问的是非登录页，拦截到登录
-  if (!isLogin && to.path !== '/login') {
-    next('/login')
-    return
-  }
-
-  // 如果有登录，且访问的是登录页，拦截到首页
-  if (isLogin && to.path === '/login') {
-    next('/')
-    return
-  }
-
-  // 检查是否是其他请求（除了已定义的路由之外的请求）
-  if (!router.getRoutes().some((route) => route.path === to.path)) {
-    next('/')
+  if (!isLogin) {
+    if (to.path === '/login') {
+      next()
+    } else if (router.getRoutes().some((route) => route.path === to.path)) {
+      next('/login')
+    } else {
+      // 其他请求一律转到/根请求
+      next('/')
+    }
   } else {
-    next()
+    if (to.path === '/login') {
+      next('/message')
+    } else if (router.getRoutes().some((route) => route.path === to.path)) {
+      next()
+    } else {
+      // 其他请求一律转到/根请求
+      next('/')
+    }
   }
 })
 

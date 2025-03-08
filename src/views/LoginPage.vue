@@ -133,7 +133,7 @@ const login = async () => {
       userData.setIsRemenberMe(isRemenberMe.value)
       await userData.updateUser() //这里要用await确保拿到结果了再跳转，否则其他页面依赖user的不能及时得到更新
       ElMessage.success('登录成功')
-      router.push('/')
+      router.push('/message')
     })
     .catch(() => {
       formModel.value.password = ''

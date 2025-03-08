@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { ElMessage } from 'element-plus'
 import { CLIENT_TYPE, CLIENT_NAME, CLIENT_VERSION } from '@/const/userConst'
 
-const baseURL = import.meta.env.VITE_BASE_URL
+const baseURL = import.meta.env.VITE_RESTAPI_URL
 const noTokenReqList = [
   '/user/getCaptcha',
   '/user/verifyCaptcha',
