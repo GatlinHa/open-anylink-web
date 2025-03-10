@@ -324,8 +324,11 @@ watch(tabMode, () => {
 
 <template>
   <div class="login-page">
-    <div class="login-title">
-      <span class="logo">Open AnyLink</span>
+    <div class="logo">
+      <div class="logo-box">
+        <span class="logo-title">Open AnyLink</span>
+        <img src="/favicon.svg" alt="Open AnyLink Icon" class="logo-icon" />
+      </div>
       <span class="feature">开源·轻量·安全·分布式</span>
       <span class="desc">企业IM即时通讯解决方案</span>
     </div>
@@ -596,21 +599,32 @@ watch(tabMode, () => {
   justify-content: center;
   position: relative;
 
-  .login-title {
+  .logo {
     display: flex;
     flex-direction: column;
     align-items: center;
     position: absolute;
     top: 8%;
 
-    .logo {
-      font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
-      font-weight: 700; /* 增强品牌识别度 */
-      font-size: 50px; /* 36px */
-      letter-spacing: 2px;
-      color: #1a365d; /* 深品牌蓝 */
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      display: block;
+    .logo-box {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      .logo-title {
+        font-family: 'Segoe UI', system-ui, sans-serif; /* 现代无衬线字体 */
+        font-weight: 700; /* 增强品牌识别度 */
+        font-size: 50px; /* 36px */
+        letter-spacing: 2px;
+        color: #1a365d; /* 深品牌蓝 */
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        display: block;
+      }
+
+      .logo-icon {
+        width: 60px;
+        height: 60px;
+      }
     }
 
     .feature {
