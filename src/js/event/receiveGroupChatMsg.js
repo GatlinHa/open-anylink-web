@@ -46,7 +46,9 @@ export const onReceiveGroupChatMsg = (msgListDiv = null, capacity = null) => {
       }
     ])
 
-    playMsgReceive()
+    if (!messageData.sessionList[sessionId].dnd) {
+      playMsgReceive()
+    }
 
     // 如果是当前正打开的会话
     if (msgListDiv && capacity && messageData.selectedSessionId === sessionId) {

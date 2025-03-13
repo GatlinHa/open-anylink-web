@@ -543,7 +543,9 @@ const handleSendMessage = (content, resendSeq = '') => {
     msg.msgId = msgId
     msg.status = 'ok'
     messageData.addMsgRecords(selectedSessionId.value, [msg]) //添加服务端返回msgId为key的msg
-    playMsgSend()
+    if (!messageData.sessionList[selectedSessionId.value].dnd) {
+      playMsgSend()
+    }
   }
 
   wsConnect.sendMsg(
