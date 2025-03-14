@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, h, createApp } from 'vue'
+import { computed, onMounted, h, createApp, watch, nextTick } from 'vue'
 import { ElImage } from 'element-plus'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
@@ -35,19 +35,26 @@ const groupCardData = groupCardStore()
 const imageData = imageStore()
 
 onMounted(async () => {
-  const msgContent = document.querySelector(`#div-content-${msg.value.msgId}`)
-  if (msgContent) {
-    const vnode = await renderComponent(msg.value.content)
-    const app = createApp({
-      render: () => vnode
-    })
-    app.mount(msgContent)
-  }
-
+  rendering()
   if (props.lastMsgId === props.msgId) {
     emit('renderFinished')
   }
 })
+
+let app = null
+const rendering = async () => {
+  const msgContent = document.querySelector(`#div-content-${msg.value.msgId}`)
+  if (msgContent) {
+    if (app) {
+      app.unmount()
+    }
+    const vnode = await renderComponent(msg.value.content)
+    app = createApp({
+      render: () => vnode
+    })
+    app.mount(msgContent)
+  }
+}
 
 const renderComponent = async (content) => {
   await imageData.loadImageInfoFromContent(props.sessionId, content)
@@ -491,6 +498,20 @@ const onClickSystemMsg = (e) => {
 const onResendMsg = () => {
   emit('resendMsg', msg.value)
 }
+
+/**
+ * 只要内容发生变化，重新渲染
+ */
+watch(
+  () => msg.value.content,
+  (newValue) => {
+    if (newValue) {
+      nextTick(() => {
+        rendering()
+      })
+    }
+  }
+)
 </script>
 
 <template>
