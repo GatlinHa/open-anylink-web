@@ -2,6 +2,8 @@
 import { User, Lock, Avatar, Key, Postcard } from '@element-plus/icons-vue'
 import { ref, watch, onMounted } from 'vue'
 import router from '@/router'
+import { ElLoading, ElMessage } from 'element-plus'
+import { el_loading_options } from '@/const/commonConst'
 import {
   userRegisterService,
   userLoginService,
@@ -11,7 +13,6 @@ import {
 } from '@/api/user.js'
 import { userStore } from '@/stores'
 import { generateClientId } from '@/js/utils/common'
-import { ElMessage } from 'element-plus'
 import { flowLimiteWrapper } from '@/js/utils/flowLimite'
 
 const tabMode = ref('login')
@@ -107,14 +108,17 @@ const register = async () => {
     return
   }
   await form.value.validate() // 注册之前预校验
+  const loadingInstance = ElLoading.service(el_loading_options)
   try {
     await verifyCaptchaWrapper()
+    await userRegisterService(formModel.value)
   } catch (error) {
     formModel.value.captchaCode = ''
     return
+  } finally {
+    loadingInstance.close()
   }
 
-  await userRegisterService(formModel.value)
   ElMessage.success('注册成功')
   tabMode.value = 'login'
 }
@@ -127,6 +131,7 @@ const login = async () => {
     return
   }
 
+  const loadingInstance = ElLoading.service(el_loading_options)
   loginWrapper()
     .then(async (res) => {
       userData.setAt(res.data.data.accessToken)
@@ -139,6 +144,9 @@ const login = async () => {
     .catch(() => {
       formModel.value.password = ''
     })
+    .finally(() => {
+      loadingInstance.close()
+    })
 }
 
 const resetPasswrod = async () => {
@@ -148,11 +156,14 @@ const resetPasswrod = async () => {
     return
   }
   await form.value.validate() // 预校验
+  const loadingInstance = ElLoading.service(el_loading_options)
   try {
     await forgetWrapper()
   } catch (error) {
     formModel.value.forgetCode = ''
     return
+  } finally {
+    loadingInstance.close()
   }
 
   ElMessage.success('密码重置成功')
