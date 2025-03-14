@@ -489,7 +489,8 @@ const handleSendMessage = (content, resendSeq = '') => {
     msgType: selectedSession.value.sessionType,
     content: content,
     status: 'pending',
-    msgTime: new Date()
+    msgTime: new Date(),
+    sendTime: new Date()
   }
 
   const resendInterval = 2000 //2秒

@@ -128,10 +128,15 @@ export const messageStore = defineStore('anylink-message', () => {
       }
       msgRecordsList.value[sessionId][item.msgId] = item
     })
+
     // 更新排序
-    msgIdSortArray.value[sessionId] = Object.keys(msgRecordsList.value[sessionId]).sort(
-      (a, b) => a - b
-    )
+    const array = Object.values(msgRecordsList.value[sessionId])
+    array.sort((a, b) => {
+      const timeA = new Date(a.sendTime || a.msgTime).getTime()
+      const timeB = new Date(b.sendTime || b.msgTime).getTime()
+      return timeA - timeB
+    })
+    msgIdSortArray.value[sessionId] = array.map((item) => item.msgId)
   }
 
   /**
