@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, h, createApp, watch, nextTick } from 'vue'
+import { computed, onMounted, h, createApp, watch, nextTick, reactive } from 'vue'
 import { ElImage } from 'element-plus'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
@@ -109,7 +109,7 @@ const renderComponent = async (content) => {
 }
 
 const msg = computed(() => {
-  return messageData.getMsg(props.sessionId, props.msgId)
+  return reactive({ ...messageData.getMsg(props.sessionId, props.msgId) })
 })
 
 const msgStatus = computed(() => {

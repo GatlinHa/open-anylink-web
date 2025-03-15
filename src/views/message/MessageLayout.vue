@@ -508,12 +508,9 @@ const handleSendMessage = (content, resendSeq = '') => {
                 setTimeout(() => {
                   if (msg.status === 'pending') {
                     messageData.removeMsgRecord(selectedSessionId.value, msg.msgId)
-                    // 这里需要在nextTick执行add操作，否则computed没有触发更新
-                    nextTick(() => {
-                      msg.status = 'failed'
-                      messageData.addMsgRecords(selectedSessionId.value, [msg])
-                      ElMessage.error('消息发送失败')
-                    })
+                    msg.status = 'failed'
+                    messageData.addMsgRecords(selectedSessionId.value, [msg])
+                    ElMessage.error('消息发送失败')
                   }
                 }, resendInterval)
               }
