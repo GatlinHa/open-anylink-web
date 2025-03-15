@@ -1,4 +1,4 @@
-# Open AnyLink <img src="favicon.svg" alt="logo" width="3.5%"/>
+# Open AnyLink <img src="doc/image/favicon.png" alt="logo" width=30/>
 
 ## 简介
 

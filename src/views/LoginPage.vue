@@ -338,7 +338,7 @@ watch(tabMode, () => {
     <div class="logo">
       <div class="logo-box">
         <span class="logo-title">Open AnyLink</span>
-        <img src="/favicon.svg?url" alt="Open AnyLink Icon" class="logo-icon" />
+        <img src="/favicon.png?url" alt="Open AnyLink Icon" class="logo-icon" />
       </div>
       <span class="feature">开源·轻量·安全·分布式</span>
       <span class="desc">企业IM即时通讯解决方案</span>
