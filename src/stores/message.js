@@ -147,6 +147,15 @@ export const messageStore = defineStore('anylink-message', () => {
   const removeMsgRecord = (sessionId, msgId) => {
     if (msgRecordsList.value[sessionId] && msgId in msgRecordsList.value[sessionId]) {
       delete msgRecordsList.value[sessionId][msgId]
+
+      // 更新排序
+      const array = Object.values(msgRecordsList.value[sessionId])
+      array.sort((a, b) => {
+        const timeA = new Date(a.sendTime || a.msgTime).getTime()
+        const timeB = new Date(b.sendTime || b.msgTime).getTime()
+        return timeA - timeB
+      })
+      msgIdSortArray.value[sessionId] = array.map((item) => item.msgId)
     }
   }
 

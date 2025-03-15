@@ -1,12 +1,12 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, reactive } from 'vue'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import GroupAvatarIcon from '@/components/common/GroupAvatarIcon.vue'
 import SessionTag from './SessionTag.vue'
 import { jsonParseSafe, sessionShowTime } from '@/js/utils/common'
 import { Top, MuteNotification } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
-import { messageStore, groupStore } from '@/stores'
+import { userStore, messageStore, groupStore } from '@/stores'
 import { msgChatCloseSessionService } from '@/api/message'
 import router from '@/router'
 import { ElMessage } from 'element-plus'
@@ -27,11 +27,10 @@ const emit = defineEmits([
 ])
 const messageData = messageStore()
 const groupData = groupStore()
+const userData = userStore()
+const myAccount = computed(() => userData.user.account)
 const sessionInfo = computed(() => {
   return messageData.sessionList[props.sessionId]
-})
-const msgIds = computed(() => {
-  return messageData.msgIdSortArray[props.sessionId]
 })
 
 const top = ref(sessionInfo.value.top)
@@ -82,11 +81,15 @@ const isNotInGroup = computed(() => {
 })
 
 const lastMsg = computed(() => {
-  if (!msgIds.value?.length) {
-    return {}
+  const msgIds = messageData.msgIdSortArray[props.sessionId]
+  if (!msgIds?.length) {
+    return reactive({})
   }
-  const len = msgIds.value.length
-  return messageData.getMsg(props.sessionId, msgIds.value[len - 1])
+  return reactive({ ...messageData.getMsg(props.sessionId, msgIds[msgIds.length - 1]) })
+})
+
+const lastMsgId = computed(() => {
+  return lastMsg.value.msgId
 })
 
 const showTime = computed(() => {
@@ -270,6 +273,30 @@ const isShowDraft = computed(() => {
   return !hasBeenSelected.value && sessionInfo.value.draft
 })
 
+const isShowUnread = computed(() => {
+  if (
+    !isShowDraft.value &&
+    lastMsg.value?.fromId === myAccount.value &&
+    +sessionInfo.value?.remoteRead < +lastMsgId.value
+  ) {
+    return true
+  } else {
+    return false
+  }
+})
+
+const isShowRead = computed(() => {
+  if (
+    !isShowDraft.value &&
+    lastMsg.value?.fromId === myAccount.value &&
+    +sessionInfo.value?.remoteRead === +lastMsgId.value
+  ) {
+    return true
+  } else {
+    return false
+  }
+})
+
 const isShowUnreadCount = computed(() => {
   return sessionInfo.value.unreadCount > 0
 })
@@ -400,6 +427,8 @@ defineExpose({
               >[{{ sessionInfo.unreadCount > 99 ? '99+' : sessionInfo.unreadCount }}条]</span
             >
             <span v-if="isShowDraft" class="draft">[草稿]</span>
+            <span v-if="isShowUnread" class="unread-or-read">[未读]</span>
+            <span v-if="isShowRead" class="unread-or-read">[已读]</span>
             <span class="detail text-ellipsis"> {{ showDetailContent }}</span>
           </div>
           <div class="action">
@@ -523,6 +552,11 @@ defineExpose({
 
         .draft {
           color: red;
+          flex-shrink: 0;
+        }
+
+        .unread-or-read {
+          color: gray;
           flex-shrink: 0;
         }
 
