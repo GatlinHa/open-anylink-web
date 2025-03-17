@@ -10,7 +10,7 @@ import {
   Microphone,
   VideoCamera
 } from '@element-plus/icons-vue'
-import avatar from '@/assets/image/default_avatar.png'
+import default_avatar from '@/assets/image/default_avatar.png'
 import { userStore, messageStore, userCardStore } from '@/stores'
 import { combineId } from '@/js/utils/common'
 import { MsgType } from '@/proto/msg'
@@ -134,6 +134,13 @@ const onVoiceCall = () => {
 const onVideoCall = () => {
   ElMessage.warning('功能开发中')
 }
+
+const showAvatar = ref(userCardData.userInfo.avatarThumb || default_avatar)
+
+const handleAvatarError = () => {
+  console.log('handleAvatarError')
+  showAvatar.value = default_avatar
+}
 </script>
 
 <template>
@@ -152,7 +159,7 @@ const onVideoCall = () => {
         <div class="header">
           <el-icon class="close-button" @click="onClose"><Close /></el-icon>
           <div class="main">
-            <el-avatar class="avatar" :src="userCardData.userInfo.avatarThumb || avatar" />
+            <el-avatar class="avatar" :src="showAvatar" @error="handleAvatarError" />
             <div class="gender">
               <el-icon v-if="userCardData.userInfo.gender === 1" color="#508afe"><Male /></el-icon>
               <el-icon v-if="userCardData.userInfo.gender === 2" color="#ff5722"

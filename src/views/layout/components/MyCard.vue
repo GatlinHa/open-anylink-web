@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { Close, Male, Female } from '@element-plus/icons-vue'
 import { userStore } from '@/stores'
-import avatar from '@/assets/image/default_avatar.png'
+import default_avatar from '@/assets/image/default_avatar.png'
 import router from '@/router'
 
 const props = defineProps(['isShow'])
@@ -37,6 +37,12 @@ const onClickAvatar = () => {
   router.push('/setting/personal')
 }
 
+const showAvatar = ref(userData.user.avatarThumb)
+
+const handleAvatarError = () => {
+  showAvatar.value = default_avatar
+}
+
 watch(
   () => props.isShow,
   (newValue) => {
@@ -58,7 +64,8 @@ watch(
       <div class="main">
         <el-avatar
           class="avatar"
-          :src="userData.user.avatarThumb || avatar"
+          :src="showAvatar"
+          @error="handleAvatarError"
           @click="onClickAvatar"
         />
         <div class="gender">

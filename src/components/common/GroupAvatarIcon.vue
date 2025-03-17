@@ -1,10 +1,11 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import groupChatIcon from '@/assets/svg/groupchat.svg'
 
 /**
  * avatarThumb: 群组头像
  * size：尺寸，不传即显示默认值
+ * isValid: 这个群是否是有效群（离开群组了视为无效）
  */
 const props = defineProps(['avatarThumb', 'size', 'isValid'])
 
@@ -39,15 +40,34 @@ const svgSize = computed(() => {
 const isValid = computed(() => {
   return props.isValid === undefined ? true : props.isValid
 })
+
+const isShowImg = computed(() => {
+  return props.avatarThumb && !isImageError.value
+})
+
+// 标记图片是否加载失败
+const isImageError = ref(false)
+const handleAvatarError = () => {
+  isImageError.value = true
+}
+
+// props.avatarThumb更新触发isImageError重置
+watch(
+  () => props.avatarThumb,
+  () => {
+    isImageError.value = false
+  }
+)
 </script>
 
 <template>
   <div class="group-avatar-box">
     <el-avatar
       class="avatar"
-      v-if="props.avatarThumb"
+      v-if="isShowImg"
       :src="props.avatarThumb"
       :size="avatarSize"
+      @error="handleAvatarError"
     />
     <div v-else class="svg-avatar" :style="{ width: avatarSize + 'px', height: avatarSize + 'px' }">
       <groupChatIcon :style="{ width: svgSize + 'px', height: svgSize + 'px' }"></groupChatIcon>

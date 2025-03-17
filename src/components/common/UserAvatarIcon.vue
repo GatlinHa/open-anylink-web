@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { getAvatarColor, getFontColor } from '@/js/utils/common'
 import { STATUS } from '@/const/userConst'
 import default_avatar from '@/assets/image/default_avatar.png'
@@ -31,7 +31,7 @@ const statusCircleSize = computed(() => {
 })
 
 const isShowImg = computed(() => {
-  return props.showAvatarThumb ? true : false
+  return props.showAvatarThumb && !isImageError.value ? true : false
 })
 
 const firstChar = computed(() => {
@@ -59,11 +59,31 @@ const statusCircleColor = computed(() => {
       return 'gray'
   }
 })
+
+// 标记图片是否加载失败
+const isImageError = ref(false)
+const handleAvatarError = () => {
+  isImageError.value = true
+}
+
+// props.showAvatarThumb更新触发isImageError重置
+watch(
+  () => props.showAvatarThumb,
+  () => {
+    isImageError.value = false
+  }
+)
 </script>
 
 <template>
   <div class="user-avatar-box" :style="{ width: avatarSize + 'px', height: avatarSize + 'px' }">
-    <el-avatar class="avatar" v-if="isShowImg" :src="props.showAvatarThumb" :size="avatarSize" />
+    <el-avatar
+      class="avatar"
+      v-if="isShowImg"
+      :src="props.showAvatarThumb"
+      :size="avatarSize"
+      @error="handleAvatarError"
+    />
     <span
       class="first-char-box"
       v-else-if="firstChar"
@@ -100,7 +120,8 @@ const statusCircleColor = computed(() => {
     justify-content: center;
     align-items: center;
 
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.2) 25%, rgba(0, 0, 0, 0.5) 100%),
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.2) 25%, rgba(0, 0, 0, 0.5) 100%),
       v-bind(avatarColor); // 组合渐变色与动态背景色
     position: relative;
     // 调整高光位置
