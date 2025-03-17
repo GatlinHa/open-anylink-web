@@ -585,8 +585,8 @@ const onLoadMore = async () => {
 // MessageItem最后一个msg渲染结束后的动作
 const renderFinished = () => {
   setTimeout(() => {
-    msgListReachBottom()
-  }, 50)
+    msgListReachBottom('smooth')
+  }, 100)
 }
 
 /**

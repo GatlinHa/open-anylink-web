@@ -34,11 +34,12 @@ const groupData = groupStore()
 const groupCardData = groupCardStore()
 const imageData = imageStore()
 
-onMounted(async () => {
-  rendering()
-  if (props.lastMsgId === props.msgId) {
-    emit('renderFinished')
-  }
+onMounted(() => {
+  rendering().then(() => {
+    if (props.lastMsgId === props.msgId) {
+      emit('renderFinished')
+    }
+  })
 })
 
 let app = null
