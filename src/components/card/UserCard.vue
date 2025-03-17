@@ -357,8 +357,7 @@ const onVideoCall = () => {
       z-index: 1;
 
       &:hover {
-        color: #fff;
-        background-color: red;
+        color: #409eff;
       }
     }
 
