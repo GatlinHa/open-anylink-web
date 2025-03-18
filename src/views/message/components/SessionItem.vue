@@ -275,6 +275,7 @@ const isShowDraft = computed(() => {
 
 const isShowUnread = computed(() => {
   if (
+    sessionInfo.value.sessionType === MsgType.CHAT &&
     !isShowDraft.value &&
     lastMsg.value?.fromId === myAccount.value &&
     +sessionInfo.value?.remoteRead < +lastMsgId.value
@@ -287,6 +288,7 @@ const isShowUnread = computed(() => {
 
 const isShowRead = computed(() => {
   if (
+    sessionInfo.value.sessionType === MsgType.CHAT &&
     !isShowDraft.value &&
     lastMsg.value?.fromId === myAccount.value &&
     +sessionInfo.value?.remoteRead === +lastMsgId.value
