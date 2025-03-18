@@ -34,7 +34,7 @@ const onSelectedFile = (file) => {
         loadingInstance.close()
       })
   } else {
-    ElMessage.warning('不支持上传该文件格式')
+    ElMessage.warning('不支持发送该格式的文件')
   }
 }
 

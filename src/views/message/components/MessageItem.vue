@@ -35,11 +35,7 @@ const groupCardData = groupCardStore()
 const imageData = imageStore()
 
 onMounted(() => {
-  rendering().then(() => {
-    if (props.lastMsgId === props.msgId) {
-      emit('renderFinished')
-    }
-  })
+  rendering()
 })
 
 let app = null
@@ -112,6 +108,11 @@ const renderComponent = async (content) => {
               // 如果图片更高，以高度为基准
               img.style.height = '200px'
               img.style.width = 'auto'
+            }
+
+            // 如果是最后一个messageItem，则通知父父组件
+            if (props.lastMsgId === props.msgId) {
+              emit('renderFinished')
             }
           }
         })
