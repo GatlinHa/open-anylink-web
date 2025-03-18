@@ -1,12 +1,13 @@
 <script setup>
 import { ref } from 'vue'
 import { LocationInformation, Clock, FolderAdd, CreditCard } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElLoading } from 'element-plus'
 import EmojiIcon from '@/assets/svg/emoji.svg'
 import EmojiBox from './EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
 import { mtsUploadService } from '@/api/mts'
 import { imageStore } from '@/stores'
+import { el_loading_options } from '@/const/commonConst'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
 const emit = defineEmits(['sendEmoji', 'sendImage'])
@@ -21,12 +22,17 @@ const onSelectedFile = (file) => {
   }
 
   if (file.raw.type && file.raw.type.startsWith('image/')) {
-    mtsUploadService({ file: file.raw, storeType: 1 }).then((res) => {
-      if (res.data.code === 0) {
-        imageData.setImage(props.sessionId, res.data.data) // 缓存image数据
-        emit('sendImage', res.data.data)
-      }
-    })
+    const loadingInstance = ElLoading.service(el_loading_options)
+    mtsUploadService({ file: file.raw, storeType: 1 })
+      .then((res) => {
+        if (res.data.code === 0) {
+          imageData.setImage(props.sessionId, res.data.data) // 缓存image数据
+          emit('sendImage', res.data.data)
+        }
+      })
+      .finally(() => {
+        loadingInstance.close()
+      })
   } else {
     ElMessage.warning('不支持上传该文件格式')
   }
