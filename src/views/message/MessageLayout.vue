@@ -6,10 +6,6 @@ import {
   VideoCamera,
   MoreFilled,
   CirclePlus,
-  LocationInformation,
-  Clock,
-  FolderAdd,
-  CreditCard,
   ArrowDownBold,
   ArrowUp
 } from '@element-plus/icons-vue'
@@ -17,7 +13,7 @@ import DragLine from '@/components/common/DragLine.vue'
 import SearchBox from '@/components/search/SearchBox.vue'
 import AddButton from '@/components/common/AddButton.vue'
 import SessionItem from '@/views/message/components/SessionItem.vue'
-import InputTool from '@/views/message/components/InputTool.vue'
+import ToolBar from './components/ToolBar.vue'
 import InputEditor from '@/views/message/components/InputEditor.vue'
 import MessageItem from '@/views/message/components/MessageItem.vue'
 import SessionTag from '@/views/message/components/SessionTag.vue'
@@ -50,8 +46,6 @@ import { BEGIN_MSG_ID } from '@/const/msgConst'
 import EditDialog from '@/components/common/EditDialog.vue'
 import AddOprMenu from './components/AddOprMenu.vue'
 import MessageGroupRightSide from './components/MessageGroupRightSide.vue'
-import EmojiBox from './components/EmojiBox.vue'
-import EmojiIcon from '@/assets/svg/emoji.svg'
 import HashNoData from '@/components/common/HasNoData.vue'
 import { playMsgSend } from '@/js/utils/audio'
 
@@ -79,7 +73,7 @@ const newMsgTips = ref({
   firstElement: null
 })
 
-const isShowEmojiBox = ref(false)
+const toolBarRef = ref()
 
 const myAccount = computed(() => {
   return userData.user.account
@@ -481,7 +475,7 @@ const handleSendMessage = (content, resendSeq = '') => {
     return
   }
 
-  isShowEmojiBox.value = false
+  toolBarRef.value.closeWindow()
 
   const msg = {
     sessionId: selectedSessionId.value,
@@ -1143,37 +1137,11 @@ const onSendEmoji = (key) => {
             <div class="input-box bdr-t" :style="{ height: inputBoxHeight + 'px' }">
               <el-container class="input-box-container">
                 <el-header class="input-box-header">
-                  <div class="tool-set">
-                    <div v-if="!isNotInGroup" class="left-tools">
-                      <InputTool tips="表情" @click="isShowEmojiBox = true">
-                        <template #iconSlot>
-                          <EmojiIcon />
-                        </template>
-                      </InputTool>
-                      <InputTool tips="文件" @click="ElMessage.warning('功能开发中')">
-                        <template #iconSlot>
-                          <FolderAdd />
-                        </template>
-                      </InputTool>
-                      <InputTool tips="代码" @click="ElMessage.warning('功能开发中')">
-                        <template #iconSlot>
-                          <CreditCard />
-                        </template>
-                      </InputTool>
-                      <InputTool tips="位置" @click="ElMessage.warning('功能开发中')">
-                        <template #iconSlot>
-                          <LocationInformation />
-                        </template>
-                      </InputTool>
-                    </div>
-                    <div class="right-tools">
-                      <InputTool tips="聊天记录" @click="ElMessage.warning('功能开发中')">
-                        <template #iconSlot>
-                          <Clock />
-                        </template>
-                      </InputTool>
-                    </div>
-                  </div>
+                  <ToolBar
+                    ref="toolBarRef"
+                    :isShowToolSet="!isNotInGroup"
+                    @sendEmoji="onSendEmoji"
+                  ></ToolBar>
                   <DragLine
                     direction="top"
                     :min="inputBoxHeightMin"
@@ -1181,11 +1149,6 @@ const onSendEmoji = (key) => {
                     :origin-size="inputBoxHeight"
                     @drag-update="onInputBoxDragUpdate"
                   ></DragLine>
-                  <EmojiBox
-                    :isShow="isShowEmojiBox"
-                    @close="isShowEmojiBox = false"
-                    @sendEmoji="onSendEmoji"
-                  ></EmojiBox>
                 </el-header>
                 <el-main class="input-box-main">
                   <div
@@ -1446,20 +1409,6 @@ const onSendEmoji = (key) => {
               height: auto;
               padding: 0;
               position: relative;
-
-              .tool-set {
-                display: flex;
-                position: relative;
-
-                .left-tools {
-                  display: flex;
-                }
-
-                .right-tools {
-                  position: absolute;
-                  right: 0;
-                }
-              }
             }
 
             .input-box-main {
