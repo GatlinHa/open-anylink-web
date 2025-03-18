@@ -69,7 +69,7 @@ const onUpload = async () => {
 
     isLoading.value = true
     try {
-      const res = await mtsUploadService({ file: file })
+      const res = await mtsUploadService({ file: file, storeType: 0 })
       emit('update:newAvatar', {
         avatar: res.data.data.originUrl,
         avatarThumb: res.data.data.thumbUrl

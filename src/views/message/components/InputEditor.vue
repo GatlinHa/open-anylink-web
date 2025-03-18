@@ -69,7 +69,7 @@ const getContent = async () => {
         el_loading_options.text = '图片上传中...' //上传中加一个loading效果
         const loadingInstance = ElLoading.service(el_loading_options)
         try {
-          const res = await mtsUploadService({ file: file }) //上传图片至服务端
+          const res = await mtsUploadService({ file: file, storeType: 1 }) //上传图片至服务端
           imageData.setImage(props.sessionId, res.data.data) // 缓存image数据
           content = content + `{${res.data.data.objectId}}`
         } finally {
