@@ -555,6 +555,8 @@ const handleSendMessage = (content, resendSeq = '') => {
     callbackBefore,
     callbackAfter
   )
+
+  locateSession(selectedSessionId.value)
 }
 
 const handleResendMessage = ({ content, seq }) => {
