@@ -85,6 +85,7 @@ const renderComponent = async (content) => {
           previewSrcList: srcList,
           initialIndex: imgIdList.indexOf(imgId),
           infinite: false,
+          lazy: true,
           style: {
             maxWidth: '300px',
             maxHeight: '200px',
