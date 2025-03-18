@@ -13,7 +13,7 @@ import DragLine from '@/components/common/DragLine.vue'
 import SearchBox from '@/components/search/SearchBox.vue'
 import AddButton from '@/components/common/AddButton.vue'
 import SessionItem from '@/views/message/components/SessionItem.vue'
-import ToolBar from './components/ToolBar.vue'
+import InputToolBar from './components/InputToolBar.vue'
 import InputEditor from '@/views/message/components/InputEditor.vue'
 import MessageItem from '@/views/message/components/MessageItem.vue'
 import SessionTag from '@/views/message/components/SessionTag.vue'
@@ -73,7 +73,7 @@ const newMsgTips = ref({
   firstElement: null
 })
 
-const toolBarRef = ref()
+const inputToolBarRef = ref()
 
 const myAccount = computed(() => {
   return userData.user.account
@@ -475,7 +475,7 @@ const handleSendMessage = (content, resendSeq = '') => {
     return
   }
 
-  toolBarRef.value.closeWindow()
+  inputToolBarRef.value.closeWindow()
 
   const msg = {
     sessionId: selectedSessionId.value,
@@ -954,6 +954,10 @@ const inputEditorRef = ref()
 const onSendEmoji = (key) => {
   inputEditorRef.value.addEmoji(key)
 }
+
+const onSendImage = ({ objectId }) => {
+  handleSendMessage(`{${objectId}}`)
+}
 </script>
 
 <template>
@@ -1137,11 +1141,13 @@ const onSendEmoji = (key) => {
             <div class="input-box bdr-t" :style="{ height: inputBoxHeight + 'px' }">
               <el-container class="input-box-container">
                 <el-header class="input-box-header">
-                  <ToolBar
-                    ref="toolBarRef"
+                  <InputToolBar
+                    ref="inputToolBarRef"
+                    :sessionId="selectedSessionId"
                     :isShowToolSet="!isNotInGroup"
                     @sendEmoji="onSendEmoji"
-                  ></ToolBar>
+                    @sendImage="onSendImage"
+                  ></InputToolBar>
                   <DragLine
                     direction="top"
                     :min="inputBoxHeightMin"

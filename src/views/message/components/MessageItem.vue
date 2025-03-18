@@ -74,17 +74,45 @@ const renderComponent = async (content) => {
   const elements = contentArray.map((item) => {
     if (item.startsWith('{') && item.endsWith('}')) {
       const imgId = item.slice(1, -1)
-      const url = imageData.image[imgId]?.originUrl
+      const url = imageData.image[imgId]?.thumbUrl
       if (url) {
         const imgIdList = imageData.imageInSession[props.sessionId].sort((a, b) => a - b)
         const srcList = imgIdList.map((item) => imageData.image[item].originUrl)
         return h(ElImage, {
           src: url,
           alt: `{${imgId}}`,
-          fit: 'cover',
+          fit: 'contain',
           previewSrcList: srcList,
           initialIndex: imgIdList.indexOf(imgId),
-          infinite: false
+          infinite: false,
+          style: {
+            maxWidth: '300px',
+            maxHeight: '200px',
+            width: 'auto',
+            height: 'auto'
+          },
+          onLoad: (e) => {
+            const img = e.target
+            const ratio = img.naturalWidth / img.naturalHeight
+            const maxRatio = 300 / 200 // 最大宽高比
+
+            // 如果图片尺寸在限制范围内，保持原始尺寸
+            if (img.naturalWidth <= 300 && img.naturalHeight <= 200) {
+              img.style.width = img.naturalWidth + 'px'
+              img.style.height = img.naturalHeight + 'px'
+              return
+            }
+
+            if (ratio > maxRatio) {
+              // 如果图片更宽，以宽度为基准
+              img.style.width = '300px'
+              img.style.height = 'auto'
+            } else {
+              // 如果图片更高，以高度为基准
+              img.style.height = '200px'
+              img.style.width = 'auto'
+            }
+          }
         })
       } else {
         return h('span', item)
@@ -355,16 +383,28 @@ const systemMsgContent = computed(() => {
       return `<div style="text-align: center;">${getSysGroupUpdateAvatar(content)}</div>`
     case MsgType.SYS_GROUP_SET_ADMIN:
     case MsgType.SYS_GROUP_CANCEL_ADMIN:
-      return `<div style="text-align: center;">${getSysGroupChangeRoleMsgTips(msg.value.msgType, content)}</div>`
+      return `<div style="text-align: center;">${getSysGroupChangeRoleMsgTips(
+        msg.value.msgType,
+        content
+      )}</div>`
     case MsgType.SYS_GROUP_SET_ALL_MUTED:
     case MsgType.SYS_GROUP_CANCEL_ALL_MUTED:
-      return `<div style="text-align: center;">${getSysGroupUpdateAllMuted(msg.value.msgType, content)}</div>`
+      return `<div style="text-align: center;">${getSysGroupUpdateAllMuted(
+        msg.value.msgType,
+        content
+      )}</div>`
     case MsgType.SYS_GROUP_SET_JOIN_APPROVAL:
     case MsgType.SYS_GROUP_CANCEL_JOIN_APPROVAL:
-      return `<div style="text-align: center;">${getSysGroupUpdateJoinApproval(msg.value.msgType, content)}</div>`
+      return `<div style="text-align: center;">${getSysGroupUpdateJoinApproval(
+        msg.value.msgType,
+        content
+      )}</div>`
     case MsgType.SYS_GROUP_SET_HISTORY_BROWSE:
     case MsgType.SYS_GROUP_CANCEL_HISTORY_BROWSE:
-      return `<div style="text-align: center;">${getSysGroupUpdateHistoryBrowse(msg.value.msgType, content)}</div>`
+      return `<div style="text-align: center;">${getSysGroupUpdateHistoryBrowse(
+        msg.value.msgType,
+        content
+      )}</div>`
     case MsgType.SYS_GROUP_OWNER_TRANSFER:
       return `<div style="text-align: center;">${getSysGroupOwnerTransfer(content)}</div>`
     case MsgType.SYS_GROUP_UPDATE_MEMBER_MUTED:
@@ -403,7 +443,7 @@ const myMsgIsRead = computed(() => {
 })
 
 const isShowLoadMore = computed(() => {
-  // 这里用弱等于“==”，左边是数字，右边是string
+  // 这里用弱等于"=="，左边是数字，右边是string
   if (msg.value.msgId == props.firstMsgId && !props.hasNoMoreMsg) {
     return true
   } else {
@@ -411,7 +451,7 @@ const isShowLoadMore = computed(() => {
   }
 })
 const isShowNoMoreMsg = computed(() => {
-  // 这里用弱等于“==”，左边是数字，右边是string
+  // 这里用弱等于"=="，左边是数字，右边是string
   if (msg.value.msgId == props.firstMsgId && props.hasNoMoreMsg) {
     return true
   } else {

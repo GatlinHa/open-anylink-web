@@ -5,14 +5,31 @@ import { ElMessage } from 'element-plus'
 import EmojiIcon from '@/assets/svg/emoji.svg'
 import EmojiBox from './EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
+import { mtsUploadService } from '@/api/mts'
+import { imageStore } from '@/stores'
 
-const props = defineProps(['isShowToolSet'])
-const emit = defineEmits(['sendEmoji'])
+const props = defineProps(['sessionId', 'isShowToolSet'])
+const emit = defineEmits(['sendEmoji', 'sendImage'])
+
+const imageData = imageStore()
 
 const isShowEmojiBox = ref(false)
 
-const onSelectedFile = () => {
-  console.log('onSelectedFile')
+const onSelectedFile = (file) => {
+  if (!file) {
+    return
+  }
+
+  if (file.raw.type && file.raw.type.startsWith('image/')) {
+    mtsUploadService({ file: file.raw, storeType: 1 }).then((res) => {
+      if (res.data.code === 0) {
+        imageData.setImage(props.sessionId, res.data.data) // 缓存image数据
+        emit('sendImage', res.data.data)
+      }
+    })
+  } else {
+    ElMessage.warning('不支持上传该文件格式')
+  }
 }
 
 const onSendEmoji = (key) => {
