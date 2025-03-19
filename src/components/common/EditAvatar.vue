@@ -230,11 +230,19 @@ const onRotateRight = () => {
   .preview-100 {
     width: 100px;
     height: 100px;
+
+    :deep(img) {
+      margin: 0;
+    }
   }
 
   .preview-40 {
     width: 40px;
     height: 40px;
+
+    :deep(img) {
+      margin: 0;
+    }
   }
 }
 </style>
