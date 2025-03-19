@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import {
   Close,
   Male,
@@ -135,12 +135,18 @@ const onVideoCall = () => {
   ElMessage.warning('功能开发中')
 }
 
-const showAvatar = ref(userCardData.userInfo.avatarThumb || default_avatar)
+const showAvatar = ref(userCardData.userInfo.avatarThumb)
 
 const handleAvatarError = () => {
-  console.log('handleAvatarError')
   showAvatar.value = default_avatar
 }
+
+watch(
+  () => userCardData.userInfo.avatarThumb,
+  (newValue) => {
+    showAvatar.value = newValue
+  }
+)
 </script>
 
 <template>

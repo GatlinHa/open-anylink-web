@@ -44,6 +44,13 @@ const handleAvatarError = () => {
 }
 
 watch(
+  () => userData.user.avatarThumb,
+  (newValue) => {
+    showAvatar.value = newValue
+  }
+)
+
+watch(
   () => props.isShow,
   (newValue) => {
     dialogVisible.value = newValue
