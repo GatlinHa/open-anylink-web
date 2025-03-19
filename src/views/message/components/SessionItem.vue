@@ -216,7 +216,7 @@ const getGroupChatMsgTips = (content) => {
 
 const showDetailContent = computed(() => {
   if (isShowDraft.value) {
-    return sessionInfo.value.draft
+    return sessionInfo.value.draft?.replace(/\{\d+\}/g, '{图片}') // 把内容中的`{xxxxxx}`格式的图片统一转成`{图片}`
   } else {
     const replaceContent = lastMsg.value.content?.replace(/\{\d+\}/g, '{图片}') // 把内容中的`{xxxxxx}`格式的图片统一转成`{图片}`
     if (replaceContent) {
