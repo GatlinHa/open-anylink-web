@@ -7,6 +7,7 @@ import { userStore, messageStore, groupStore, groupCardStore, imageStore } from 
 import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/common'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import { emojis } from '@/js/utils/emojis'
+import { msgContentType } from '@/const/msgConst'
 
 const props = defineProps([
   'sessionId',
@@ -50,12 +51,69 @@ const rendering = async () => {
       render: () => vnode
     })
     app.mount(msgContent)
+
+    // 如果是最后一个messageItem，则通知父父组件
+    if (props.lastMsgId === props.msgId) {
+      emit('renderFinished')
+    }
   }
 }
 
+/**
+ * 动态渲染消息内容
+ * @param content 消息内容
+ */
 const renderComponent = async (content) => {
-  await imageData.loadImageInfoFromContent(props.sessionId, content)
+  const contentJson = jsonParseSafe(content)
+  if (!contentJson) {
+    return await renderRich(content)
+  }
+
+  const type = contentJson['type']
+  const value = contentJson['value']
+  if (!type || !value) {
+    return await renderRich(content)
+  }
+
+  switch (type) {
+    case msgContentType.RICH:
+      return await renderRich(value)
+    case msgContentType.TEXT:
+      return renderText(value)
+    case msgContentType.AUDIO:
+      return h('div', [])
+    case msgContentType.IMAGE:
+      if (value.startsWith('{') && value.endsWith('}')) {
+        await imageData.loadImageInfoFromContent(props.sessionId, value)
+        return renderImage(value)
+      } else {
+        return h('span', value)
+      }
+    case msgContentType.EMOJI:
+      if (value.startsWith('[') && value.endsWith(']')) {
+        return renderEmoji(value)
+      } else {
+        return h('span', value)
+      }
+    case msgContentType.VIDEO:
+    default:
+      return h('div', [])
+  }
+}
+
+const renderText = (content) => {
+  return h('span', content)
+}
+
+const renderRich = async (content) => {
   if (!content) return h('div', [])
+
+  // 如果content存在图片则提前load
+  const mathes = content.match(/\{[a-f0-9]+\}/g)
+  if (mathes && mathes.length > 0) {
+    await imageData.loadImageInfoFromContent(props.sessionId, content)
+  }
+
   let contentArray = []
   //匹配内容中的图片
   content.split(/(\{.*?\})/).forEach((item) => {
@@ -67,73 +125,80 @@ const renderComponent = async (content) => {
     })
   })
 
-  const elements = contentArray.map((item) => {
+  return contentArray.map((item) => {
     if (item.startsWith('{') && item.endsWith('}')) {
-      const imgId = item.slice(1, -1)
-      const url = imageData.image[imgId]?.thumbUrl
-      if (url) {
-        const imgIdList = imageData.imageInSession[props.sessionId].sort((a, b) => a - b)
-        const srcList = imgIdList.map((item) => imageData.image[item].originUrl)
-        return h(ElImage, {
-          src: url,
-          alt: `{${imgId}}`,
-          fit: 'contain',
-          previewSrcList: srcList,
-          initialIndex: imgIdList.indexOf(imgId),
-          infinite: false,
-          lazy: true,
-          style: {
-            maxWidth: '300px',
-            maxHeight: '200px',
-            width: 'auto',
-            height: 'auto'
-          },
-          onLoad: (e) => {
-            const img = e.target
-            const ratio = img.naturalWidth / img.naturalHeight
-            const maxRatio = 300 / 200 // 最大宽高比
-
-            // 如果图片尺寸在限制范围内，保持原始尺寸
-            if (img.naturalWidth <= 300 && img.naturalHeight <= 200) {
-              img.style.width = img.naturalWidth + 'px'
-              img.style.height = img.naturalHeight + 'px'
-            } else if (ratio > maxRatio) {
-              // 如果图片更宽，以宽度为基准
-              img.style.width = '300px'
-              img.style.height = 'auto'
-            } else {
-              // 如果图片更高，以高度为基准
-              img.style.height = '200px'
-              img.style.width = 'auto'
-            }
-
-            // 如果是最后一个messageItem，则通知父父组件
-            if (props.lastMsgId === props.msgId) {
-              emit('renderFinished')
-            }
-          }
-        })
-      } else {
-        return h('span', item)
-      }
+      return renderImage(item)
     } else if (item.startsWith('[') && item.endsWith(']')) {
-      const emojiId = `[${item.slice(1, -1)}]`
-      const url = emojis[emojiId]
-      if (url) {
-        return h('img', {
-          class: 'emoji',
-          src: url,
-          alt: emojiId,
-          title: item.slice(1, -1)
-        })
-      } else {
-        return h('span', item)
-      }
+      return renderEmoji(item)
     } else {
       return h('span', item)
     }
   })
-  return elements
+}
+
+const renderEmoji = (content) => {
+  const emojiId = `[${content.slice(1, -1)}]`
+  const url = emojis[emojiId]
+  if (url) {
+    return h('img', {
+      class: 'emoji',
+      src: url,
+      alt: emojiId,
+      title: content.slice(1, -1)
+    })
+  } else {
+    return h('span', content)
+  }
+}
+
+const renderImage = (content) => {
+  const imgId = content.slice(1, -1)
+  const url = imageData.image[imgId]?.thumbUrl
+  if (url) {
+    const imgIdList = imageData.imageInSession[props.sessionId].sort((a, b) => a - b)
+    const srcList = imgIdList.map((item) => imageData.image[item].originUrl)
+    return h(ElImage, {
+      src: url,
+      alt: `{${imgId}}`,
+      fit: 'contain',
+      previewSrcList: srcList,
+      initialIndex: imgIdList.indexOf(imgId),
+      infinite: false,
+      lazy: true,
+      style: {
+        maxWidth: '300px',
+        maxHeight: '200px',
+        width: 'auto',
+        height: 'auto'
+      },
+      onLoad: (e) => {
+        const img = e.target
+        const ratio = img.naturalWidth / img.naturalHeight
+        const maxRatio = 300 / 200 // 最大宽高比
+
+        // 如果图片尺寸在限制范围内，保持原始尺寸
+        if (img.naturalWidth <= 300 && img.naturalHeight <= 200) {
+          img.style.width = img.naturalWidth + 'px'
+          img.style.height = img.naturalHeight + 'px'
+        } else if (ratio > maxRatio) {
+          // 如果图片更宽，以宽度为基准
+          img.style.width = '300px'
+          img.style.height = 'auto'
+        } else {
+          // 如果图片更高，以高度为基准
+          img.style.height = '200px'
+          img.style.width = 'auto'
+        }
+
+        // 如果是最后一个messageItem，则通知父父组件
+        if (props.lastMsgId === props.msgId) {
+          emit('renderFinished')
+        }
+      }
+    })
+  } else {
+    return h('span', content)
+  }
 }
 
 const msg = computed(() => {
