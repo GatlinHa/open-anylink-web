@@ -97,10 +97,7 @@ const renderComponent = async (content) => {
             if (img.naturalWidth <= 300 && img.naturalHeight <= 200) {
               img.style.width = img.naturalWidth + 'px'
               img.style.height = img.naturalHeight + 'px'
-              return
-            }
-
-            if (ratio > maxRatio) {
+            } else if (ratio > maxRatio) {
               // 如果图片更宽，以宽度为基准
               img.style.width = '300px'
               img.style.height = 'auto'
@@ -607,7 +604,7 @@ watch(
                 <div v-if="myMsgIsRead" class="remote_read"></div>
                 <div v-else class="remote_unread"></div>
               </div>
-              <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
+              <div class="div-content" :id="`div-content-${msg.msgId}`">内容加载中...</div>
             </el-main>
           </el-container>
         </el-main>
@@ -639,7 +636,7 @@ watch(
               <span>{{ msgTime }}</span>
             </el-header>
             <el-main class="message-content">
-              <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
+              <div class="div-content" :id="`div-content-${msg.msgId}`">内容加载中...</div>
             </el-main>
           </el-container>
         </el-main>
