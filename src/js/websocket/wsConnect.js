@@ -329,14 +329,14 @@ class WsConnect {
    * @param {*} msgType
    * @param {*} content
    * @param {*} seq
-   * @param {*} callbackBefore 发送前的处理，用于展示发送前状态
-   * @param {*} callbackAfter  发送后(接收MsgType.DELIVERED时)的处理，用于展示发送后状态
+   * @param {*} before 发送前的处理，用于展示发送前状态
+   * @param {*} after  发送后(接收MsgType.DELIVERED时)的处理，用于展示发送后状态
    */
-  sendMsg(sessionId, remoteId, msgType, content, seq, callbackBefore, callbackAfter) {
+  sendMsg(sessionId, remoteId, msgType, content, seq, before, after) {
     const sequence = seq || uuidv4()
     const data = this.dataConstructor[msgType](sessionId, remoteId, content, sequence)
-    callbackBefore(sequence, data)
-    this.msgIdRefillCallback[sequence] = callbackAfter
+    before(sequence, data)
+    this.msgIdRefillCallback[sequence] = after
     this.sendAgent(data)
   }
 

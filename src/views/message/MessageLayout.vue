@@ -236,9 +236,9 @@ onMounted(async () => {
   asideWidth.value = settingData.sessionListDrag[myAccount.value] || 300
   inputBoxHeight.value = settingData.inputBoxDrag[myAccount.value] || 300
 
-  wsConnect.bindEvent(MsgType.CHAT, onReceiveChatMsg(msgListDiv, capacity)) //绑定接收Chat消息的事件
-  wsConnect.bindEvent(MsgType.GROUP_CHAT, onReceiveGroupChatMsg(msgListDiv, capacity)) //绑定接收GroupChat消息的事件
-  wsConnect.bindGroupSystemMsgEvent(onReceiveGroupSystemMsg(msgListDiv, capacity)) //绑定接收群系统消息事件
+  wsConnect.bindEvent(MsgType.CHAT, onReceiveChatMsg(updateScroll, capacity)) //绑定接收Chat消息的事件
+  wsConnect.bindEvent(MsgType.GROUP_CHAT, onReceiveGroupChatMsg(updateScroll, capacity)) //绑定接收GroupChat消息的事件
+  wsConnect.bindGroupSystemMsgEvent(onReceiveGroupSystemMsg(updateScroll, capacity)) //绑定接收群系统消息事件
 
   // 这里要接收从其他页面跳转过来传递的sessionId参数
   const routerSessionId = router.currentRoute.value.query.sessionId
@@ -491,7 +491,7 @@ const handleSendMessage = (content, resendSeq = '') => {
   }
 
   const resendInterval = 2000 //2秒
-  const callbackBefore = (seq, data) => {
+  const before = (seq, data) => {
     // 当2s内status如果还是pending中，则重发3次。如果最后还是pending，则把status置为failed
     setTimeout(() => {
       if (msg.status === 'pending') {
@@ -524,11 +524,10 @@ const handleSendMessage = (content, resendSeq = '') => {
     })
     msg.seq = seq
     msg.msgId = seq //服务器没有回复DELIVERED消息之前，都用seq暂代msgId
-    messageData.removeMsgRecord(selectedSessionId.value, msg.msgId) //TODO 这里应该没有必要，无效操作
     messageData.addMsgRecords(selectedSessionId.value, [msg])
   }
 
-  const callbackAfter = (msgId) => {
+  const after = (msgId) => {
     messageData.updateSession({
       sessionId: selectedSessionId.value,
       readMsgId: msgId, // 最后一条消息是自己发的，因此已读更新到刚发的这条消息的msgId
@@ -549,10 +548,11 @@ const handleSendMessage = (content, resendSeq = '') => {
     selectedSession.value.sessionType,
     content,
     resendSeq,
-    callbackBefore,
-    callbackAfter
+    before,
+    after
   )
 
+  capacity.value++
   msgListReachBottom()
   locateSession(selectedSessionId.value)
 }
@@ -582,7 +582,7 @@ const onLoadMore = async () => {
   })
 }
 
-const loadFinished = () => {
+const updateScroll = () => {
   if (disToBottom.value < nearBottomDis) {
     msgListReachBottom('smooth')
   }
@@ -1111,7 +1111,7 @@ const onSendImage = ({ objectId }) => {
                   @showUserCard="onShowUserCard"
                   @showGroupCard="onShowGroupCard"
                   @resendMsg="handleResendMessage"
-                  @loadFinished="loadFinished"
+                  @loadFinished="updateScroll"
                 ></MessageItem>
               </div>
               <el-button

@@ -1,10 +1,9 @@
-import { nextTick } from 'vue'
 import { messageStore } from '@/stores'
 import { MsgType } from '@/proto/msg'
 import { msgChatQuerySessionService } from '@/api/message'
 import { playMsgReceive } from '../utils/audio'
 
-export const onReceiveGroupChatMsg = (msgListDiv = null, capacity = null) => {
+export const onReceiveGroupChatMsg = (updateScroll, capacity) => {
   return async (msg) => {
     const messageData = messageStore()
     const sessionId = msg.body.sessionId
@@ -51,16 +50,9 @@ export const onReceiveGroupChatMsg = (msgListDiv = null, capacity = null) => {
     }
 
     // 如果是当前正打开的会话
-    if (msgListDiv && capacity && messageData.selectedSessionId === sessionId) {
-      const scrollHeight = msgListDiv.value?.scrollHeight
-      const clientHeight = document.querySelector('.show-message-box')?.clientHeight
-      capacity.value += 1 //接收一条消息,展示列表的容量就+1
-      nextTick(() => {
-        // 如果滚动条触底,接收到新消息时继续保持触底
-        if (scrollHeight - msgListDiv.value?.scrollTop - clientHeight < 1) {
-          msgListDiv.value.scrollTop = msgListDiv.value?.scrollHeight
-        }
-      })
+    if (messageData.selectedSessionId === sessionId) {
+      updateScroll()
+      capacity.value++ //接收一条消息,展示列表的容量就+1
     }
   }
 }
