@@ -66,6 +66,8 @@ const inputBoxHeightMin = 200
 const inputBoxHeightMax = 500
 
 const msgListDiv = ref()
+const disToBottom = ref(0)
+const nearBottomDis = 50
 const newMsgTips = ref({
   isShowTopTips: false,
   isShowBottomTips: false,
@@ -271,10 +273,11 @@ const handleMsgListWheel = async () => {
   }
 
   const clientHeight = document.querySelector('.message-main').clientHeight
-  const diffToBottom = msgListDiv.value.scrollHeight - msgListDiv.value.scrollTop - clientHeight
-  // diffToBottom接近50个像素的时候，关闭底部未读tips控件
-  newMsgTips.value.isShowBottomTips = diffToBottom < 50 ? false : newMsgTips.value.isShowBottomTips
-  // isShowReturnBottom.value = diffToBottom > 300  // 控制是否显示"回到底部"的按钮。暂时取消这个提示功能，与消息提示的按钮显得有点重复
+  disToBottom.value = msgListDiv.value.scrollHeight - msgListDiv.value.scrollTop - clientHeight
+  // disToBottom接近50个像素的时候，关闭底部未读tips控件
+  newMsgTips.value.isShowBottomTips =
+    disToBottom.value < nearBottomDis ? false : newMsgTips.value.isShowBottomTips
+  // isShowReturnBottom.value = disToBottom.value > 300  // 控制是否显示"回到底部"的按钮。暂时取消这个提示功能，与消息提示的按钮显得有点重复
 
   if (newMsgTips.value.firstElement?.getBoundingClientRect().top > 0) {
     newMsgTips.value.isShowTopTips = false
@@ -521,7 +524,7 @@ const handleSendMessage = (content, resendSeq = '') => {
     })
     msg.seq = seq
     msg.msgId = seq //服务器没有回复DELIVERED消息之前，都用seq暂代msgId
-    messageData.removeMsgRecord(selectedSessionId.value, msg.msgId)
+    messageData.removeMsgRecord(selectedSessionId.value, msg.msgId) //TODO 这里应该没有必要，无效操作
     messageData.addMsgRecords(selectedSessionId.value, [msg])
   }
 
@@ -550,6 +553,7 @@ const handleSendMessage = (content, resendSeq = '') => {
     callbackAfter
   )
 
+  msgListReachBottom()
   locateSession(selectedSessionId.value)
 }
 
@@ -578,11 +582,10 @@ const onLoadMore = async () => {
   })
 }
 
-// MessageItem最后一个msg渲染结束后的动作
-const renderFinished = () => {
-  setTimeout(() => {
+const loadFinished = () => {
+  if (disToBottom.value < nearBottomDis) {
     msgListReachBottom('smooth')
-  }, 100)
+  }
 }
 
 /**
@@ -596,6 +599,7 @@ const msgListReachBottom = (behavior = 'instant') => {
       behavior: behavior
     })
     newMsgTips.value.isShowBottomTips = false
+    disToBottom.value = 0
   }, 0)
 }
 
@@ -1107,7 +1111,7 @@ const onSendImage = ({ objectId }) => {
                   @showUserCard="onShowUserCard"
                   @showGroupCard="onShowGroupCard"
                   @resendMsg="handleResendMessage"
-                  @renderFinished="renderFinished"
+                  @loadFinished="loadFinished"
                 ></MessageItem>
               </div>
               <el-button

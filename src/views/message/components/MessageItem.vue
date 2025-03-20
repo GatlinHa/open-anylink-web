@@ -21,13 +21,7 @@ const props = defineProps([
   'hasNoMoreMsg',
   'isLoadMoreLoading'
 ])
-const emit = defineEmits([
-  'loadMore',
-  'showUserCard',
-  'showGroupCard',
-  'resendMsg',
-  'renderFinished'
-])
+const emit = defineEmits(['loadMore', 'showUserCard', 'showGroupCard', 'resendMsg', 'loadFinished'])
 
 const userData = userStore()
 const messageData = messageStore()
@@ -51,11 +45,6 @@ const rendering = async () => {
       render: () => vnode
     })
     app.mount(msgContent)
-
-    // 如果是最后一个messageItem，则通知父父组件
-    if (props.lastMsgId === props.msgId) {
-      emit('renderFinished')
-    }
   }
 }
 
@@ -144,7 +133,10 @@ const renderEmoji = (content) => {
       class: 'emoji',
       src: url,
       alt: emojiId,
-      title: content.slice(1, -1)
+      title: content.slice(1, -1),
+      onLoad: () => {
+        emit('loadFinished')
+      }
     })
   } else {
     return h('span', content)
@@ -189,11 +181,7 @@ const renderImage = (content) => {
           img.style.height = '200px'
           img.style.width = 'auto'
         }
-
-        // 如果是最后一个messageItem，则通知父父组件
-        if (props.lastMsgId === props.msgId) {
-          emit('renderFinished')
-        }
+        emit('loadFinished')
       }
     })
   } else {
