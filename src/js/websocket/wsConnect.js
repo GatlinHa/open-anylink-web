@@ -105,7 +105,10 @@ class WsConnect {
     },
     [MsgType.DELIVERED]: (deliveredMsg) => {
       this.msgIdRefillCallback[deliveredMsg.body.seq](deliveredMsg.body.msgId)
-      delete this.msgIdRefillCallback[deliveredMsg.body.seq]
+      setTimeout(() => {
+        // 不能立即删除，因为有可能重发消息还会用到
+        delete this.msgIdRefillCallback[deliveredMsg.body.seq]
+      }, 30000)
     },
     [MsgType.HEART_BEAT]: () => {
       if (this.heartBeat.healthPoint > 0) this.heartBeat.healthPoint--
