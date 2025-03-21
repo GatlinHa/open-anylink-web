@@ -504,9 +504,9 @@ const handleSendMessage = (content, resendSeq = '') => {
                 wsConnect.sendAgent(data)
                 setTimeout(() => {
                   if (msg.status === 'pending') {
-                    messageData.removeMsgRecord(selectedSessionId.value, msg.msgId)
+                    messageData.removeMsgRecord(msg.sessionId, msg.msgId)
                     msg.status = 'failed'
-                    messageData.addMsgRecords(selectedSessionId.value, [msg])
+                    messageData.addMsgRecords(msg.sessionId, [msg])
                     ElMessage.error('消息发送失败')
                   }
                 }, resendInterval)
@@ -518,32 +518,32 @@ const handleSendMessage = (content, resendSeq = '') => {
     }, resendInterval)
 
     messageData.updateSession({
-      sessionId: selectedSessionId.value,
+      sessionId: msg.sessionId,
       unreadCount: 0, // 最后一条消息是自己发的，因此未读是0
       draft: '' //草稿意味着要清空
     })
     msg.seq = seq
     msg.msgId = seq //服务器没有回复DELIVERED消息之前，都用seq暂代msgId
-    messageData.addMsgRecords(selectedSessionId.value, [msg])
+    messageData.addMsgRecords(msg.sessionId, [msg])
   }
 
   const after = (msgId) => {
     messageData.updateSession({
-      sessionId: selectedSessionId.value,
+      sessionId: msg.sessionId,
       readMsgId: msgId, // 最后一条消息是自己发的，因此已读更新到刚发的这条消息的msgId
       readTime: new Date()
     })
-    messageData.removeMsgRecord(selectedSessionId.value, msg.msgId) //移除seq为key的msg
+    messageData.removeMsgRecord(msg.sessionId, msg.msgId) //移除seq为key的msg
     msg.msgId = msgId
     msg.status = 'ok'
-    messageData.addMsgRecords(selectedSessionId.value, [msg]) //添加服务端返回msgId为key的msg
-    if (!messageData.sessionList[selectedSessionId.value].dnd) {
+    messageData.addMsgRecords(msg.sessionId, [msg]) //添加服务端返回msgId为key的msg
+    if (!messageData.sessionList[msg.sessionId].dnd) {
       playMsgSend()
     }
   }
 
   wsConnect.sendMsg(
-    selectedSessionId.value,
+    msg.sessionId,
     showId.value,
     selectedSession.value.sessionType,
     content,
@@ -554,7 +554,7 @@ const handleSendMessage = (content, resendSeq = '') => {
 
   capacity.value++
   msgListReachBottom()
-  locateSession(selectedSessionId.value)
+  locateSession(msg.sessionId)
 }
 
 const handleResendMessage = ({ content, seq }) => {
