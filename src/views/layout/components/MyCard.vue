@@ -96,7 +96,7 @@ watch(
 .card-dialog {
   background: linear-gradient(to bottom, #a0cfff, #fff);
   width: 300px;
-  height: 300px;
+  height: 360px;
   position: absolute;
   left: 0px;
   top: 20px;
