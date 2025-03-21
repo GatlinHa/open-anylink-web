@@ -7,7 +7,7 @@ import { userStore, messageStore, groupStore, groupCardStore, imageStore } from 
 import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/common'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import { emojis } from '@/js/utils/emojis'
-import { msgContentType } from '@/const/msgConst'
+import { msgContentType, msgSendStatus } from '@/const/msgConst'
 
 const props = defineProps([
   'sessionId',
@@ -194,7 +194,7 @@ const msg = computed(() => {
 })
 
 const msgStatus = computed(() => {
-  return msg.value.status || 'ok'
+  return msg.value.status || msgSendStatus.OK
 })
 
 const isSystemMsg = computed(() => {
@@ -640,13 +640,13 @@ watch(
             </el-header>
             <el-main class="message-content">
               <div
-                v-if="msgStatus === 'pending'"
+                v-if="msgStatus === msgSendStatus.PENDING"
                 class="my-message-status my-message-status-pending"
               >
                 <div class="loading-circular" v-loading="true"></div>
               </div>
               <div
-                v-else-if="msgStatus === 'failed'"
+                v-else-if="msgStatus === msgSendStatus.FAILED"
                 class="my-message-status my-message-status-failed"
               >
                 <el-icon color="red" title="点击重发" @click="onResendMsg"

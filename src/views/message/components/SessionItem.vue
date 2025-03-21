@@ -10,6 +10,7 @@ import { userStore, messageStore, groupStore } from '@/stores'
 import { msgChatCloseSessionService } from '@/api/message'
 import router from '@/router'
 import { ElMessage } from 'element-plus'
+import { msgSendStatus } from '@/const/msgConst'
 
 const props = defineProps([
   'sessionId',
@@ -278,6 +279,7 @@ const isShowUnread = computed(() => {
     sessionInfo.value.sessionType === MsgType.CHAT &&
     !isShowDraft.value &&
     lastMsg.value?.fromId === myAccount.value &&
+    lastMsg.value?.status === msgSendStatus.OK &&
     +sessionInfo.value?.remoteRead < +lastMsgId.value
   ) {
     return true
@@ -291,7 +293,21 @@ const isShowRead = computed(() => {
     sessionInfo.value.sessionType === MsgType.CHAT &&
     !isShowDraft.value &&
     lastMsg.value?.fromId === myAccount.value &&
+    lastMsg.value?.status === msgSendStatus.OK &&
     +sessionInfo.value?.remoteRead === +lastMsgId.value
+  ) {
+    return true
+  } else {
+    return false
+  }
+})
+
+const isShowUnSend = computed(() => {
+  if (
+    sessionInfo.value.sessionType === MsgType.CHAT &&
+    !isShowDraft.value &&
+    lastMsg.value?.fromId === myAccount.value &&
+    lastMsg.value?.status === msgSendStatus.FAILED
   ) {
     return true
   } else {
@@ -429,8 +445,9 @@ defineExpose({
               >[{{ sessionInfo.unreadCount > 99 ? '99+' : sessionInfo.unreadCount }}条]</span
             >
             <span v-if="isShowDraft" class="draft">[草稿]</span>
-            <span v-if="isShowUnread" class="unread-or-read">[未读]</span>
-            <span v-if="isShowRead" class="unread-or-read">[已读]</span>
+            <span v-else-if="isShowUnread" class="unread-or-read">[未读]</span>
+            <span v-else-if="isShowRead" class="unread-or-read">[已读]</span>
+            <span v-else-if="isShowUnSend" class="unread-or-read">[未送达]</span>
             <span class="detail text-ellipsis"> {{ showDetailContent }}</span>
           </div>
           <div class="action">

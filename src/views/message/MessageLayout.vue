@@ -42,7 +42,7 @@ import { el_loading_options } from '@/const/commonConst'
 import { combineId, sessionIdConvert } from '@/js/utils/common'
 import SessionMenu from '@/views/message/components/SessionMenu.vue'
 import router from '@/router'
-import { BEGIN_MSG_ID } from '@/const/msgConst'
+import { BEGIN_MSG_ID, msgSendStatus } from '@/const/msgConst'
 import EditDialog from '@/components/common/EditDialog.vue'
 import AddOprMenu from './components/AddOprMenu.vue'
 import MessageGroupRightSide from './components/MessageGroupRightSide.vue'
@@ -485,7 +485,7 @@ const handleSendMessage = (content, resendSeq = '') => {
     fromId: myAccount.value,
     msgType: selectedSession.value.sessionType,
     content: content,
-    status: 'pending',
+    status: msgSendStatus.PENDING,
     msgTime: new Date(),
     sendTime: new Date()
   }
@@ -494,18 +494,18 @@ const handleSendMessage = (content, resendSeq = '') => {
   const before = (seq, data) => {
     // 当2s内status如果还是pending中，则重发3次。如果最后还是pending，则把status置为failed
     setTimeout(() => {
-      if (msg.status === 'pending') {
+      if (msg.status === msgSendStatus.PENDING) {
         wsConnect.sendAgent(data)
         setTimeout(() => {
-          if (msg.status === 'pending') {
+          if (msg.status === msgSendStatus.PENDING) {
             wsConnect.sendAgent(data)
             setTimeout(() => {
-              if (msg.status === 'pending') {
+              if (msg.status === msgSendStatus.PENDING) {
                 wsConnect.sendAgent(data)
                 setTimeout(() => {
-                  if (msg.status === 'pending') {
+                  if (msg.status === msgSendStatus.PENDING) {
                     messageData.removeMsgRecord(msg.sessionId, msg.msgId)
-                    msg.status = 'failed'
+                    msg.status = msgSendStatus.FAILED
                     messageData.addMsgRecords(msg.sessionId, [msg])
                     ElMessage.error('消息发送失败')
                   }
@@ -535,7 +535,7 @@ const handleSendMessage = (content, resendSeq = '') => {
     })
     messageData.removeMsgRecord(msg.sessionId, msg.msgId) //移除seq为key的msg
     msg.msgId = msgId
-    msg.status = 'ok'
+    msg.status = msgSendStatus.OK
     messageData.addMsgRecords(msg.sessionId, [msg]) //添加服务端返回msgId为key的msg
     if (!messageData.sessionList[msg.sessionId].dnd) {
       playMsgSend()

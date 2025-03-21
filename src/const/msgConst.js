@@ -20,3 +20,10 @@ export const msgContentType = {
   VIDEO: 4, // 视频
   EMOJI: 5 //表情
 }
+
+// 消息发送状态
+export const msgSendStatus = {
+  PENDING: 'pending', // 发送中
+  OK: 'ok', // 发送成功
+  FAILED: 'failed' // 发送失败
+}
