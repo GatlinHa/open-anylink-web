@@ -144,7 +144,7 @@ const handleAvatarError = () => {
 watch(
   () => userCardData.userInfo.avatarThumb,
   (newValue) => {
-    showAvatar.value = newValue
+    showAvatar.value = newValue || default_avatar
   }
 )
 </script>

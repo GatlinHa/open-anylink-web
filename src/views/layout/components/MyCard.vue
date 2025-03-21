@@ -37,7 +37,7 @@ const onClickAvatar = () => {
   router.push('/setting/personal')
 }
 
-const showAvatar = ref(userData.user.avatarThumb)
+const showAvatar = ref(userData.user.avatarThumb || default_avatar)
 
 const handleAvatarError = () => {
   showAvatar.value = default_avatar
