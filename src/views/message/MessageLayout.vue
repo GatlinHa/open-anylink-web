@@ -42,7 +42,7 @@ import { el_loading_options } from '@/const/commonConst'
 import { combineId, sessionIdConvert } from '@/js/utils/common'
 import SessionMenu from '@/views/message/components/SessionMenu.vue'
 import router from '@/router'
-import { BEGIN_MSG_ID, msgSendStatus } from '@/const/msgConst'
+import { BEGIN_MSG_ID, msgContentType, msgSendStatus } from '@/const/msgConst'
 import EditDialog from '@/components/common/EditDialog.vue'
 import AddOprMenu from './components/AddOprMenu.vue'
 import MessageGroupRightSide from './components/MessageGroupRightSide.vue'
@@ -960,7 +960,11 @@ const onSendEmoji = (key) => {
 }
 
 const onSendImage = ({ objectId }) => {
-  handleSendMessage(`{${objectId}}`)
+  handleSendMessage(JSON.stringify({ type: msgContentType.IMAGE, value: `{${objectId}}` }))
+}
+
+const onSendAudio = ({ objectId }) => {
+  console.log('onSendAudio: ', objectId)
 }
 </script>
 
@@ -1151,6 +1155,7 @@ const onSendImage = ({ objectId }) => {
                     :isShowToolSet="!isNotInGroup"
                     @sendEmoji="onSendEmoji"
                     @sendImage="onSendImage"
+                    @sendAudio="onSendAudio"
                   ></InputToolBar>
                   <DragLine
                     direction="top"

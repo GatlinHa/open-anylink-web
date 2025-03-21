@@ -1,13 +1,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Play, Pause } from '@element-plus/icons-vue'
+import { VideoPlay, VideoPause } from '@element-plus/icons-vue'
 
-const props = defineProps({
-  audioUrl: {
-    type: String,
-    required: true
-  }
-})
+const props = defineProps(['audioUrl'])
 
 const isPlaying = ref(false)
 const currentTime = ref(0)
@@ -109,7 +104,12 @@ onMounted(() => {
 
 <template>
   <div class="audio-player">
-    <el-button class="play-button" :icon="isPlaying ? Pause : Play" circle @click="togglePlay" />
+    <el-button
+      class="play-button"
+      :icon="isPlaying ? VideoPause : VideoPlay"
+      circle
+      @click="togglePlay"
+    />
     <div class="progress-container">
       <canvas ref="canvas" class="waveform" width="300" height="40"></canvas>
       <el-slider

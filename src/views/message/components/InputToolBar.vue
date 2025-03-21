@@ -10,7 +10,7 @@ import { imageStore } from '@/stores'
 import { el_loading_options } from '@/const/commonConst'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
-const emit = defineEmits(['sendEmoji', 'sendImage'])
+const emit = defineEmits(['sendEmoji', 'sendImage', 'sendAudio'])
 
 const imageData = imageStore()
 
@@ -28,6 +28,17 @@ const onSelectedFile = (file) => {
         if (res.data.code === 0) {
           imageData.setImage(props.sessionId, res.data.data) // 缓存image数据
           emit('sendImage', res.data.data)
+        }
+      })
+      .finally(() => {
+        loadingInstance.close()
+      })
+  } else if (file.raw.type && file.raw.type.startsWith('audio/')) {
+    const loadingInstance = ElLoading.service(el_loading_options)
+    mtsUploadService({ file: file.raw, storeType: 1 })
+      .then((res) => {
+        if (res.data.code === 0) {
+          emit('sendAudio', res.data.data)
         }
       })
       .finally(() => {

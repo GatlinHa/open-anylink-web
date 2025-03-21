@@ -8,6 +8,7 @@ import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/co
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import { emojis } from '@/js/utils/emojis'
 import { msgContentType, msgSendStatus } from '@/const/msgConst'
+import AudioMessage from '@/views/message/components/AudioMessage.vue'
 
 const props = defineProps([
   'sessionId',
@@ -70,7 +71,7 @@ const renderComponent = async (content) => {
     case msgContentType.TEXT:
       return renderText(value)
     case msgContentType.AUDIO:
-      return h('div', [])
+      return renderAudio(value)
     case msgContentType.IMAGE:
       if (value.startsWith('{') && value.endsWith('}')) {
         await imageData.loadImageInfoFromContent(props.sessionId, value)
@@ -88,6 +89,12 @@ const renderComponent = async (content) => {
     default:
       return h('div', [])
   }
+}
+
+const renderAudio = (url) => {
+  return h(AudioMessage, {
+    audioUrl: url
+  })
 }
 
 const renderText = (content) => {

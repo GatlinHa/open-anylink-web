@@ -10,7 +10,7 @@ import { userStore, messageStore, groupStore } from '@/stores'
 import { msgChatCloseSessionService } from '@/api/message'
 import router from '@/router'
 import { ElMessage } from 'element-plus'
-import { msgSendStatus } from '@/const/msgConst'
+import { msgContentType, msgSendStatus } from '@/const/msgConst'
 
 const props = defineProps([
   'sessionId',
@@ -219,53 +219,60 @@ const showDetailContent = computed(() => {
   if (isShowDraft.value) {
     return sessionInfo.value.draft?.replace(/\{\d+\}/g, '{图片}') // 把内容中的`{xxxxxx}`格式的图片统一转成`{图片}`
   } else {
-    const replaceContent = lastMsg.value.content?.replace(/\{\d+\}/g, '{图片}') // 把内容中的`{xxxxxx}`格式的图片统一转成`{图片}`
-    if (replaceContent) {
-      if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
-        const content = jsonParseSafe(replaceContent)
-        switch (lastMsg.value.msgType) {
-          case MsgType.SYS_GROUP_CREATE:
-            return getSysGroupCreateMsgTips(content)
-          case MsgType.SYS_GROUP_ADD_MEMBER:
-            return getSysGroupAddMemberMsgTips(content)
-          case MsgType.SYS_GROUP_DEL_MEMBER:
-            return getSysGroupDelMemberMsgTips(content)
-          case MsgType.SYS_GROUP_UPDATE_ANNOUNCEMENT:
-            return getSysGroupUpdateAnnouncement(content)
-          case MsgType.SYS_GROUP_UPDATE_NAME:
-            return getSysGroupUpdateName(content)
-          case MsgType.SYS_GROUP_UPDATE_AVATAR:
-            return getSysGroupUpdateAvatar(content)
-          case MsgType.SYS_GROUP_SET_ADMIN:
-          case MsgType.SYS_GROUP_CANCEL_ADMIN:
-            return getSysGroupChangeRoleMsgTips(lastMsg.value.msgType, content)
-          case MsgType.SYS_GROUP_SET_ALL_MUTED:
-          case MsgType.SYS_GROUP_CANCEL_ALL_MUTED:
-            return getSysGroupUpdateAllMuted(lastMsg.value.msgType, content)
-          case MsgType.SYS_GROUP_SET_JOIN_APPROVAL:
-          case MsgType.SYS_GROUP_CANCEL_JOIN_APPROVAL:
-            return getSysGroupUpdateJoinApproval(lastMsg.value.msgType, content)
-          case MsgType.SYS_GROUP_SET_HISTORY_BROWSE:
-          case MsgType.SYS_GROUP_CANCEL_HISTORY_BROWSE:
-            return getSysGroupUpdateHistoryBrowse(lastMsg.value.msgType, content)
-          case MsgType.SYS_GROUP_OWNER_TRANSFER:
-            return getSysGroupOwnerTransfer(content)
-          case MsgType.SYS_GROUP_UPDATE_MEMBER_MUTED:
-            return getSysGroupUpdateMemberMuted(content)
-          case MsgType.SYS_GROUP_LEAVE:
-            return getSysGroupLeave(content)
-          case MsgType.SYS_GROUP_DROP:
-            return getSysGroupDrop(content)
-          case MsgType.GROUP_CHAT:
-            return getGroupChatMsgTips(replaceContent)
-          default:
-            return ''
-        }
-      } else {
-        return replaceContent
+    if (!lastMsg.value.content) {
+      return '...'
+    }
+
+    const jsonContent = jsonParseSafe(lastMsg.value.content)
+    if (
+      jsonContent &&
+      (jsonContent['type'] == msgContentType.IMAGE || jsonContent['type'] == msgContentType.AUDIO)
+    ) {
+      return jsonContent['value'].replace(/\{\d+\}/g, '{图片}').replace(/\(\d+\)/g, '(音频)')
+    }
+
+    if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
+      const content = jsonParseSafe(lastMsg.value.content)
+      switch (lastMsg.value.msgType) {
+        case MsgType.SYS_GROUP_CREATE:
+          return getSysGroupCreateMsgTips(content)
+        case MsgType.SYS_GROUP_ADD_MEMBER:
+          return getSysGroupAddMemberMsgTips(content)
+        case MsgType.SYS_GROUP_DEL_MEMBER:
+          return getSysGroupDelMemberMsgTips(content)
+        case MsgType.SYS_GROUP_UPDATE_ANNOUNCEMENT:
+          return getSysGroupUpdateAnnouncement(content)
+        case MsgType.SYS_GROUP_UPDATE_NAME:
+          return getSysGroupUpdateName(content)
+        case MsgType.SYS_GROUP_UPDATE_AVATAR:
+          return getSysGroupUpdateAvatar(content)
+        case MsgType.SYS_GROUP_SET_ADMIN:
+        case MsgType.SYS_GROUP_CANCEL_ADMIN:
+          return getSysGroupChangeRoleMsgTips(lastMsg.value.msgType, content)
+        case MsgType.SYS_GROUP_SET_ALL_MUTED:
+        case MsgType.SYS_GROUP_CANCEL_ALL_MUTED:
+          return getSysGroupUpdateAllMuted(lastMsg.value.msgType, content)
+        case MsgType.SYS_GROUP_SET_JOIN_APPROVAL:
+        case MsgType.SYS_GROUP_CANCEL_JOIN_APPROVAL:
+          return getSysGroupUpdateJoinApproval(lastMsg.value.msgType, content)
+        case MsgType.SYS_GROUP_SET_HISTORY_BROWSE:
+        case MsgType.SYS_GROUP_CANCEL_HISTORY_BROWSE:
+          return getSysGroupUpdateHistoryBrowse(lastMsg.value.msgType, content)
+        case MsgType.SYS_GROUP_OWNER_TRANSFER:
+          return getSysGroupOwnerTransfer(content)
+        case MsgType.SYS_GROUP_UPDATE_MEMBER_MUTED:
+          return getSysGroupUpdateMemberMuted(content)
+        case MsgType.SYS_GROUP_LEAVE:
+          return getSysGroupLeave(content)
+        case MsgType.SYS_GROUP_DROP:
+          return getSysGroupDrop(content)
+        case MsgType.GROUP_CHAT:
+          return getGroupChatMsgTips(lastMsg.value.content.replace(/\{\d+\}/g, '{图片}'))
+        default:
+          return ''
       }
     } else {
-      return '...'
+      return lastMsg.value.content.replace(/\{\d+\}/g, '{图片}')
     }
   }
 })
@@ -279,7 +286,7 @@ const isShowUnread = computed(() => {
     sessionInfo.value.sessionType === MsgType.CHAT &&
     !isShowDraft.value &&
     lastMsg.value?.fromId === myAccount.value &&
-    lastMsg.value?.status === msgSendStatus.OK &&
+    (lastMsg.value.status === undefined || lastMsg.value.status === msgSendStatus.OK) &&
     +sessionInfo.value?.remoteRead < +lastMsgId.value
   ) {
     return true
@@ -293,7 +300,7 @@ const isShowRead = computed(() => {
     sessionInfo.value.sessionType === MsgType.CHAT &&
     !isShowDraft.value &&
     lastMsg.value?.fromId === myAccount.value &&
-    lastMsg.value?.status === msgSendStatus.OK &&
+    (lastMsg.value.status === undefined || lastMsg.value.status === msgSendStatus.OK) &&
     +sessionInfo.value?.remoteRead === +lastMsgId.value
   ) {
     return true
