@@ -423,6 +423,7 @@ watch(
 
   .body {
     width: 100%;
+    padding: 5px 0 5px 0;
     flex: 1;
     background-color: #fff;
     display: flex;
@@ -431,7 +432,7 @@ watch(
 
     .signature {
       width: 80%;
-      margin-top: 16px;
+      margin-top: 10px;
       margin-bottom: 10px;
       padding: 5px;
       border-radius: 4px;
