@@ -964,7 +964,7 @@ const onSendImage = ({ objectId }) => {
 }
 
 const onSendAudio = ({ objectId }) => {
-  console.log('onSendAudio: ', objectId)
+  handleSendMessage(JSON.stringify({ type: msgContentType.AUDIO, value: `(${objectId})` }))
 }
 </script>
 

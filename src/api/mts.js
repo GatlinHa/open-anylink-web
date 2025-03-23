@@ -7,3 +7,7 @@ export const mtsUploadService = (obj) => {
 export const mtsImageService = (obj) => {
   return request.get('/mts/image', { params: obj })
 }
+
+export const mtsAudioService = (obj) => {
+  return request.get('/mts/audio', { params: obj })
+}

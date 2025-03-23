@@ -3,12 +3,19 @@ import { computed, onMounted, h, createApp, watch, nextTick, reactive } from 'vu
 import { ElImage } from 'element-plus'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
-import { userStore, messageStore, groupStore, groupCardStore, imageStore } from '@/stores'
+import {
+  userStore,
+  messageStore,
+  groupStore,
+  groupCardStore,
+  imageStore,
+  audioStore
+} from '@/stores'
 import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/common'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import { emojis } from '@/js/utils/emojis'
 import { msgContentType, msgSendStatus } from '@/const/msgConst'
-import AudioMessage from '@/views/message/components/AudioMessage.vue'
+import AudioMsgBox from '@/views/message/components/AudioMsgBox.vue'
 
 const props = defineProps([
   'sessionId',
@@ -29,6 +36,7 @@ const messageData = messageStore()
 const groupData = groupStore()
 const groupCardData = groupCardStore()
 const imageData = imageStore()
+const audioData = audioStore()
 
 onMounted(() => {
   rendering()
@@ -71,7 +79,12 @@ const renderComponent = async (content) => {
     case msgContentType.TEXT:
       return renderText(value)
     case msgContentType.AUDIO:
-      return renderAudio(value)
+      if (value.startsWith('(') && value.endsWith(')')) {
+        await audioData.loadAudio(props.sessionId, value.slice(1, -1))
+        return renderAudio(value)
+      } else {
+        return h('span', value)
+      }
     case msgContentType.IMAGE:
       if (value.startsWith('{') && value.endsWith('}')) {
         await imageData.loadImageInfoFromContent(props.sessionId, value)
@@ -89,12 +102,6 @@ const renderComponent = async (content) => {
     default:
       return h('div', [])
   }
-}
-
-const renderAudio = (url) => {
-  return h(AudioMessage, {
-    audioUrl: url
-  })
 }
 
 const renderText = (content) => {
@@ -188,6 +195,21 @@ const renderImage = (content) => {
           img.style.height = '200px'
           img.style.width = 'auto'
         }
+        emit('loadFinished')
+      }
+    })
+  } else {
+    return h('span', content)
+  }
+}
+
+const renderAudio = (content) => {
+  const audioId = content.slice(1, -1)
+  const url = audioData.audio[audioId]?.url
+  if (url) {
+    return h(AudioMsgBox, {
+      audioUrl: import.meta.env.VITE_OSS_CORS_FLAG + url,
+      onLoad: () => {
         emit('loadFinished')
       }
     })
