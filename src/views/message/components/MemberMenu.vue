@@ -1,6 +1,13 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, markRaw } from 'vue'
-import { ChatDotRound, Tickets, Microphone, VideoCamera, Mute } from '@element-plus/icons-vue'
+import {
+  ChatDotRound,
+  Tickets,
+  Microphone,
+  VideoCamera,
+  Mute,
+  Phone
+} from '@element-plus/icons-vue'
 import AtIcon from '@/assets/svg/at.svg'
 import adminIcon from '@/assets/svg/administrator.svg'
 import DeleteIcon from '@/assets/svg/delete.svg'
@@ -63,7 +70,7 @@ const lable_atTa = ref({
 const lable_voiceCall = ref({
   label: 'voiceCall',
   desc: '语音通话',
-  icon: markRaw(Microphone)
+  icon: markRaw(Phone)
 })
 const lable_videoCall = ref({
   label: 'videoCall',

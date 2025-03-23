@@ -1,14 +1,6 @@
 <script setup>
 import { ref, nextTick, computed } from 'vue'
-import {
-  ChatRound,
-  Microphone,
-  VideoCamera,
-  Edit,
-  Delete,
-  Check,
-  Close
-} from '@element-plus/icons-vue'
+import { ChatRound, Phone, VideoCamera, Edit, Delete, Check, Close } from '@element-plus/icons-vue'
 import ContactItem from '@/components/item/ContactItem.vue'
 import { sessionShowTime } from '@/js/utils/common'
 import router from '@/router'
@@ -281,7 +273,7 @@ const onVideoCall = () => {
           color="#409eff"
           @click="onVoiceCall"
         >
-          <Microphone />
+          <Phone />
         </el-icon>
         <el-icon
           class="action-button"

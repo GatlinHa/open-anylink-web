@@ -2,7 +2,7 @@ eslint-disable prettier/prettier
 <script setup>
 import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue'
 import {
-  Microphone,
+  Phone,
   VideoCamera,
   MoreFilled,
   CirclePlus,
@@ -1054,7 +1054,7 @@ const onSendAudio = ({ objectId }) => {
               :title="selectedSession.sessionType === MsgType.GROUP_CHAT ? '多人语音' : '语音通话'"
               @click="onVoiceCall"
             >
-              <Microphone />
+              <Phone />
             </el-icon>
             <el-icon
               class="action-button"

@@ -7,7 +7,7 @@ import {
   Check,
   Edit,
   ChatRound,
-  Microphone,
+  Phone,
   VideoCamera
 } from '@element-plus/icons-vue'
 import default_avatar from '@/assets/image/default_avatar.png'
@@ -297,7 +297,7 @@ watch(
             color="#409eff"
             @click="onVoiceCall"
           >
-            <Microphone />
+            <Phone />
           </el-icon>
           <el-icon
             class="action-button"
