@@ -12,13 +12,14 @@ import EmojiIcon from '@/assets/svg/emoji.svg'
 import EmojiBox from './EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
 import { mtsUploadService } from '@/api/mts'
-import { imageStore } from '@/stores'
+import { imageStore, audioStore } from '@/stores'
 import { el_loading_options } from '@/const/commonConst'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
 const emit = defineEmits(['sendEmoji', 'sendImage', 'sendAudio', 'showRecorder'])
 
 const imageData = imageStore()
+const audioData = audioStore()
 const isShowEmojiBox = ref(false)
 
 const onSelectedFile = (file) => {
@@ -43,7 +44,7 @@ const onSelectedFile = (file) => {
     mtsUploadService({ file: file.raw, storeType: 1 })
       .then((res) => {
         if (res.data.code === 0) {
-          // TODO 这里为什么没有缓存audio的数据
+          audioData.setAudio(props.sessionId, res.data.data) // 缓存audio的数据
           emit('sendAudio', res.data.data)
         }
       })
