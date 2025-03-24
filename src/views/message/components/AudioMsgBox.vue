@@ -5,7 +5,7 @@ import PlayIcon from '@/assets/svg/play.svg'
 import PauseIcon from '@/assets/svg/pause.svg'
 import { AVWaveform } from 'vue-audio-visual'
 
-const props = defineProps(['audioUrl'])
+const props = defineProps(['audioUrl', 'duration'])
 const emits = defineEmits(['load'])
 
 const waveformRef = ref(null)
@@ -14,11 +14,13 @@ const audioDuration = ref(null)
 
 // 格式化时间
 const formatDuration = computed(() => {
-  {
-    const minutes = Math.floor(audioDuration.value / 60)
-    const seconds = Math.floor(audioDuration.value % 60)
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+  if (!audioDuration.value) {
+    return '0:00'
   }
+
+  const minutes = Math.floor(audioDuration.value / 60)
+  const seconds = Math.floor(audioDuration.value % 60)
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
 })
 
 const playAudio = () => {
@@ -60,7 +62,12 @@ onMounted(() => {
 
     // 监听音频元数据加载完成事件
     audioPlayer.addEventListener('loadedmetadata', () => {
-      audioDuration.value = audioPlayer.duration
+      // 媒体文件中，语音消息没有duration信息，所以要从服务端返回的字段获取
+      if (audioPlayer.duration !== Infinity) {
+        audioDuration.value = audioPlayer.duration
+      } else {
+        audioDuration.value = props.duration
+      }
     })
   }
   emits('load') //触发load事件

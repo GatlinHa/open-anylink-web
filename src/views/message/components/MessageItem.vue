@@ -206,9 +206,11 @@ const renderImage = (content) => {
 const renderAudio = (content) => {
   const audioId = content.slice(1, -1)
   const url = audioData.audio[audioId]?.url
+  const duration = audioData.audio[audioId]?.duration
   if (url) {
     return h(AudioMsgBox, {
       audioUrl: import.meta.env.VITE_OSS_CORS_FLAG + url,
+      duration: duration,
       onLoad: () => {
         emit('loadFinished')
       }

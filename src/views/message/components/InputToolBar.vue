@@ -1,6 +1,12 @@
 <script setup>
 import { ref } from 'vue'
-import { LocationInformation, Clock, FolderAdd, CreditCard } from '@element-plus/icons-vue'
+import {
+  LocationInformation,
+  Clock,
+  FolderAdd,
+  CreditCard,
+  Microphone
+} from '@element-plus/icons-vue'
 import { ElMessage, ElLoading } from 'element-plus'
 import EmojiIcon from '@/assets/svg/emoji.svg'
 import EmojiBox from './EmojiBox.vue'
@@ -10,10 +16,9 @@ import { imageStore } from '@/stores'
 import { el_loading_options } from '@/const/commonConst'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
-const emit = defineEmits(['sendEmoji', 'sendImage', 'sendAudio'])
+const emit = defineEmits(['sendEmoji', 'sendImage', 'sendAudio', 'showRecorder'])
 
 const imageData = imageStore()
-
 const isShowEmojiBox = ref(false)
 
 const onSelectedFile = (file) => {
@@ -38,6 +43,7 @@ const onSelectedFile = (file) => {
     mtsUploadService({ file: file.raw, storeType: 1 })
       .then((res) => {
         if (res.data.code === 0) {
+          // TODO 这里为什么没有缓存audio的数据
           emit('sendAudio', res.data.data)
         }
       })
@@ -58,6 +64,10 @@ const onSendEmoji = (key) => {
  */
 const closeWindow = () => {
   isShowEmojiBox.value = false
+}
+
+const showRecorder = () => {
+  emit('showRecorder')
 }
 
 defineExpose({
@@ -82,6 +92,11 @@ defineExpose({
           </InputTool>
         </template>
       </el-upload>
+      <InputTool tips="语音消息" @click="showRecorder">
+        <template #iconSlot>
+          <Microphone />
+        </template>
+      </InputTool>
       <InputTool tips="代码" @click="ElMessage.warning('功能开发中')">
         <template #iconSlot>
           <CreditCard />

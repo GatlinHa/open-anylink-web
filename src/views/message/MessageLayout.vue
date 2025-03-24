@@ -13,7 +13,7 @@ import DragLine from '@/components/common/DragLine.vue'
 import SearchBox from '@/components/search/SearchBox.vue'
 import AddButton from '@/components/common/AddButton.vue'
 import SessionItem from '@/views/message/components/SessionItem.vue'
-import InputToolBar from './components/InputToolBar.vue'
+import InputToolBar from '@/views/message/components/InputToolBar.vue'
 import InputEditor from '@/views/message/components/InputEditor.vue'
 import MessageItem from '@/views/message/components/MessageItem.vue'
 import SessionTag from '@/views/message/components/SessionTag.vue'
@@ -44,9 +44,10 @@ import SessionMenu from '@/views/message/components/SessionMenu.vue'
 import router from '@/router'
 import { BEGIN_MSG_ID, msgContentType, msgSendStatus } from '@/const/msgConst'
 import EditDialog from '@/components/common/EditDialog.vue'
-import AddOprMenu from './components/AddOprMenu.vue'
-import MessageGroupRightSide from './components/MessageGroupRightSide.vue'
+import AddOprMenu from '@/views/message/components/AddOprMenu.vue'
+import MessageGroupRightSide from '@/views/message/components/MessageGroupRightSide.vue'
 import HashNoData from '@/components/common/HasNoData.vue'
+import AudioRecorder from '@/views/message/components/AudioRecorder.vue'
 import { playMsgSend } from '@/js/utils/audio'
 
 const userData = userStore()
@@ -478,7 +479,7 @@ const handleSendMessage = (content, resendSeq = '') => {
     return
   }
 
-  inputToolBarRef.value.closeWindow()
+  if (inputToolBarRef.value) inputToolBarRef.value.closeWindow()
 
   const msg = {
     sessionId: selectedSessionId.value,
@@ -966,6 +967,11 @@ const onSendImage = ({ objectId }) => {
 const onSendAudio = ({ objectId }) => {
   handleSendMessage(JSON.stringify({ type: msgContentType.AUDIO, value: `(${objectId})` }))
 }
+
+const isShowRecorder = ref(false)
+const onShowRecorder = () => {
+  isShowRecorder.value = true
+}
 </script>
 
 <template>
@@ -1147,7 +1153,14 @@ const onSendAudio = ({ objectId }) => {
               </el-button>
             </div>
             <div class="input-box bdr-t" :style="{ height: inputBoxHeight + 'px' }">
-              <el-container class="input-box-container">
+              <el-container v-if="isShowRecorder">
+                <AudioRecorder
+                  :sessionId="selectedSessionId"
+                  @exit="isShowRecorder = false"
+                  @sendRecord="onSendAudio"
+                ></AudioRecorder>
+              </el-container>
+              <el-container v-else class="input-box-container">
                 <el-header class="input-box-header">
                   <InputToolBar
                     ref="inputToolBarRef"
@@ -1156,6 +1169,7 @@ const onSendAudio = ({ objectId }) => {
                     @sendEmoji="onSendEmoji"
                     @sendImage="onSendImage"
                     @sendAudio="onSendAudio"
+                    @showRecorder="onShowRecorder"
                   ></InputToolBar>
                   <DragLine
                     direction="top"
