@@ -85,7 +85,7 @@ onMounted(() => {
       :src="props.audioUrl"
       :audio-controls="false"
       :playtime="false"
-      :canv-width="150"
+      :canv-width="120"
       :canv-height="40"
       :playtime-slider-color="`#409eff`"
     ></AVWaveform>

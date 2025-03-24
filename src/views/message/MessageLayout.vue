@@ -1171,13 +1171,6 @@ const onShowRecorder = () => {
                     @sendAudio="onSendAudio"
                     @showRecorder="onShowRecorder"
                   ></InputToolBar>
-                  <DragLine
-                    direction="top"
-                    :min="inputBoxHeightMin"
-                    :max="inputBoxHeightMax"
-                    :origin-size="inputBoxHeight"
-                    @drag-update="onInputBoxDragUpdate"
-                  ></DragLine>
                 </el-header>
                 <el-main class="input-box-main">
                   <div
@@ -1203,6 +1196,13 @@ const onShowRecorder = () => {
                   ></InputEditor>
                 </el-main>
               </el-container>
+              <DragLine
+                direction="top"
+                :min="inputBoxHeightMin"
+                :max="inputBoxHeightMax"
+                :origin-size="inputBoxHeight"
+                @drag-update="onInputBoxDragUpdate"
+              ></DragLine>
             </div>
           </div>
           <MessageGroupRightSide
@@ -1432,6 +1432,7 @@ const onShowRecorder = () => {
           .input-box {
             width: 100%;
             display: flex;
+            position: relative;
 
             .input-box-header {
               width: 100%;
