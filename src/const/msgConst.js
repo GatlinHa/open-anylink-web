@@ -13,7 +13,7 @@ export const BEGIN_MSG_ID = 10001
 
 // 消息内容类型
 export const msgContentType = {
-  RICH: 0, // 组合，包含多种类型
+  MIX: 0, // 组合，包含多种类型
   TEXT: 1, // 文本
   IMAGE: 2, // 图片
   AUDIO: 3, // 音频

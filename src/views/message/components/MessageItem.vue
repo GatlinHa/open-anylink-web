@@ -64,18 +64,18 @@ const rendering = async () => {
 const renderComponent = async (content) => {
   const contentJson = jsonParseSafe(content)
   if (!contentJson) {
-    return await renderRich(content)
+    return await renderMix(content)
   }
 
   const type = contentJson['type']
   const value = contentJson['value']
   if (!type || !value) {
-    return await renderRich(content)
+    return await renderMix(content)
   }
 
   switch (type) {
-    case msgContentType.RICH:
-      return await renderRich(value)
+    case msgContentType.MIX:
+      return await renderMix(value)
     case msgContentType.TEXT:
       return renderText(value)
     case msgContentType.AUDIO:
@@ -108,7 +108,7 @@ const renderText = (content) => {
   return h('span', content)
 }
 
-const renderRich = async (content) => {
+const renderMix = async (content) => {
   if (!content) return h('div', [])
 
   // 如果content存在图片则提前load
