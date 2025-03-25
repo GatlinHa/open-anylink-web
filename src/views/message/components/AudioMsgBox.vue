@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { ElIcon } from 'element-plus'
+import { ElIcon, ElMessage } from 'element-plus'
 import PlayIcon from '@/assets/svg/play.svg'
 import PauseIcon from '@/assets/svg/pause.svg'
 import { AVWaveform } from 'vue-audio-visual'
@@ -23,17 +23,25 @@ const formatDuration = computed(() => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`
 })
 
-const playAudio = () => {
+const playAudio = async () => {
   const audioPlayer = waveformRef.value.querySelector('audio')
   if (audioPlayer) {
-    audioPlayer.play()
+    try {
+      await audioPlayer.play()
+    } catch (error) {
+      ElMessage.error('音频播放遇到问题')
+    }
   }
 }
 
-const pauseAudio = () => {
+const pauseAudio = async () => {
   const audioPlayer = waveformRef.value.querySelector('audio')
   if (audioPlayer) {
-    audioPlayer.pause()
+    try {
+      await audioPlayer.pause()
+    } catch (error) {
+      ElMessage.error('音频暂停遇到问题')
+    }
   }
 }
 
