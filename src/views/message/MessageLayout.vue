@@ -406,7 +406,7 @@ const pullMsg = async (endMsgId = null) => {
     const res = await msgChatPullMsgService(params)
     const msgCount = res.data.data.count
     if (msgCount > 0) {
-      messageData.addMsgRecords(sessionId, res.data.data.msgList)
+      await messageData.addMsgRecords(sessionId, res.data.data.msgList)
     }
 
     if (msgCount < pageSize) {
@@ -492,7 +492,7 @@ const handleSendMessage = (content, resendSeq = '') => {
   }
 
   const resendInterval = 2000 //2秒
-  const before = (seq, data) => {
+  const before = async (seq, data) => {
     // 当2s内status如果还是pending中，则重发3次。如果最后还是pending，则把status置为failed
     setTimeout(() => {
       if (msg.status === msgSendStatus.PENDING) {
@@ -503,11 +503,11 @@ const handleSendMessage = (content, resendSeq = '') => {
             setTimeout(() => {
               if (msg.status === msgSendStatus.PENDING) {
                 wsConnect.sendAgent(data)
-                setTimeout(() => {
+                setTimeout(async () => {
                   if (msg.status === msgSendStatus.PENDING) {
                     messageData.removeMsgRecord(msg.sessionId, msg.msgId)
                     msg.status = msgSendStatus.FAILED
-                    messageData.addMsgRecords(msg.sessionId, [msg])
+                    await messageData.addMsgRecords(msg.sessionId, [msg])
                     ElMessage.error('消息发送失败')
                   }
                 }, resendInterval)
@@ -525,10 +525,10 @@ const handleSendMessage = (content, resendSeq = '') => {
     })
     msg.seq = seq
     msg.msgId = seq //服务器没有回复DELIVERED消息之前，都用seq暂代msgId
-    messageData.addMsgRecords(msg.sessionId, [msg])
+    await messageData.addMsgRecords(msg.sessionId, [msg])
   }
 
-  const after = (msgId) => {
+  const after = async (msgId) => {
     messageData.updateSession({
       sessionId: msg.sessionId,
       readMsgId: msgId, // 最后一条消息是自己发的，因此已读更新到刚发的这条消息的msgId
@@ -537,7 +537,7 @@ const handleSendMessage = (content, resendSeq = '') => {
     messageData.removeMsgRecord(msg.sessionId, msg.msgId) //移除seq为key的msg
     msg.msgId = msgId
     msg.status = msgSendStatus.OK
-    messageData.addMsgRecords(msg.sessionId, [msg]) //添加服务端返回msgId为key的msg
+    await messageData.addMsgRecords(msg.sessionId, [msg]) //添加服务端返回msgId为key的msg
     if (!messageData.sessionList[msg.sessionId].dnd) {
       playMsgSend()
     }

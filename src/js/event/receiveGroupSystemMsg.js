@@ -3,7 +3,7 @@ import { msgChatQuerySessionService } from '@/api/message'
 import { groupInfoService } from '@/api/group'
 
 export const onReceiveGroupSystemMsg = (updateScroll, capacity) => {
-  return (msg) => {
+  return async (msg) => {
     const messageData = messageStore()
     const groupData = groupStore()
     const sessionId = msg.body.sessionId
@@ -27,7 +27,7 @@ export const onReceiveGroupSystemMsg = (updateScroll, capacity) => {
     })
 
     // 更新聊天记录
-    messageData.addMsgRecords(sessionId, [
+    await messageData.addMsgRecords(sessionId, [
       {
         sessionId: sessionId,
         msgId: msg.body.msgId,

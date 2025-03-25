@@ -34,7 +34,7 @@ export const onReceiveGroupChatMsg = (updateScroll, capacity) => {
       ...readParams
     })
 
-    messageData.addMsgRecords(sessionId, [
+    await messageData.addMsgRecords(sessionId, [
       {
         sessionId: sessionId,
         msgId: msg.body.msgId,

@@ -1,6 +1,5 @@
 <script setup>
 import { computed, onMounted, h, createApp, watch, nextTick, reactive } from 'vue'
-import { ElImage } from 'element-plus'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
 import {
@@ -16,6 +15,7 @@ import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import { emojis } from '@/js/utils/emojis'
 import { msgContentType, msgSendStatus } from '@/const/msgConst'
 import AudioMsgBox from '@/views/message/components/AudioMsgBox.vue'
+import ImageMsgBox from '@/views/message/components/ImageMsgBox.vue'
 
 const props = defineProps([
   'sessionId',
@@ -79,19 +79,9 @@ const renderComponent = async (content) => {
     case msgContentType.TEXT:
       return renderText(value)
     case msgContentType.AUDIO:
-      if (value.startsWith('(') && value.endsWith(')')) {
-        await audioData.loadAudio(props.sessionId, value.slice(1, -1))
-        return renderAudio(value)
-      } else {
-        return h('span', value)
-      }
+      return renderAudio(value)
     case msgContentType.IMAGE:
-      if (value.startsWith('{') && value.endsWith('}')) {
-        await imageData.loadImageInfoFromContent(props.sessionId, value)
-        return renderImage(value)
-      } else {
-        return h('span', value)
-      }
+      return renderImage(value)
     case msgContentType.EMOJI:
       if (value.startsWith('[') && value.endsWith(']')) {
         return renderEmoji(value)
@@ -110,13 +100,6 @@ const renderText = (content) => {
 
 const renderMix = async (content) => {
   if (!content) return h('div', [])
-
-  // 如果content存在图片则提前load
-  const mathes = content.match(/\{[a-f0-9]+\}/g)
-  if (mathes && mathes.length > 0) {
-    await imageData.loadImageInfoFromContent(props.sessionId, content)
-  }
-
   let contentArray = []
   //匹配内容中的图片
   content.split(/(\{.*?\})/).forEach((item) => {
@@ -163,38 +146,12 @@ const renderImage = (content) => {
   if (url) {
     const imgIdList = imageData.imageInSession[props.sessionId].sort((a, b) => a - b)
     const srcList = imgIdList.map((item) => imageData.image[item].originUrl)
-    return h(ElImage, {
-      src: url,
-      alt: `{${imgId}}`,
-      fit: 'contain',
-      previewSrcList: srcList,
+    return h(ImageMsgBox, {
+      url,
+      imgId,
+      srcList,
       initialIndex: imgIdList.indexOf(imgId),
-      infinite: false,
-      lazy: true,
-      style: {
-        maxWidth: '300px',
-        maxHeight: '200px',
-        width: 'auto',
-        height: 'auto'
-      },
-      onLoad: (e) => {
-        const img = e.target
-        const ratio = img.naturalWidth / img.naturalHeight
-        const maxRatio = 300 / 200 // 最大宽高比
-
-        // 如果图片尺寸在限制范围内，保持原始尺寸
-        if (img.naturalWidth <= 300 && img.naturalHeight <= 200) {
-          img.style.width = img.naturalWidth + 'px'
-          img.style.height = img.naturalHeight + 'px'
-        } else if (ratio > maxRatio) {
-          // 如果图片更宽，以宽度为基准
-          img.style.width = '300px'
-          img.style.height = 'auto'
-        } else {
-          // 如果图片更高，以高度为基准
-          img.style.height = '200px'
-          img.style.width = 'auto'
-        }
+      onLoad: () => {
         emit('loadFinished')
       }
     })

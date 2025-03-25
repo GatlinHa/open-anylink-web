@@ -1,4 +1,6 @@
 import { mtsImageService } from '@/api/mts'
+import { msgContentType } from '@/const/msgConst'
+import { jsonParseSafe } from '@/js/utils/common'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -71,11 +73,43 @@ export const imageStore = defineStore('anylink-image', () => {
     }
   }
 
+  const preloadImage = async (sessionId, msgRecords) => {
+    const imageIds = new Set()
+    msgRecords.forEach((item) => {
+      const content = item.content
+      const contentJson = jsonParseSafe(content)
+      if (contentJson && contentJson['type'] === msgContentType.IMAGE) {
+        const objectId = contentJson['value'].slice(1, -1)
+        imageIds.add(objectId)
+      } else {
+        const matches = content.match(pattern)
+        if (matches && matches.length > 0) {
+          matches.forEach((item) => {
+            let startIndex = item.indexOf('{')
+            let endIndex = item.indexOf('}')
+            const objectId = item.slice(startIndex + 1, endIndex)
+            if (!image.value[objectId]) {
+              imageIds.add(objectId)
+            }
+          })
+        }
+      }
+    })
+
+    if (imageIds.size > 0) {
+      const res = await mtsImageService({ objectIds: [...imageIds].join(',') })
+      res.data.data.forEach((item) => {
+        setImage(sessionId, item)
+      })
+    }
+  }
+
   return {
     image,
     imageInSession,
     setImage,
     imageTrans,
-    loadImageInfoFromContent
+    loadImageInfoFromContent,
+    preloadImage
   }
 })

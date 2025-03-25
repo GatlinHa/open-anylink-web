@@ -6,6 +6,7 @@ import {
   msgQueryPartitionService
 } from '@/api/message'
 import { ElMessage } from 'element-plus'
+import { imageStore, audioStore } from '@/stores'
 
 // 消息功能相关需要缓存的数据，不持久化存储
 export const messageStore = defineStore('anylink-message', () => {
@@ -120,7 +121,11 @@ export const messageStore = defineStore('anylink-message', () => {
    * @param {*} sessionId 会话id
    * @param {*} msgRecords 新的消息数组
    */
-  const addMsgRecords = (sessionId, msgRecords) => {
+  const addMsgRecords = async (sessionId, msgRecords) => {
+    // 预加载消息中的图片和音频
+    await imageStore().preloadImage(sessionId, msgRecords)
+    await audioStore().preloadAudio(sessionId, msgRecords)
+
     if (!msgRecords?.length) return
     msgRecords.forEach((item) => {
       if (!msgRecordsList.value[sessionId]) {
@@ -215,9 +220,9 @@ export const messageStore = defineStore('anylink-message', () => {
   const loadSessionList = async () => {
     if (!Object.keys(sessionList.value).length) {
       const res = await msgChatSessionListService()
-      Object.keys(res.data.data).forEach((item) => {
+      Object.keys(res.data.data).forEach(async (item) => {
         addSession(res.data.data[item].session)
-        addMsgRecords(item, res.data.data[item].msgList)
+        await addMsgRecords(item, res.data.data[item].msgList)
       })
     }
   }

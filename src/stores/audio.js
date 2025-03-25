@@ -1,4 +1,6 @@
 import { mtsAudioService } from '@/api/mts'
+import { msgContentType } from '@/const/msgConst'
+import { jsonParseSafe } from '@/js/utils/common'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -25,10 +27,22 @@ export const audioStore = defineStore('anylink-audio', () => {
     audioInSession.value[sessionId].push(obj.objectId)
   }
 
-  const loadAudio = async (sessionId, objectId) => {
-    if (!(objectId in audio.value)) {
-      const res = await mtsAudioService({ objectId: objectId })
-      setAudio(sessionId, res.data.data) // 缓存image数据
+  const preloadAudio = async (sessionId, msgRecords) => {
+    const audioIds = new Set()
+    msgRecords.forEach((item) => {
+      const content = item.content
+      const contentJson = jsonParseSafe(content)
+      if (contentJson && contentJson['type'] === msgContentType.AUDIO) {
+        const objectId = contentJson['value'].slice(1, -1)
+        audioIds.add(objectId)
+      }
+    })
+
+    if (audioIds.size > 0) {
+      const res = await mtsAudioService({ objectIds: [...audioIds].join(',') })
+      res.data.data.forEach((item) => {
+        setAudio(sessionId, item)
+      })
     }
   }
 
@@ -36,6 +50,6 @@ export const audioStore = defineStore('anylink-audio', () => {
     audio,
     audioInSession,
     setAudio,
-    loadAudio
+    preloadAudio
   }
 })
