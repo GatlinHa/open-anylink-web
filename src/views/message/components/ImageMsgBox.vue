@@ -1,7 +1,8 @@
 <script setup>
+import { computed } from 'vue'
 import { ElImage } from 'element-plus'
 
-const props = defineProps(['url', 'imgId', 'srcList', 'initialIndex'])
+const props = defineProps(['url', 'imgId', 'srcList', 'initialIndex', 'fileName', 'size'])
 const emits = defineEmits(['load'])
 
 const onLoad = (e) => {
@@ -25,10 +26,22 @@ const onLoad = (e) => {
 
   emits('load') //向父组件暴露load事件
 }
+
+const formatSize = computed(() => {
+  if (!props.size) {
+    return ''
+  } else if (props.size < 1024) {
+    return props.size + ' B'
+  } else if (props.size < 1024 * 1024) {
+    return (props.size / 1024).toFixed(2) + ' KB'
+  } else {
+    return (props.size / (1024 * 1024)).toFixed(2) + ' MB'
+  }
+})
 </script>
 
 <template>
-  <div>
+  <div class="image-msg-wrapper">
     <el-image
       :src="props.url"
       :alt="props.imgId"
@@ -38,15 +51,58 @@ const onLoad = (e) => {
       :lazy="false"
       fit="contain"
       @load="onLoad"
-    ></el-image>
+    >
+    </el-image>
+    <div v-if="props.fileName || props.size > 0" class="info">
+      <span class="name item text-ellipsis" :title="props.fileName">
+        {{ props.fileName || '' }}
+      </span>
+      <span class="size item text-ellipsis" :title="formatSize">
+        {{ formatSize }}
+      </span>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.el-image {
-  max-width: 300px;
-  max-height: 200px;
-  width: auto;
-  height: auto;
+.image-msg-wrapper {
+  position: relative;
+
+  .el-image {
+    max-width: 300px;
+    max-height: 200px;
+    width: auto;
+    height: auto;
+
+    :deep(.el-image__inner) {
+      margin: 0;
+    }
+  }
+
+  .info {
+    width: 100%;
+    height: 32px;
+    line-height: 32px;
+    left: 0;
+    bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5));
+    position: absolute;
+
+    .item {
+      max-width: 40%;
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .name {
+      margin-left: 8px;
+    }
+
+    .size {
+      margin-right: 8px;
+    }
+  }
 }
 </style>

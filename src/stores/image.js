@@ -80,7 +80,9 @@ export const imageStore = defineStore('anylink-image', () => {
       const contentJson = jsonParseSafe(content)
       if (contentJson && contentJson['type'] === msgContentType.IMAGE) {
         const objectId = contentJson['value'].slice(1, -1)
-        imageIds.add(objectId)
+        if (!image.value[objectId]) {
+          imageIds.add(objectId)
+        }
       } else {
         const matches = content.match(pattern)
         if (matches && matches.length > 0) {

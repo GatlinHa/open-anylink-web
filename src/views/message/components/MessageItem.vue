@@ -113,7 +113,7 @@ const renderMix = async (content) => {
 
   return contentArray.map((item) => {
     if (item.startsWith('{') && item.endsWith('}')) {
-      return renderImage(item)
+      return renderImage(item, false)
     } else if (item.startsWith('[') && item.endsWith(']')) {
       return renderEmoji(item)
     } else {
@@ -140,7 +140,7 @@ const renderEmoji = (content) => {
   }
 }
 
-const renderImage = (content) => {
+const renderImage = (content, ishowInfo = true) => {
   const imgId = content.slice(1, -1)
   const url = imageData.image[imgId]?.thumbUrl
   if (url) {
@@ -151,6 +151,8 @@ const renderImage = (content) => {
       imgId,
       srcList,
       initialIndex: imgIdList.indexOf(imgId),
+      fileName: ishowInfo ? imageData.image[imgId].fileName : '',
+      size: ishowInfo ? imageData.image[imgId].size : '',
       onLoad: () => {
         emit('loadFinished')
       }
