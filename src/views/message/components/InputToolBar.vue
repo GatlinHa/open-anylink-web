@@ -1,14 +1,10 @@
 <script setup>
 import { ref } from 'vue'
-import {
-  LocationInformation,
-  Clock,
-  FolderAdd,
-  CreditCard,
-  Microphone
-} from '@element-plus/icons-vue'
+import { LocationInformation, Clock, CreditCard, Microphone } from '@element-plus/icons-vue'
 import { ElMessage, ElLoading } from 'element-plus'
 import EmojiIcon from '@/assets/svg/emoji.svg'
+import FileIcon from '@/assets/svg/file.svg'
+import ImageIcon from '@/assets/svg/image.svg'
 import EmojiBox from './EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
 import { mtsUploadService } from '@/api/mts'
@@ -84,11 +80,25 @@ defineExpose({
           <EmojiIcon />
         </template>
       </InputTool>
+      <el-upload
+        :auto-upload="false"
+        :show-file-list="false"
+        accept="image/*"
+        :on-change="onSelectedFile"
+      >
+        <template #trigger>
+          <InputTool tips="图片">
+            <template #iconSlot>
+              <ImageIcon />
+            </template>
+          </InputTool>
+        </template>
+      </el-upload>
       <el-upload :auto-upload="false" :show-file-list="false" :on-change="onSelectedFile">
         <template #trigger>
           <InputTool tips="文件">
             <template #iconSlot>
-              <FolderAdd />
+              <FileIcon />
             </template>
           </InputTool>
         </template>
