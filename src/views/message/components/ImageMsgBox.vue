@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { ElImage } from 'element-plus'
+import { formatFileSize } from '@/js/utils/common'
 
 const props = defineProps(['url', 'imgId', 'srcList', 'initialIndex', 'fileName', 'size'])
 const emits = defineEmits(['load'])
@@ -28,15 +29,7 @@ const onLoad = (e) => {
 }
 
 const formatSize = computed(() => {
-  if (!props.size) {
-    return ''
-  } else if (props.size < 1024) {
-    return props.size + ' B'
-  } else if (props.size < 1024 * 1024) {
-    return (props.size / 1024).toFixed(2) + ' KB'
-  } else {
-    return (props.size / (1024 * 1024)).toFixed(2) + ' MB'
-  }
+  return formatFileSize(props.size)
 })
 </script>
 

@@ -226,7 +226,9 @@ const showDetailContent = computed(() => {
     const jsonContent = jsonParseSafe(lastMsg.value.content)
     if (
       jsonContent &&
-      (jsonContent['type'] == msgContentType.IMAGE || jsonContent['type'] == msgContentType.AUDIO)
+      (jsonContent['type'] == msgContentType.IMAGE ||
+        jsonContent['type'] == msgContentType.AUDIO ||
+        jsonContent['type'] == msgContentType.RECORDING)
     ) {
       return jsonContent['value'].replace(/\{\d+\}/g, '{图片}').replace(/\(\d+\)/g, '(音频)')
     }

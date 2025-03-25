@@ -968,6 +968,10 @@ const onSendAudio = ({ objectId }) => {
   handleSendMessage(JSON.stringify({ type: msgContentType.AUDIO, value: `(${objectId})` }))
 }
 
+const onSendRecording = ({ objectId }) => {
+  handleSendMessage(JSON.stringify({ type: msgContentType.RECORDING, value: `(${objectId})` }))
+}
+
 const isShowRecorder = ref(false)
 const onShowRecorder = () => {
   isShowRecorder.value = true
@@ -1157,7 +1161,7 @@ const onShowRecorder = () => {
                 <InputRecorder
                   :sessionId="selectedSessionId"
                   @exit="isShowRecorder = false"
-                  @sendRecord="onSendAudio"
+                  @sendRecording="onSendRecording"
                 ></InputRecorder>
               </el-container>
               <el-container v-else class="input-box-container">

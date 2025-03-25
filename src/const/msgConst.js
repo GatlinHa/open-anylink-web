@@ -16,9 +16,10 @@ export const msgContentType = {
   MIX: 0, // 组合，包含多种类型
   TEXT: 1, // 文本
   IMAGE: 2, // 图片
-  AUDIO: 3, // 音频
-  VIDEO: 4, // 视频
-  EMOJI: 5 //表情
+  RECORDING: 3, // 录音
+  AUDIO: 4, // 音频文件
+  VIDEO: 5, // 视频
+  EMOJI: 6 //表情
 }
 
 // 消息发送状态

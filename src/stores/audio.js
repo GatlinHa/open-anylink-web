@@ -32,7 +32,10 @@ export const audioStore = defineStore('anylink-audio', () => {
     msgRecords.forEach((item) => {
       const content = item.content
       const contentJson = jsonParseSafe(content)
-      if (contentJson && contentJson['type'] === msgContentType.AUDIO) {
+      if (
+        (contentJson && contentJson['type'] === msgContentType.RECORDING) ||
+        (contentJson && contentJson['type'] === msgContentType.AUDIO)
+      ) {
         const objectId = contentJson['value'].slice(1, -1)
         if (!audio.value[objectId]) {
           audioIds.add(objectId)

@@ -16,6 +16,7 @@ import { emojis } from '@/js/utils/emojis'
 import { msgContentType, msgSendStatus } from '@/const/msgConst'
 import RecordingMsgBox from '@/views/message/components/RecordingMsgBox.vue'
 import ImageMsgBox from '@/views/message/components/ImageMsgBox.vue'
+import AudioMsgBox from '@/views/message/components/AudioMsgBox.vue'
 
 const props = defineProps([
   'sessionId',
@@ -78,6 +79,8 @@ const renderComponent = async (content) => {
       return await renderMix(value)
     case msgContentType.TEXT:
       return renderText(value)
+    case msgContentType.RECORDING:
+      return renderRecording(value)
     case msgContentType.AUDIO:
       return renderAudio(value)
     case msgContentType.IMAGE:
@@ -162,7 +165,7 @@ const renderImage = (content, ishowInfo = true) => {
   }
 }
 
-const renderAudio = (content) => {
+const renderRecording = (content) => {
   const audioId = content.slice(1, -1)
   const url = audioData.audio[audioId]?.url
   const duration = audioData.audio[audioId]?.duration
@@ -170,6 +173,23 @@ const renderAudio = (content) => {
     return h(RecordingMsgBox, {
       audioUrl: import.meta.env.VITE_OSS_CORS_FLAG + url,
       duration: duration,
+      onLoad: () => {
+        emit('loadFinished')
+      }
+    })
+  } else {
+    return h('span', content)
+  }
+}
+
+const renderAudio = (content) => {
+  const audioId = content.slice(1, -1)
+  const url = audioData.audio[audioId]?.url
+  if (url) {
+    return h(AudioMsgBox, {
+      url: import.meta.env.VITE_OSS_CORS_FLAG + url,
+      fileName: audioData.audio[audioId].fileName,
+      size: audioData.audio[audioId].size,
       onLoad: () => {
         emit('loadFinished')
       }

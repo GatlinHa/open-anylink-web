@@ -8,7 +8,7 @@ import { el_loading_options } from '@/const/commonConst'
 import { v4 as uuidv4 } from 'uuid'
 
 const props = defineProps(['sessionId'])
-const emit = defineEmits(['exit', 'sendRecord'])
+const emit = defineEmits(['exit', 'sendRecording'])
 
 const audioData = audioStore()
 const spaceDown = ref(false) // 空格键是否被按下
@@ -151,7 +151,7 @@ const uploadRecord = () => {
     .then((res) => {
       if (res.data.code === 0) {
         audioData.setAudio(props.sessionId, res.data.data) // 缓存audio的数据
-        emit('sendRecord', res.data.data)
+        emit('sendRecording', res.data.data)
       }
     })
     .finally(() => {
