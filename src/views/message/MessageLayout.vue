@@ -47,7 +47,7 @@ import EditDialog from '@/components/common/EditDialog.vue'
 import AddOprMenu from '@/views/message/components/AddOprMenu.vue'
 import MessageGroupRightSide from '@/views/message/components/MessageGroupRightSide.vue'
 import HashNoData from '@/components/common/HasNoData.vue'
-import AudioRecorder from '@/views/message/components/AudioRecorder.vue'
+import InputRecorder from '@/views/message/components/InputRecorder.vue'
 import { playMsgSend } from '@/js/utils/audio'
 
 const userData = userStore()
@@ -1154,11 +1154,11 @@ const onShowRecorder = () => {
             </div>
             <div class="input-box bdr-t" :style="{ height: inputBoxHeight + 'px' }">
               <el-container v-if="isShowRecorder">
-                <AudioRecorder
+                <InputRecorder
                   :sessionId="selectedSessionId"
                   @exit="isShowRecorder = false"
                   @sendRecord="onSendAudio"
-                ></AudioRecorder>
+                ></InputRecorder>
               </el-container>
               <el-container v-else class="input-box-container">
                 <el-header class="input-box-header">

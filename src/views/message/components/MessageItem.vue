@@ -14,7 +14,7 @@ import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/co
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import { emojis } from '@/js/utils/emojis'
 import { msgContentType, msgSendStatus } from '@/const/msgConst'
-import AudioMsgBox from '@/views/message/components/AudioMsgBox.vue'
+import RecordingMsgBox from '@/views/message/components/RecordingMsgBox.vue'
 import ImageMsgBox from '@/views/message/components/ImageMsgBox.vue'
 
 const props = defineProps([
@@ -167,7 +167,7 @@ const renderAudio = (content) => {
   const url = audioData.audio[audioId]?.url
   const duration = audioData.audio[audioId]?.duration
   if (url) {
-    return h(AudioMsgBox, {
+    return h(RecordingMsgBox, {
       audioUrl: import.meta.env.VITE_OSS_CORS_FLAG + url,
       duration: duration,
       onLoad: () => {
