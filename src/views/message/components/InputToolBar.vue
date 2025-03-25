@@ -1,19 +1,23 @@
 <script setup>
 import { ref } from 'vue'
-import { LocationInformation, Clock, CreditCard, Microphone } from '@element-plus/icons-vue'
+import { Clock, Microphone } from '@element-plus/icons-vue'
 import { ElMessage, ElLoading } from 'element-plus'
 import EmojiIcon from '@/assets/svg/emoji.svg'
 import FileIcon from '@/assets/svg/file.svg'
 import ImageIcon from '@/assets/svg/image.svg'
+import CodeIcon from '@/assets/svg/code.svg'
+import VoteIcon from '@/assets/svg/vote.svg'
 import EmojiBox from './EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
 import { mtsUploadService } from '@/api/mts'
-import { imageStore, audioStore } from '@/stores'
+import { messageStore, imageStore, audioStore } from '@/stores'
 import { el_loading_options } from '@/const/commonConst'
+import { MsgType } from '@/proto/msg'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
 const emit = defineEmits(['sendEmoji', 'sendImage', 'sendAudio', 'showRecorder'])
 
+const messageData = messageStore()
 const imageData = imageStore()
 const audioData = audioStore()
 const isShowEmojiBox = ref(false)
@@ -110,12 +114,21 @@ defineExpose({
       </InputTool>
       <InputTool tips="代码" @click="ElMessage.warning('功能开发中')">
         <template #iconSlot>
-          <CreditCard />
+          <CodeIcon />
         </template>
       </InputTool>
-      <InputTool tips="位置" @click="ElMessage.warning('功能开发中')">
+      <!-- <InputTool tips="位置" @click="ElMessage.warning('功能开发中')">
         <template #iconSlot>
           <LocationInformation />
+        </template>
+      </InputTool> -->
+      <InputTool
+        v-if="messageData.sessionList[props.sessionId].sessionType === MsgType.GROUP_CHAT"
+        tips="群投票"
+        @click="ElMessage.warning('功能开发中')"
+      >
+        <template #iconSlot>
+          <VoteIcon />
         </template>
       </InputTool>
     </div>
