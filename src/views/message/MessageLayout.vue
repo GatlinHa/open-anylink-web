@@ -177,6 +177,7 @@ const initSession = (sessionId) => {
       isLoadMoreLoading: false
     }
   }
+  isShowRecorder.value = false // 麦克风输入状态重置
 }
 
 const locateSession = (sessionId) => {
