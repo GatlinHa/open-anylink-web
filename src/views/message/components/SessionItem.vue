@@ -224,17 +224,19 @@ const showDetailContent = computed(() => {
     }
 
     const jsonContent = jsonParseSafe(lastMsg.value.content)
-    if (
-      jsonContent &&
-      (jsonContent['type'] == msgContentType.IMAGE ||
+    if (jsonContent) {
+      if (jsonContent['type'] == msgContentType.IMAGE) {
+        return '[图片]'
+      } else if (
         jsonContent['type'] == msgContentType.AUDIO ||
-        jsonContent['type'] == msgContentType.RECORDING ||
-        jsonContent['type'] == msgContentType.VIDEO)
-    ) {
-      return jsonContent['value']
-        .replace(/\{\d+\}/g, '[图片]')
-        .replace(/\(\d+\)/g, '[音频]')
-        .replace(/<\d+>/g, '[视频]')
+        jsonContent['type'] == msgContentType.RECORDING
+      ) {
+        return '[音频]'
+      } else if (jsonContent['type'] == msgContentType.VIDEO) {
+        return '[视频]'
+      } else {
+        return jsonContent['value']
+      }
     }
 
     if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {

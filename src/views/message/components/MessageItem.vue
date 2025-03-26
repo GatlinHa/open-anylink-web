@@ -89,11 +89,7 @@ const renderComponent = async (content) => {
     case msgContentType.IMAGE:
       return renderImage(value)
     case msgContentType.EMOJI:
-      if (value.startsWith('[') && value.endsWith(']')) {
-        return renderEmoji(value)
-      } else {
-        return h('span', value)
-      }
+      return renderEmoji(value)
     case msgContentType.VIDEO:
       return renderVideo(value)
     default:
@@ -120,9 +116,9 @@ const renderMix = async (content) => {
 
   return contentArray.map((item) => {
     if (item.startsWith('{') && item.endsWith('}')) {
-      return renderImage(item, false)
+      return renderImage(item.slice(1, -1), false)
     } else if (item.startsWith('[') && item.endsWith(']')) {
-      return renderEmoji(item)
+      return renderEmoji(item.slice(1, -1))
     } else {
       return h('span', item)
     }
@@ -130,25 +126,25 @@ const renderMix = async (content) => {
 }
 
 const renderEmoji = (content) => {
-  const emojiId = `[${content.slice(1, -1)}]`
+  const emojiId = `[${content}]`
   const url = emojis[emojiId]
   if (url) {
     return h('img', {
       class: 'emoji',
       src: url,
       alt: emojiId,
-      title: content.slice(1, -1),
+      title: content,
       onLoad: () => {
         emit('loadFinished')
       }
     })
   } else {
-    return h('span', content)
+    return h('span', `[${content}]`)
   }
 }
 
 const renderVideo = (content) => {
-  const videoId = content.slice(1, -1)
+  const videoId = content
   const url = videoData.video[videoId]?.url
   if (url) {
     return h(VideoMsgBox, {
@@ -161,12 +157,12 @@ const renderVideo = (content) => {
       }
     })
   } else {
-    return h('span', content)
+    return h('span', `[${content}]`)
   }
 }
 
 const renderImage = (content, ishowInfo = true) => {
-  const imgId = content.slice(1, -1)
+  const imgId = content
   const url = imageData.image[imgId]?.thumbUrl
   if (url) {
     const imgIdList = imageData.imageInSession[props.sessionId].sort((a, b) => a - b)
@@ -183,12 +179,12 @@ const renderImage = (content, ishowInfo = true) => {
       }
     })
   } else {
-    return h('span', content)
+    return h('span', `[${content}]`)
   }
 }
 
 const renderRecording = (content) => {
-  const audioId = content.slice(1, -1)
+  const audioId = content
   const url = audioData.audio[audioId]?.url
   const duration = audioData.audio[audioId]?.duration
   if (url) {
@@ -200,12 +196,12 @@ const renderRecording = (content) => {
       }
     })
   } else {
-    return h('span', content)
+    return h('span', `[${content}]`)
   }
 }
 
 const renderAudio = (content) => {
-  const audioId = content.slice(1, -1)
+  const audioId = content
   const url = audioData.audio[audioId]?.url
   if (url) {
     return h(AudioMsgBox, {
@@ -217,7 +213,7 @@ const renderAudio = (content) => {
       }
     })
   } else {
-    return h('span', content)
+    return h('span', `[${content}]`)
   }
 }
 

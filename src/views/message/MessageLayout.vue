@@ -961,19 +961,19 @@ const onSendEmoji = (key) => {
 }
 
 const onSendImage = ({ objectId }) => {
-  handleSendMessage(JSON.stringify({ type: msgContentType.IMAGE, value: `{${objectId}}` }))
+  handleSendMessage(JSON.stringify({ type: msgContentType.IMAGE, value: objectId }))
 }
 
 const onSendAudio = ({ objectId }) => {
-  handleSendMessage(JSON.stringify({ type: msgContentType.AUDIO, value: `(${objectId})` }))
+  handleSendMessage(JSON.stringify({ type: msgContentType.AUDIO, value: objectId }))
 }
 
 const onSendRecording = ({ objectId }) => {
-  handleSendMessage(JSON.stringify({ type: msgContentType.RECORDING, value: `(${objectId})` }))
+  handleSendMessage(JSON.stringify({ type: msgContentType.RECORDING, value: objectId }))
 }
 
 const onSendVideo = ({ objectId }) => {
-  handleSendMessage(JSON.stringify({ type: msgContentType.VIDEO, value: `<${objectId}>` }))
+  handleSendMessage(JSON.stringify({ type: msgContentType.VIDEO, value: objectId }))
 }
 
 const isShowRecorder = ref(false)

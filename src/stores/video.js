@@ -33,7 +33,7 @@ export const videoStore = defineStore('anylink-video', () => {
       const content = item.content
       const contentJson = jsonParseSafe(content)
       if (contentJson && contentJson['type'] === msgContentType.VIDEO) {
-        const objectId = contentJson['value'].slice(1, -1)
+        const objectId = contentJson['value']
         if (!video.value[objectId]) {
           videoIds.add(objectId)
         }

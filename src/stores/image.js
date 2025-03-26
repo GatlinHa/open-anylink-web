@@ -79,7 +79,7 @@ export const imageStore = defineStore('anylink-image', () => {
       const content = item.content
       const contentJson = jsonParseSafe(content)
       if (contentJson && contentJson['type'] === msgContentType.IMAGE) {
-        const objectId = contentJson['value'].slice(1, -1)
+        const objectId = contentJson['value']
         if (!image.value[objectId]) {
           imageIds.add(objectId)
         }

@@ -36,7 +36,7 @@ export const audioStore = defineStore('anylink-audio', () => {
         (contentJson && contentJson['type'] === msgContentType.RECORDING) ||
         (contentJson && contentJson['type'] === msgContentType.AUDIO)
       ) {
-        const objectId = contentJson['value'].slice(1, -1)
+        const objectId = contentJson['value']
         if (!audio.value[objectId]) {
           audioIds.add(objectId)
         }
