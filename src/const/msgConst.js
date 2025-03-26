@@ -19,7 +19,8 @@ export const msgContentType = {
   RECORDING: 3, // 录音
   AUDIO: 4, // 音频文件
   EMOJI: 5, // 视频
-  VIDEO: 6 //表情
+  VIDEO: 6, // 表情
+  DOCUMENT: 7 // 文档
 }
 
 // 消息发送状态

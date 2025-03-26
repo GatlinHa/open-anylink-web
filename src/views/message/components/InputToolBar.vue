@@ -10,17 +10,25 @@ import VoteIcon from '@/assets/svg/vote.svg'
 import EmojiBox from './EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
 import { mtsUploadService } from '@/api/mts'
-import { messageStore, imageStore, audioStore, videoStore } from '@/stores'
+import { messageStore, imageStore, audioStore, videoStore, documentStore } from '@/stores'
 import { el_loading_options } from '@/const/commonConst'
 import { MsgType } from '@/proto/msg'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
-const emit = defineEmits(['sendEmoji', 'sendImage', 'sendAudio', 'sendVideo', 'showRecorder'])
+const emit = defineEmits([
+  'sendEmoji',
+  'sendImage',
+  'sendAudio',
+  'sendVideo',
+  'sendDocument',
+  'showRecorder'
+])
 
 const messageData = messageStore()
 const imageData = imageStore()
 const audioData = audioStore()
 const videoData = videoStore()
+const documentData = documentStore()
 const isShowEmojiBox = ref(false)
 
 const onSelectedFile = (file) => {
@@ -65,7 +73,17 @@ const onSelectedFile = (file) => {
         loadingInstance.close()
       })
   } else {
-    ElMessage.warning('不支持发送该格式的文件')
+    const loadingInstance = ElLoading.service(el_loading_options)
+    mtsUploadService({ file: file.raw, storeType: 1 })
+      .then((res) => {
+        if (res.data.code === 0) {
+          documentData.setDocument(props.sessionId, res.data.data) // 缓存video的数据
+          emit('sendDocument', res.data.data)
+        }
+      })
+      .finally(() => {
+        loadingInstance.close()
+      })
   }
 }
 

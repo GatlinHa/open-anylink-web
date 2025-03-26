@@ -15,3 +15,7 @@ export const mtsAudioService = (obj) => {
 export const mtsVideoService = (obj) => {
   return request.get('/mts/video', { params: obj })
 }
+
+export const mtsDocumentService = (obj) => {
+  return request.get('/mts/document', { params: obj })
+}

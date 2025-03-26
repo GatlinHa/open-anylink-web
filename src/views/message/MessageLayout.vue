@@ -976,6 +976,10 @@ const onSendVideo = ({ objectId }) => {
   handleSendMessage(JSON.stringify({ type: msgContentType.VIDEO, value: objectId }))
 }
 
+const onSendDocument = ({ objectId }) => {
+  handleSendMessage(JSON.stringify({ type: msgContentType.DOCUMENT, value: objectId }))
+}
+
 const isShowRecorder = ref(false)
 const onShowRecorder = () => {
   isShowRecorder.value = true
@@ -1178,6 +1182,7 @@ const onShowRecorder = () => {
                     @sendImage="onSendImage"
                     @sendAudio="onSendAudio"
                     @sendVideo="onSendVideo"
+                    @sendDocument="onSendDocument"
                     @showRecorder="onShowRecorder"
                   ></InputToolBar>
                 </el-header>

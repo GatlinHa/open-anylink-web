@@ -9,7 +9,8 @@ import {
   groupCardStore,
   imageStore,
   audioStore,
-  videoStore
+  videoStore,
+  documentStore
 } from '@/stores'
 import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/common'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
@@ -19,6 +20,7 @@ import RecordingMsgBox from '@/views/message/components/RecordingMsgBox.vue'
 import ImageMsgBox from '@/views/message/components/ImageMsgBox.vue'
 import AudioMsgBox from '@/views/message/components/AudioMsgBox.vue'
 import VideoMsgBox from '@/views/message/components/VideoMsgBox.vue'
+import DocumentMsgBox from '@/views/message/components/DocumentMsgBox.vue'
 
 const props = defineProps([
   'sessionId',
@@ -41,6 +43,7 @@ const groupCardData = groupCardStore()
 const imageData = imageStore()
 const audioData = audioStore()
 const videoData = videoStore()
+const documentData = documentStore()
 
 onMounted(() => {
   rendering()
@@ -92,6 +95,8 @@ const renderComponent = async (content) => {
       return renderEmoji(value)
     case msgContentType.VIDEO:
       return renderVideo(value)
+    case msgContentType.DOCUMENT:
+      return renderDocument(value)
     default:
       return h('div', [])
   }
@@ -208,6 +213,24 @@ const renderAudio = (content) => {
       url: import.meta.env.VITE_OSS_CORS_FLAG + url,
       fileName: audioData.audio[audioId].fileName,
       size: audioData.audio[audioId].size,
+      onLoad: () => {
+        emit('loadFinished')
+      }
+    })
+  } else {
+    return h('span', `[${content}]`)
+  }
+}
+
+const renderDocument = (content) => {
+  const documentId = content
+  const url = documentData.document[documentId]?.url
+  if (url) {
+    return h(DocumentMsgBox, {
+      url: import.meta.env.VITE_OSS_CORS_FLAG + url,
+      fileName: documentData.document[documentId].fileName,
+      contentType: documentData.document[documentId].documentType,
+      size: documentData.document[documentId].size,
       onLoad: () => {
         emit('loadFinished')
       }

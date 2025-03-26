@@ -28,7 +28,6 @@ onMounted(() => {
 
   // 监听播放开始事件
   player.on('play', () => {
-    console.log('视频开始播放')
     isClickPlay.value = true
   })
 
