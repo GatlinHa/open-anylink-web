@@ -18,8 +18,8 @@ export const msgContentType = {
   IMAGE: 2, // 图片
   RECORDING: 3, // 录音
   AUDIO: 4, // 音频文件
-  VIDEO: 5, // 视频
-  EMOJI: 6 //表情
+  EMOJI: 5, // 视频
+  VIDEO: 6 //表情
 }
 
 // 消息发送状态

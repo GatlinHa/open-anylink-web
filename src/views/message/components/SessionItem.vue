@@ -217,7 +217,7 @@ const getGroupChatMsgTips = (content) => {
 
 const showDetailContent = computed(() => {
   if (isShowDraft.value) {
-    return sessionInfo.value.draft?.replace(/\{\d+\}/g, '{图片}') // 把内容中的`{xxxxxx}`格式的图片统一转成`{图片}`
+    return sessionInfo.value.draft?.replace(/\{\d+\}/g, '[图片]') // 把内容中的`{xxxxxx}`格式的图片统一转成`[图片]`
   } else {
     if (!lastMsg.value.content) {
       return '...'
@@ -228,9 +228,13 @@ const showDetailContent = computed(() => {
       jsonContent &&
       (jsonContent['type'] == msgContentType.IMAGE ||
         jsonContent['type'] == msgContentType.AUDIO ||
-        jsonContent['type'] == msgContentType.RECORDING)
+        jsonContent['type'] == msgContentType.RECORDING ||
+        jsonContent['type'] == msgContentType.VIDEO)
     ) {
-      return jsonContent['value'].replace(/\{\d+\}/g, '{图片}').replace(/\(\d+\)/g, '(音频)')
+      return jsonContent['value']
+        .replace(/\{\d+\}/g, '[图片]')
+        .replace(/\(\d+\)/g, '[音频]')
+        .replace(/\\<\d+\\>/g, '[视频]')
     }
 
     if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
@@ -269,12 +273,12 @@ const showDetailContent = computed(() => {
         case MsgType.SYS_GROUP_DROP:
           return getSysGroupDrop(content)
         case MsgType.GROUP_CHAT:
-          return getGroupChatMsgTips(lastMsg.value.content.replace(/\{\d+\}/g, '{图片}'))
+          return getGroupChatMsgTips(lastMsg.value.content.replace(/\{\d+\}/g, '[图片]'))
         default:
           return ''
       }
     } else {
-      return lastMsg.value.content.replace(/\{\d+\}/g, '{图片}')
+      return lastMsg.value.content.replace(/\{\d+\}/g, '[图片]')
     }
   }
 })

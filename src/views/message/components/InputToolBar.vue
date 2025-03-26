@@ -10,16 +10,17 @@ import VoteIcon from '@/assets/svg/vote.svg'
 import EmojiBox from './EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
 import { mtsUploadService } from '@/api/mts'
-import { messageStore, imageStore, audioStore } from '@/stores'
+import { messageStore, imageStore, audioStore, videoStore } from '@/stores'
 import { el_loading_options } from '@/const/commonConst'
 import { MsgType } from '@/proto/msg'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
-const emit = defineEmits(['sendEmoji', 'sendImage', 'sendAudio', 'showRecorder'])
+const emit = defineEmits(['sendEmoji', 'sendImage', 'sendAudio', 'sendVideo', 'showRecorder'])
 
 const messageData = messageStore()
 const imageData = imageStore()
 const audioData = audioStore()
+const videoData = videoStore()
 const isShowEmojiBox = ref(false)
 
 const onSelectedFile = (file) => {
@@ -46,6 +47,18 @@ const onSelectedFile = (file) => {
         if (res.data.code === 0) {
           audioData.setAudio(props.sessionId, res.data.data) // 缓存audio的数据
           emit('sendAudio', res.data.data)
+        }
+      })
+      .finally(() => {
+        loadingInstance.close()
+      })
+  } else if (file.raw.type && file.raw.type.startsWith('video/')) {
+    const loadingInstance = ElLoading.service(el_loading_options)
+    mtsUploadService({ file: file.raw, storeType: 1 })
+      .then((res) => {
+        if (res.data.code === 0) {
+          videoData.setVideo(props.sessionId, res.data.data) // 缓存video的数据
+          emit('sendVideo', res.data.data)
         }
       })
       .finally(() => {

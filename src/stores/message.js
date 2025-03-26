@@ -6,7 +6,7 @@ import {
   msgQueryPartitionService
 } from '@/api/message'
 import { ElMessage } from 'element-plus'
-import { imageStore, audioStore } from '@/stores'
+import { imageStore, audioStore, videoStore } from '@/stores'
 
 // 消息功能相关需要缓存的数据，不持久化存储
 export const messageStore = defineStore('anylink-message', () => {
@@ -125,6 +125,7 @@ export const messageStore = defineStore('anylink-message', () => {
     // 预加载消息中的图片和音频
     await imageStore().preloadImage(sessionId, msgRecords)
     await audioStore().preloadAudio(sessionId, msgRecords)
+    await videoStore().preloadVideo(sessionId, msgRecords)
 
     if (!msgRecords?.length) return
     msgRecords.forEach((item) => {

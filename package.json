@@ -28,7 +28,8 @@
     "vue": "^3.4.29",
     "vue-audio-visual": "^3.0.10",
     "vue-cropper": "^1.1.1",
-    "vue-router": "^4.3.3"
+    "vue-router": "^4.3.3",
+    "xgplayer": "^3.0.21"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.8.0",

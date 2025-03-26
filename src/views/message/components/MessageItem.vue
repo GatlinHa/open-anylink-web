@@ -8,7 +8,8 @@ import {
   groupStore,
   groupCardStore,
   imageStore,
-  audioStore
+  audioStore,
+  videoStore
 } from '@/stores'
 import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/common'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
@@ -17,6 +18,7 @@ import { msgContentType, msgSendStatus } from '@/const/msgConst'
 import RecordingMsgBox from '@/views/message/components/RecordingMsgBox.vue'
 import ImageMsgBox from '@/views/message/components/ImageMsgBox.vue'
 import AudioMsgBox from '@/views/message/components/AudioMsgBox.vue'
+import VideoMsgBox from '@/views/message/components/VideoMsgBox.vue'
 
 const props = defineProps([
   'sessionId',
@@ -38,6 +40,7 @@ const groupData = groupStore()
 const groupCardData = groupCardStore()
 const imageData = imageStore()
 const audioData = audioStore()
+const videoData = videoStore()
 
 onMounted(() => {
   rendering()
@@ -92,6 +95,7 @@ const renderComponent = async (content) => {
         return h('span', value)
       }
     case msgContentType.VIDEO:
+      return renderVideo(value)
     default:
       return h('div', [])
   }
@@ -134,6 +138,24 @@ const renderEmoji = (content) => {
       src: url,
       alt: emojiId,
       title: content.slice(1, -1),
+      onLoad: () => {
+        emit('loadFinished')
+      }
+    })
+  } else {
+    return h('span', content)
+  }
+}
+
+const renderVideo = (content) => {
+  const videoId = content.slice(1, -1)
+  const url = videoData.video[videoId]?.url
+  if (url) {
+    return h(VideoMsgBox, {
+      videoId,
+      url,
+      fileName: videoData.video[videoId].fileName,
+      size: videoData.video[videoId].size,
       onLoad: () => {
         emit('loadFinished')
       }
