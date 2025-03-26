@@ -28,7 +28,7 @@ export default defineConfig({
       },
       '/oss/': {
         // 获取图片的请求
-        target: 'https://bk0528.oss-cn-beijing.aliyuncs.com', // 对象存储oss的源
+        target: 'http://127.0.0.1:9001', // 对象存储oss的源
         changeOrigin: true, // 修改源
         rewrite: (path) => path.replace(/^\/oss\//, '')
       }
