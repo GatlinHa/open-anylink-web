@@ -21,7 +21,9 @@ onMounted(() => {
     url: props.url,
     fluid: true,
     autoplay: false,
-    lang: 'zh-cn'
+    lang: 'zh-cn',
+    download: true,
+    keyShortcut: false
   })
 
   // 监听播放开始事件
