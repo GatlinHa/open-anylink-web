@@ -178,6 +178,7 @@ const initSession = (sessionId) => {
     }
   }
   isShowRecorder.value = false // 麦克风输入状态重置
+  inputRecorderRef.value?.cancelSend() // 取消音频发送
 }
 
 const locateSession = (sessionId) => {
@@ -981,6 +982,7 @@ const onSendDocument = ({ objectId }) => {
   handleSendMessage(JSON.stringify({ type: msgContentType.DOCUMENT, value: objectId }))
 }
 
+const inputRecorderRef = ref(null)
 const isShowRecorder = ref(false)
 const onShowRecorder = () => {
   isShowRecorder.value = true
@@ -1168,6 +1170,7 @@ const onShowRecorder = () => {
             <div class="input-box bdr-t" :style="{ height: inputBoxHeight + 'px' }">
               <el-container v-if="isShowRecorder">
                 <InputRecorder
+                  ref="inputRecorderRef"
                   :sessionId="selectedSessionId"
                   @exit="isShowRecorder = false"
                   @sendRecording="onSendRecording"

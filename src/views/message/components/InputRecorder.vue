@@ -28,7 +28,7 @@ let timer
 const handleKeyDown = async (event) => {
   if (event.key === 'Escape') {
     if (isRecord.value) {
-      handleCancelSend()
+      cancelSend()
     } else {
       emit('exit')
     }
@@ -62,7 +62,7 @@ const handleExit = () => {
   emit('exit')
 }
 
-const handleCancelSend = () => {
+const cancelSend = () => {
   isRecord.value = false
   isCancel.value = true
   dynamicDuration.value = 0
@@ -179,6 +179,10 @@ watch(
   }
 )
 
+defineExpose({
+  cancelSend
+})
+
 onMounted(async () => {
   window.addEventListener('keydown', handleKeyDown)
   window.addEventListener('keyup', handleKeyUp)
@@ -199,7 +203,7 @@ onUnmounted(() => {
     </div>
     <span v-if="isRecord" class="tips">
       松开发送，按Esc键或点击
-      <span @click="handleCancelSend" class="button-text">取消发送</span>
+      <span @click="cancelSend" class="button-text">取消发送</span>
     </span>
     <span v-else class="tips">
       长按空格键说话，按Esc键或点击
