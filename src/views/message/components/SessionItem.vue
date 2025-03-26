@@ -234,7 +234,7 @@ const showDetailContent = computed(() => {
       return jsonContent['value']
         .replace(/\{\d+\}/g, '[图片]')
         .replace(/\(\d+\)/g, '[音频]')
-        .replace(/\\<\d+\\>/g, '[视频]')
+        .replace(/<\d+>/g, '[视频]')
     }
 
     if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
