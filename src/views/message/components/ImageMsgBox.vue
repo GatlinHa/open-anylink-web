@@ -59,6 +59,7 @@ const formatSize = computed(() => {
 
 <style lang="scss" scoped>
 .image-msg-wrapper {
+  display: flex;
   position: relative;
 
   .el-image {
@@ -77,7 +78,7 @@ const formatSize = computed(() => {
     height: 32px;
     line-height: 32px;
     left: 0;
-    bottom: 4px;
+    bottom: 0;
     display: flex;
     justify-content: space-between;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5));
