@@ -224,7 +224,7 @@ const showDetailContent = computed(() => {
     }
 
     const jsonContent = jsonParseSafe(lastMsg.value.content)
-    if (jsonContent) {
+    if (jsonContent && jsonContent['type'] && jsonContent['value']) {
       if (jsonContent['type'] == msgContentType.IMAGE) {
         return '[图片]'
       } else if (
