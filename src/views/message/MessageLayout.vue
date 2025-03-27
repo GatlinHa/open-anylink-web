@@ -181,8 +181,16 @@ const initSession = (sessionId) => {
   inputRecorderRef.value?.cancelSend() // 取消音频发送
 }
 
+/**
+ * 定位的session的位置
+ * 这里受限sessionListSorted的排序速度，如果定位的时候排序没有完成，定位的位置就不对
+ * @param sessionId
+ */
 const locateSession = (sessionId) => {
-  nextTick(() => {
+  let task
+  let count = 0
+  task = setInterval(() => {
+    if (count >= 3) clearInterval(task)
     const selectedElement = document.querySelector(`#session-item-${sessionIdConvert(sessionId)}`)
     // 如果被选中元素的上边在scrollTop之的上面，或这在下边在scrollTop+clientHeight的下面（显示不全或者完全没有显示），则需要重新定位
     // 由于offsetTop和offsetHeight不包含外边距，因此定位存在细小误差，暂不处理
@@ -194,7 +202,8 @@ const locateSession = (sessionId) => {
     ) {
       sessionListRef.value.scrollTop = selectedElement.offsetTop - sessionListRef.value.clientHeight
     }
-  })
+    count++
+  }, 200)
 }
 
 const msgIdsShow = computed(() => {
@@ -311,12 +320,10 @@ const sessionListSorted = computed(() => {
           const a_msgIds_len = a_msgIds?.length
           if (!a_msgIds_len) return 1
           const a_lastMsg = messageData.getMsg(a.sessionId, a_msgIds[a_msgIds_len - 1])
-
           const b_msgIds = messageData.msgIdSortArray[b.sessionId]
           const b_msgIds_len = b_msgIds?.length
           if (!b_msgIds_len) return -1
           const b_lastMsg = messageData.getMsg(b.sessionId, b_msgIds[b_msgIds_len - 1])
-
           const bTime = new Date(b_lastMsg.msgTime).getTime()
           const aTIme = new Date(a_lastMsg.msgTime).getTime()
           if (bTime !== aTIme) {
