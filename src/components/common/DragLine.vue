@@ -77,6 +77,7 @@ onUnmounted(() => {
 .drag-line {
   position: absolute;
   cursor: col-resize;
+  transition: all 0.3s;
 
   &:hover,
   &.drag_resizing {
