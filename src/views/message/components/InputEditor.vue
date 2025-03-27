@@ -1,7 +1,7 @@
 <script setup>
 import { QuillEditor, Delta, Quill } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, onBeforeUnmount, ref, watch } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { messageStore, imageStore } from '@/stores'
 import { ElMessage, ElLoading } from 'element-plus'
@@ -34,6 +34,17 @@ onMounted(async () => {
     // 当用户使用拼音输入法输入完成后，把值恢复成原来的值
     getQuill().root.dataset.placeholder = getQuill().options.placeholder
   })
+})
+
+onBeforeUnmount(async () => {
+  let content = await getContent()
+  // 草稿若没发生变动，则不触发存储
+  if (content !== messageData.sessionList[props.sessionId].draft) {
+    messageData.updateSession({
+      sessionId: props.sessionId,
+      draft: content
+    })
+  }
 })
 
 onUnmounted(() => {
