@@ -14,7 +14,7 @@ const props = defineProps(['tips'])
 .tool-icon-wrapper {
   width: 30px;
   height: 30px;
-  margin: 5px;
+  padding: 5px;
   border-radius: 4px;
   display: flex;
   justify-content: center;
