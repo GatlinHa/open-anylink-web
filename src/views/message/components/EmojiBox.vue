@@ -16,9 +16,16 @@ const clickListener = (e) => {
   }
 }
 
+const handleEscKey = (e) => {
+  if (e.key === 'Escape') {
+    close()
+  }
+}
+
 const close = () => {
   isShowDialog.value = false
   document.removeEventListener('click', clickListener)
+  document.removeEventListener('keydown', handleEscKey)
   emit('close')
 }
 
@@ -30,10 +37,12 @@ watch(
       tabOption.value = 'system'
       setTimeout(() => {
         document.addEventListener('click', clickListener)
+        document.addEventListener('keydown', handleEscKey)
       }, 0)
     } else {
       // 父组件通过props.isShow关闭时也要注销掉listener
       document.removeEventListener('click', clickListener)
+      document.removeEventListener('keydown', handleEscKey)
     }
   }
 )
