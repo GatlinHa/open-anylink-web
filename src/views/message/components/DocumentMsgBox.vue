@@ -32,6 +32,7 @@ const iconMap = {
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': XlsxIcon,
   'application/zip': ArchiveIcon,
   'application/vnd.rar': ArchiveIcon,
+  'application/x-zip-compressed': ArchiveIcon,
   'application/x-7z-compressed': ArchiveIcon,
   'application/x-tar': ArchiveIcon,
   'application/gzip': ArchiveIcon,
