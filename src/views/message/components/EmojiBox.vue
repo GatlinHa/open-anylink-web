@@ -72,7 +72,7 @@ const onSelectEmoji = (key) => {
 
 <style lang="scss" scoped>
 .emoji-box {
-  width: 472px;
+  width: 480px;
   height: 240px;
   padding: 0 5px 0 5px;
   position: absolute;
