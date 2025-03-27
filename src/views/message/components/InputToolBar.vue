@@ -115,29 +115,30 @@ defineExpose({
           <EmojiIcon />
         </template>
       </InputTool>
-      <el-upload
-        :auto-upload="false"
-        :show-file-list="false"
-        accept="image/*"
-        :on-change="onSelectedFile"
-      >
-        <template #trigger>
-          <InputTool tips="图片">
-            <template #iconSlot>
+      <InputTool tips="图片">
+        <template #iconSlot>
+          <el-upload
+            :auto-upload="false"
+            :show-file-list="false"
+            accept="image/*"
+            :on-change="onSelectedFile"
+          >
+            <template #trigger>
               <ImageIcon />
             </template>
-          </InputTool>
+          </el-upload>
         </template>
-      </el-upload>
-      <el-upload :auto-upload="false" :show-file-list="false" :on-change="onSelectedFile">
-        <template #trigger>
-          <InputTool tips="文件">
-            <template #iconSlot>
+      </InputTool>
+      <InputTool tips="文件">
+        <template #iconSlot>
+          <el-upload :auto-upload="false" :show-file-list="false" :on-change="onSelectedFile">
+            <template #trigger>
               <FileIcon />
             </template>
-          </InputTool>
+          </el-upload>
         </template>
-      </el-upload>
+      </InputTool>
+
       <InputTool tips="语音消息" @click="showRecorder">
         <template #iconSlot>
           <Microphone />
