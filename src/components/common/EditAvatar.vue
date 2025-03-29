@@ -30,7 +30,7 @@ const avatar = computed(() => {
 
 // 打开的时候触发
 const onOpen = () => {
-  fileName.value = avatar.value?.split('/').pop()
+  fileName.value = avatar.value?.split('/').pop().split('?')[0]
   srcImg.value = avatar.value ? import.meta.env.VITE_OSS_CORS_FLAG + avatar.value : avatar.value
   previewImg.value = srcImg.value
   resetData.value = {
@@ -71,6 +71,7 @@ const onUpload = async () => {
     try {
       const res = await mtsUploadService({ file: file, storeType: 0 })
       emit('update:newAvatar', {
+        avatarId: res.data.data.objectId,
         avatar: res.data.data.originUrl,
         avatarThumb: res.data.data.thumbUrl
       })

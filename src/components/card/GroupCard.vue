@@ -217,6 +217,8 @@ const onShowUserCard = (account) => {
             ...messageData.sessionList[sessionId].objectInfo,
             nickName: res.data.data.nickName,
             signature: res.data.data.signature,
+            avatarId: res.data.data.avatarId,
+            avatar: res.data.data.avatar,
             avatarThumb: res.data.data.avatarThumb,
             gender: res.data.data.gender,
             phoneNum: res.data.data.phoneNum,
@@ -357,18 +359,18 @@ const onReturnInfo = () => {
   groupCardData.setShowModel('info')
 }
 
-const onNewAvatar = ({ avatar, avatarThumb }) => {
+const onNewAvatar = ({ avatarId, avatar, avatarThumb }) => {
   const loadingInstance = ElLoading.service(el_loading_options)
   groupUpdateInfoService({
     groupId: groupCardData.groupId,
-    avatar: avatar,
-    avatarThumb: avatarThumb
+    avatarId: avatarId
   })
     .then(() => {
       groupData.setGroupInfo({
         groupId: groupCardData.groupId,
         groupInfo: {
           ...groupInfo.value,
+          avatarId: avatarId,
           avatar: avatar,
           avatarThumb: avatarThumb
         }

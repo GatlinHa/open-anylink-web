@@ -12,6 +12,7 @@ import { ElMessage } from 'element-plus'
 const userData = userStore()
 // 准备表单数据
 const formModel = ref({})
+const avatarUrl = ref(userData.user.avatar)
 const isLoading = ref(false)
 const isShowEditAvatar = ref(false)
 
@@ -22,13 +23,13 @@ onMounted(async () => {
   })
 })
 
-const onNewAvatar = ({ avatar, avatarThumb }) => {
-  formModel.value.avatar = avatar
-  formModel.value.avatarThumb = avatarThumb
+const onNewAvatar = ({ avatarId, avatar }) => {
+  formModel.value.avatarId = avatarId
+  avatarUrl.value = avatar
 }
 
 const onSave = () => {
-  if (!isSomeChanged()) {
+  if (!isSomeOneChanged()) {
     ElMessage.warning('您还没有修改任何信息哦！')
     return
   }
@@ -44,14 +45,13 @@ const onSave = () => {
   })
 }
 
-const isSomeChanged = () => {
+const isSomeOneChanged = () => {
   return !(
     formModel.value.nickName === userData.user.nickName &&
     formModel.value.gender === userData.user.gender &&
     formModel.value.birthday === showTimeFormatDay(userData.user.birthday) &&
     formModel.value.signature === userData.user.signature &&
-    formModel.value.avatar === userData.user.avatar &&
-    formModel.value.avatarThumb === userData.user.avatarThumb
+    formModel.value.avatarId === userData.user.avatarId
   )
 }
 
@@ -70,7 +70,7 @@ const displayPhone = computed(() => {
     <el-container class="el-container__body">
       <el-aside width="240px">
         <img
-          :src="formModel.avatar || defaultImg"
+          :src="avatarUrl || defaultImg"
           alt="图片加载错误"
           @click="isShowEditAvatar = true"
           style="text-align: center; border-radius: 10px"
