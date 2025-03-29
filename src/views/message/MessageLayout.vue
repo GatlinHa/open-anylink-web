@@ -603,14 +603,25 @@ const updateScroll = () => {
  * @param behavior smooth 平滑的, instant 立即（默认）
  */
 const msgListReachBottom = (behavior = 'instant') => {
-  setTimeout(() => {
-    msgListDiv.value?.scrollTo({
+  const scrollToBottom = () => {
+    msgListDiv.value.scrollTo({
       top: msgListDiv.value.scrollHeight,
       behavior: behavior
     })
     newMsgTips.value.isShowBottomTips = false
     disToBottom.value = 0
-  }, 0)
+  }
+
+  if (msgListDiv.value) {
+    scrollToBottom()
+  } else {
+    const stopWatch = watch(msgListDiv, (newValue) => {
+      if (newValue) {
+        scrollToBottom()
+        stopWatch() // 停止监听
+      }
+    })
+  }
 }
 
 const onReturnBottom = () => {
