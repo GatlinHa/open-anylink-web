@@ -150,9 +150,6 @@ const autoLogout = () => {
   autoLogoutTimer = setTimeout(() => {
     userLogoutService(userData.user.account).finally(() => {
       userData.clear()
-      messageData.clear()
-      searchData.clear()
-      wsConnect.closeWs()
       router.push('/login')
     })
   }, LOGOUT_AFTER_DURATION)
@@ -167,9 +164,6 @@ const onExit = async () => {
     .then(() => {
       userLogoutService(userData.user.account).finally(() => {
         userData.clear()
-        messageData.clear()
-        searchData.clear()
-        wsConnect.closeWs()
         router.push('/login')
       })
     })
