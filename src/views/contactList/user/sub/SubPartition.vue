@@ -14,16 +14,16 @@ import {
 } from '@/api/message'
 import { PARTITION_TYPE } from '@/const/commonConst'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { messageStore, userStore, userCardStore } from '@/stores'
+import { useMessageStore, useUserStore, useUserCardStore } from '@/stores'
 import { ElLoading } from 'element-plus'
 import { el_loading_options } from '@/const/commonConst'
 import SelectUserDialog from '@/components/common/SelectUserDialog.vue'
 import { combineId, highLightedText } from '@/js/utils/common'
 import { MsgType } from '@/proto/msg'
 
-const messageData = messageStore()
-const userData = userStore()
-const userCardData = userCardStore()
+const messageData = useMessageStore()
+const userData = useUserStore()
+const userCardData = useUserCardStore()
 const partitionSearchKey = ref('')
 const userSearchKey = ref('')
 const isShowAddPartitionDialog = ref(false)

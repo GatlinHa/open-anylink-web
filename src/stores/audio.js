@@ -5,7 +5,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 // audio的缓存数据，不持久化存储
-export const audioStore = defineStore('anylink-audio', () => {
+export const useAudioStore = defineStore('anylink-audio', () => {
   /**
    * {
    *   objectId_01: {objectId: objectId_01, url: xxx},

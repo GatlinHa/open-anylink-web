@@ -1,5 +1,5 @@
 import request from '@/js/utils/request'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import { CLIENT_TYPE, CLIENT_NAME, CLIENT_VERSION } from '@/const/userConst'
 import { encryptPasswordObj, encryptDoublePasswordObj } from '@/js/utils/crypto'
 
@@ -7,7 +7,7 @@ export const userRegisterService = async ({ account, nickName, password }) => {
   const obj = await encryptPasswordObj(account, password)
   return request.post('/user/register', {
     account: account,
-    clientId: userStore().clientId,
+    clientId: useUserStore().clientId,
     nickName: nickName,
     ...obj
   })
@@ -17,7 +17,7 @@ export const userNonceService = ({ account }) => {
   return request.get('/user/nonce', {
     params: {
       account: account,
-      clientId: userStore().clientId
+      clientId: useUserStore().clientId
     }
   })
 }
@@ -34,7 +34,7 @@ export const userForgetService = async (obj) => {
   const passwordObjObj = await encryptPasswordObj(obj.account, obj.password)
   delete obj.password
   return request.post('/user/forget', {
-    clientId: userStore().clientId,
+    clientId: useUserStore().clientId,
     ...obj,
     ...passwordObjObj
   })
@@ -44,7 +44,7 @@ export const userLoginService = async ({ account, password }) => {
   const obj = await encryptPasswordObj(account, password)
   return request.post('/user/login', {
     account: account,
-    clientId: userStore().clientId,
+    clientId: useUserStore().clientId,
     ...obj
   })
 }
@@ -64,7 +64,7 @@ export const userModifySelfService = (obj) => {
 export const userModifyPassword = async ({ account, oldPasswordStr, newPasswordStr }) => {
   const obj = await encryptDoublePasswordObj(account, oldPasswordStr, newPasswordStr)
   return request.post('/user/modifyPwd', {
-    clientId: userStore().clientId,
+    clientId: useUserStore().clientId,
     ...obj
   })
 }

@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { Search, MoreFilled } from '@element-plus/icons-vue'
 import SubCommon from '../components/SubCommon.vue'
-import { messageStore, groupCardStore, groupStore } from '@/stores'
+import { useMessageStore, useGroupCardStore, useGroupStore } from '@/stores'
 import { PARTITION_TYPE } from '@/const/commonConst'
 import {
   msgCreatePartitionService,
@@ -19,9 +19,9 @@ import { highLightedText } from '@/js/utils/common'
 import { MsgType } from '@/proto/msg'
 import { groupInfoService } from '@/api/group'
 
-const messageData = messageStore()
-const groupCardData = groupCardStore()
-const groupData = groupStore()
+const messageData = useMessageStore()
+const groupCardData = useGroupCardStore()
+const groupData = useGroupStore()
 
 const partitionSearchKey = ref('')
 const isShowAddPartitionDialog = ref(false)

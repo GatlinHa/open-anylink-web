@@ -4,7 +4,7 @@ import { userInfoService } from '@/api/user'
 import { refreshToken } from '@/api/user'
 
 // 用户模块
-export const userStore = defineStore(
+export const useUserStore = defineStore(
   'anylink-user',
   () => {
     const at = ref({

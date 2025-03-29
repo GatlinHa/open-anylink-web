@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import router from '@/router'
 import { userModifySelfService } from '@/api/user'
 import defaultImg from '@/assets/image/select_avatar.jpg'
@@ -9,7 +9,7 @@ import { maskPhoneNum, showTimeFormatDay } from '@/js/utils/common'
 import EditAvatar from '@/components/common/EditAvatar.vue'
 import { ElMessage } from 'element-plus'
 
-const userData = userStore()
+const userData = useUserStore()
 // 准备表单数据
 const formModel = ref({})
 const avatarUrl = ref(userData.user.avatar)

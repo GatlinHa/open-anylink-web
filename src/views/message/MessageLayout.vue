@@ -19,12 +19,12 @@ import MessageItem from '@/views/message/components/MessageItem.vue'
 import SessionTag from '@/views/message/components/SessionTag.vue'
 import SelectUserDialog from '@/components/common/SelectUserDialog.vue'
 import {
-  userStore,
-  settingStore,
-  messageStore,
-  userCardStore,
-  groupCardStore,
-  groupStore
+  useUserStore,
+  useSettingStore,
+  useMessageStore,
+  useUserCardStore,
+  useGroupCardStore,
+  useGroupStore
 } from '@/stores'
 import backgroupImage from '@/assets/svg/messagebx_bg.svg'
 import {
@@ -50,12 +50,12 @@ import HashNoData from '@/components/common/HasNoData.vue'
 import InputRecorder from '@/views/message/components/InputRecorder.vue'
 import { playMsgSend } from '@/js/utils/audio'
 
-const userData = userStore()
-const settingData = settingStore()
-const messageData = messageStore()
-const userCardData = userCardStore()
-const groupCardData = groupCardStore()
-const groupData = groupStore()
+const userData = useUserStore()
+const settingData = useSettingStore()
+const messageData = useMessageStore()
+const userCardData = useUserCardStore()
+const groupCardData = useGroupCardStore()
+const groupData = useGroupStore()
 const sessionListRef = ref()
 
 const asideWidth = ref(0)

@@ -11,7 +11,13 @@ import DeleteButton from '@/components/common/DeleteButton.vue'
 import EditAvatar from '@/components/common/EditAvatar.vue'
 import { combineId } from '@/js/utils/common'
 import { userQueryService } from '@/api/user'
-import { groupStore, userStore, messageStore, userCardStore, groupCardStore } from '@/stores'
+import {
+  useGroupStore,
+  useUserStore,
+  useMessageStore,
+  useUserCardStore,
+  useGroupCardStore
+} from '@/stores'
 import SelectUserDialog from '../common/SelectUserDialog.vue'
 import SingleSelectDialog from '../common/SingleSelectDialog.vue'
 import {
@@ -28,11 +34,11 @@ import router from '@/router'
 import GroupMembersTable from '../common/GroupMembersTable.vue'
 import { msgChatCreateSessionService } from '@/api/message'
 
-const groupData = groupStore()
-const userData = userStore()
-const messageData = messageStore()
-const userCardData = userCardStore()
-const groupCardData = groupCardStore()
+const groupData = useGroupStore()
+const userData = useUserStore()
+const messageData = useMessageStore()
+const userCardData = useUserCardStore()
+const groupCardData = useGroupCardStore()
 const isShowSelectDialog = ref(false)
 const isShowSingleSelectDialog = ref(false)
 const isShowEditAvatar = ref(false)

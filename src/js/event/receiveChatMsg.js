@@ -1,11 +1,11 @@
-import { messageStore } from '@/stores'
+import { useMessageStore } from '@/stores'
 import { msgChatCreateSessionService } from '@/api/message'
 import { MsgType } from '@/proto/msg'
 import { playMsgReceive } from '../utils/audio'
 
 export const onReceiveChatMsg = (updateScroll, capacity) => {
   return async (msg) => {
-    const messageData = messageStore()
+    const messageData = useMessageStore()
     const sessionId = msg.body.sessionId
     const now = new Date()
 

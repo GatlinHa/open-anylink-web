@@ -7,7 +7,7 @@ import { ref } from 'vue'
 const pattern = /\{[a-f0-9]+\}/g
 
 // image的缓存数据，不持久化存储
-export const imageStore = defineStore('anylink-image', () => {
+export const useImageStore = defineStore('anylink-image', () => {
   /**
    * {
    *   objectId_01: {objectId: objectId_01, originUrl: xxx, thumbUrl: xxx},

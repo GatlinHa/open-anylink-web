@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 // 不持久化存储
-export const searchStore = defineStore('anylink-search', () => {
+export const useSearchStore = defineStore('anylink-search', () => {
   const keywords = ref('')
 
   const setKeywords = (words) => {

@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Top, Bottom, MuteNotification, Bell, CircleClose, Edit } from '@element-plus/icons-vue'
-import { messageStore } from '@/stores'
+import { useMessageStore } from '@/stores'
 
 const props = defineProps(['sessionId'])
 const emit = defineEmits(['selectMenu', 'closeMenu'])
 
-const messageData = messageStore()
+const messageData = useMessageStore()
 
 const top = computed(() => {
   if (props.sessionId) {

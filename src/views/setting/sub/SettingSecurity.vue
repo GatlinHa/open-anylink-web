@@ -1,13 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import { maskPhoneNum } from '@/js/utils/common'
 import EditEmail from '@/views/setting/components/EditEmail.vue'
 import EditPassword from '@/views/setting/components/EditPassword.vue'
 import EditPhone from '@/views/setting/components/EditPhone.vue'
 import { ElMessage } from 'element-plus'
 
-const userData = userStore()
+const userData = useUserStore()
 const isShowEditPassword = ref(false)
 const isShowEditPhone = ref(false)
 const isShowEditEmail = ref(false)

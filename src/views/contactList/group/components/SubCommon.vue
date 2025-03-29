@@ -4,7 +4,13 @@ import { Search, Edit, Delete, Check, Close } from '@element-plus/icons-vue'
 import AddButton from '@/components/common/AddButton.vue'
 import HashNoData from '@/components/common/HasNoData.vue'
 import SelectUserDialog from '@/components/common/SelectUserDialog.vue'
-import { groupStore, userStore, messageStore, userCardStore, groupCardStore } from '@/stores'
+import {
+  useGroupStore,
+  useUserStore,
+  useMessageStore,
+  useUserCardStore,
+  useGroupCardStore
+} from '@/stores'
 import { combineId } from '@/js/utils/common'
 import { userQueryService } from '@/api/user'
 import { ElLoading, ElMessage } from 'element-plus'
@@ -15,11 +21,11 @@ import { MsgType } from '@/proto/msg'
 
 const props = defineProps(['tab', 'params'])
 
-const groupData = groupStore()
-const userData = userStore()
-const messageData = messageStore()
-const userCardData = userCardStore()
-const groupCardData = groupCardStore()
+const groupData = useGroupStore()
+const userData = useUserStore()
+const messageData = useMessageStore()
+const userCardData = useUserCardStore()
+const groupCardData = useGroupCardStore()
 const searchKey = ref('')
 const searchData = ref([])
 const isShowSelectDialog = ref(false)

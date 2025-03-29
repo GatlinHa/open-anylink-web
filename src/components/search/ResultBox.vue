@@ -2,12 +2,12 @@
 import HashNoData from '@/components/common/HasNoData.vue'
 import ContactItem from '@/components/item/ContactItem.vue'
 import GroupItem from '@/components/item/GroupItem.vue'
-import { searchStore } from '@/stores'
+import { useSearchStore } from '@/stores'
 
 const props = defineProps(['searchTab', 'keyWords'])
 const emit = defineEmits(['showContactCard', 'showGroupCard', 'openSession'])
 
-const searchData = searchStore()
+const searchData = useSearchStore()
 
 const onShowContactCard = (contactInfo) => {
   emit('showContactCard', contactInfo)

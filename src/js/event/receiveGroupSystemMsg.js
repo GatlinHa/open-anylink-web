@@ -1,11 +1,11 @@
-import { messageStore, groupStore } from '@/stores'
+import { useMessageStore, useGroupStore } from '@/stores'
 import { msgChatQuerySessionService } from '@/api/message'
 import { groupInfoService } from '@/api/group'
 
 export const onReceiveGroupSystemMsg = (updateScroll, capacity) => {
   return async (msg) => {
-    const messageData = messageStore()
-    const groupData = groupStore()
+    const messageData = useMessageStore()
+    const groupData = useGroupStore()
     const sessionId = msg.body.sessionId
     const now = new Date()
 

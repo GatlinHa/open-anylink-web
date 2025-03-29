@@ -1,8 +1,8 @@
-import { messageStore } from '@/stores'
+import { useMessageStore } from '@/stores'
 
 export const onReceiveChatReadMsg = () => {
   return async (msg) => {
-    const messageData = messageStore()
+    const messageData = useMessageStore()
     messageData.updateSession({
       sessionId: msg.body.sessionId,
       remoteRead: msg.body.content

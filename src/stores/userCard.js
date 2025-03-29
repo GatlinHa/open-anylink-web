@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import {} from '@/api/group'
 
 // userCard用户详情卡片相关的缓存数据，不持久化存储
-export const userCardStore = defineStore('anylink-userCard', () => {
+export const useUserCardStore = defineStore('anylink-userCard', () => {
   const isShow = ref(false)
 
   const userInfo = ref({})

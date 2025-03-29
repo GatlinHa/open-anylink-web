@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { Mute } from '@element-plus/icons-vue'
 import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
 import { el_loading_options } from '@/const/commonConst'
-import { userStore, groupStore, messageStore, userCardStore } from '@/stores'
+import { useUserStore, useGroupStore, useMessageStore, useUserCardStore } from '@/stores'
 import {
   groupUpdateMuteService,
   groupChangeRoleService,
@@ -19,10 +19,10 @@ import { MsgType } from '@/proto/msg'
 const props = defineProps(['groupId', 'memberSearchKey'])
 const emit = defineEmits(['openSession'])
 
-const userData = userStore()
-const groupData = groupStore()
-const messageData = messageStore()
-const userCardData = userCardStore()
+const userData = useUserStore()
+const groupData = useGroupStore()
+const messageData = useMessageStore()
+const userCardData = useUserCardStore()
 
 const myAccount = computed(() => userData.user.account)
 

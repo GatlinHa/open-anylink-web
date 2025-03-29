@@ -6,7 +6,7 @@ import SessionTag from './SessionTag.vue'
 import { jsonParseSafe, sessionShowTime } from '@/js/utils/common'
 import { Top, MuteNotification } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
-import { userStore, messageStore, groupStore } from '@/stores'
+import { useUserStore, useMessageStore, useGroupStore } from '@/stores'
 import { msgChatCloseSessionService } from '@/api/message'
 import router from '@/router'
 import { ElMessage } from 'element-plus'
@@ -26,9 +26,9 @@ const emit = defineEmits([
   'noneSelected',
   'showUpdateMarkDialog'
 ])
-const messageData = messageStore()
-const groupData = groupStore()
-const userData = userStore()
+const messageData = useMessageStore()
+const groupData = useGroupStore()
+const userData = useUserStore()
 const myAccount = computed(() => userData.user.account)
 const sessionInfo = computed(() => {
   return messageData.sessionList[props.sessionId]

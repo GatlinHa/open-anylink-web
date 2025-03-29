@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import { userModifySelfService } from '@/api/user'
 
-const userData = userStore()
+const userData = useUserStore()
 
 const isNewMsgTips = ref()
 const isSendMsgTips = ref()

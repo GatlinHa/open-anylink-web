@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import router from '@/router'
 import { generateSign } from './crypto'
 import { v4 as uuidv4 } from 'uuid'
@@ -23,7 +23,7 @@ const instance = axios.create({
 // 请求拦截器
 instance.interceptors.request.use(
   async (config) => {
-    const userData = userStore()
+    const userData = useUserStore()
     const traceId = uuidv4()
     if (config.url === '/user/refreshToken') {
       const token = userData.getRefreshToken()
@@ -62,8 +62,8 @@ instance.interceptors.response.use(
   },
   async (err) => {
     if (err.response?.status === 401) {
-      userStore().clearAt()
-      userStore().clearRt()
+      useUserStore().clearAt()
+      useUserStore().clearRt()
       ElMessage.error('您还未登录，请先登录')
       router.push('/login')
     } else {

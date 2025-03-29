@@ -1,13 +1,13 @@
 <script setup>
 import { ref, onBeforeUnmount, onMounted } from 'vue'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import { userModifySelfService } from '@/api/user'
 import { ElMessage } from 'element-plus'
 
 defineProps(['modelValue'])
 const emit = defineEmits(['update:modelValue', 'success'])
 
-const userData = userStore()
+const userData = useUserStore()
 
 const form = ref()
 const formModel = ref({

@@ -11,7 +11,7 @@ import {
   userVerifyCaptchaService,
   userForgetService
 } from '@/api/user.js'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import { generateClientId } from '@/js/utils/common'
 import { flowLimiteWrapper } from '@/js/utils/flowLimite'
 
@@ -99,7 +99,7 @@ const rules = {
   ]
 }
 
-const userData = userStore()
+const userData = useUserStore()
 
 const register = async () => {
   if (demoFlag) {

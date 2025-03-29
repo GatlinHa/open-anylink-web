@@ -1,9 +1,9 @@
 <script setup>
 import { onMounted } from 'vue'
 import { User, Key, Bell } from '@element-plus/icons-vue'
-import { messageStore } from '@/stores'
+import { useMessageStore } from '@/stores'
 
-const messageData = messageStore()
+const messageData = useMessageStore()
 
 onMounted(async () => {
   await messageData.loadSessionList()

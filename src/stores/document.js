@@ -5,7 +5,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 // document的缓存数据，不持久化存储
-export const documentStore = defineStore('anylink-document', () => {
+export const useDocumentStore = defineStore('anylink-document', () => {
   /**
    * {
    *   objectId_01: {objectId: objectId_01, url: xxx},

@@ -3,7 +3,7 @@ import { QuillEditor, Delta, Quill } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { onMounted, onUnmounted, onBeforeUnmount, ref, watch } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
-import { messageStore, imageStore } from '@/stores'
+import { useMessageStore, useImageStore } from '@/stores'
 import { ElMessage, ElLoading } from 'element-plus'
 import { emojiTrans, getEmojiHtml } from '@/js/utils/emojis'
 import { base64ToFile } from '@/js/utils/common'
@@ -12,8 +12,8 @@ import { el_loading_options } from '@/const/commonConst'
 
 const props = defineProps(['sessionId', 'draft'])
 const emit = defineEmits(['sendMessage'])
-const messageData = messageStore()
-const imageData = imageStore()
+const messageData = useMessageStore()
+const imageData = useImageStore()
 
 const editorRef = ref()
 

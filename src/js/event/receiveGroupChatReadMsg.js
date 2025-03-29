@@ -1,9 +1,9 @@
-import { messageStore } from '@/stores'
+import { useMessageStore } from '@/stores'
 
 export const onReceiveGroupChatReadMsg = () => {
   return async (msg) => {
     if (msg.body.fromId === msg.body.toId) {
-      const messageData = messageStore()
+      const messageData = useMessageStore()
       const now = new Date()
       messageData.updateSession({
         sessionId: msg.body.sessionId,

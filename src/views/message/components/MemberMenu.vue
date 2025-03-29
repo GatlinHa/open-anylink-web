@@ -12,13 +12,13 @@ import AtIcon from '@/assets/svg/at.svg'
 import adminIcon from '@/assets/svg/administrator.svg'
 import DeleteIcon from '@/assets/svg/delete.svg'
 import TransferIcon from '@/assets/svg/transfer.svg'
-import { userStore, groupStore } from '@/stores'
+import { useUserStore, useGroupStore } from '@/stores'
 
 const props = defineProps(['groupId', 'account'])
 const emit = defineEmits(['selectMenu'])
 
-const userData = userStore()
-const groupData = groupStore()
+const userData = useUserStore()
+const groupData = useGroupStore()
 
 const myAccount = computed(() => userData.user.account)
 

@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { groupInfoListService } from '@/api/group'
 
 // group群组相关的缓存数据，不持久化存储
-export const groupStore = defineStore('anylink-group', () => {
+export const useGroupStore = defineStore('anylink-group', () => {
   /**
    * 和我有关的所有群组，格式：{groupId_1: groupInfo_1, groupId_2: groupInfo_2}
    */

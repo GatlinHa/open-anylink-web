@@ -3,13 +3,13 @@ import { ref, computed, nextTick, watch } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { userQueryService, userQueryByNickService } from '@/api/user'
 import { groupSearchGroupInfoService } from '@/api/group'
-import { searchStore } from '@/stores'
+import { useSearchStore } from '@/stores'
 import ResultBox from './ResultBox.vue'
 import { ElMessage } from 'element-plus'
 
 const emit = defineEmits(['showContactCard', 'showGroupCard', 'openSession'])
 
-const searchData = searchStore()
+const searchData = useSearchStore()
 const inputRef = ref()
 const keyWords = ref('')
 const isShowSearchDialog = ref(false)

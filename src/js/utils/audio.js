@@ -1,7 +1,7 @@
 import msgReceive from '@/assets/audio/msgreceive.mp3'
 import msgSend from '@/assets/audio/msgsend.mp3'
-import { userStore } from '@/stores'
-const userData = userStore()
+import { useUserStore } from '@/stores'
+const userData = useUserStore()
 
 export const playMsgReceive = () => {
   if (!userData.user.newMsgTips) {

@@ -1,14 +1,14 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { Close, Male, Female } from '@element-plus/icons-vue'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import default_avatar from '@/assets/image/default_avatar.png'
 import router from '@/router'
 
 const props = defineProps(['isShow'])
 const emit = defineEmits(['close'])
 
-const userData = userStore()
+const userData = useUserStore()
 
 const truncatedSignature = computed(() => {
   const signature = userData.user.signature || '您还没有个性签名。'

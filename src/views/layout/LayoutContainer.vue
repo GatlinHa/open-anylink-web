@@ -8,7 +8,7 @@ import {
 } from '@element-plus/icons-vue'
 import { onMounted, onUnmounted, ref, computed } from 'vue'
 import ContactUs from '@/views/layout/components/ContactUs.vue'
-import { userStore, messageStore, searchStore, groupStore } from '@/stores'
+import { useUserStore, useMessageStore, useSearchStore, useGroupStore } from '@/stores'
 import router from '@/router'
 import MyCard from '@/views/layout/components/MyCard.vue'
 import NaviMenu from '@/views/layout/components/NaviMenu.vue'
@@ -30,10 +30,10 @@ import githubIcon from '@/assets/svg/github.svg'
 import SourceCode from '@/views/layout/components/SourceCode.vue'
 
 const myAvatar = ref()
-const userData = userStore()
-const messageData = messageStore()
-const searchData = searchStore()
-const groupData = groupStore()
+const userData = useUserStore()
+const messageData = useMessageStore()
+const searchData = useSearchStore()
+const groupData = useGroupStore()
 const isShowMyCard = ref(false)
 const contactUsRef = ref(null)
 const sourceCodeRef = ref(null)

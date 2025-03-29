@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { Microphone } from '@element-plus/icons-vue'
 import { ElLoading, ElMessage } from 'element-plus'
-import { audioStore } from '@/stores'
+import { useAudioStore } from '@/stores'
 import { mtsUploadService } from '@/api/mts'
 import { el_loading_options } from '@/const/commonConst'
 import { v4 as uuidv4 } from 'uuid'
@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid'
 const props = defineProps(['sessionId'])
 const emit = defineEmits(['exit', 'sendRecording'])
 
-const audioData = audioStore()
+const audioData = useAudioStore()
 const spaceDown = ref(false) // 空格键是否被按下
 const isRecord = ref(false) // 是否开始录音
 const isCancel = ref(false) // 取消发送

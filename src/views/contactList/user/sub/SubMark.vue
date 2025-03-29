@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { userQueryService } from '@/api/user'
-import { messageStore, userCardStore } from '@/stores'
+import { useMessageStore, useUserCardStore } from '@/stores'
 import ContactListUserItem from '@/views/contactList/user/components/ContactListUserItem.vue'
 import { ElLoading } from 'element-plus'
 import { el_loading_options } from '@/const/commonConst'
@@ -9,8 +9,8 @@ import { Search } from '@element-plus/icons-vue'
 import HashNoData from '@/components/common/HasNoData.vue'
 import { MsgType } from '@/proto/msg'
 
-const messageData = messageStore()
-const userCardData = userCardStore()
+const messageData = useMessageStore()
+const userCardData = useUserCardStore()
 const totalCount = computed(() => {
   return Object.keys(markData.value).length
 })

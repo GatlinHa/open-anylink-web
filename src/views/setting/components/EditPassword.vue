@@ -2,12 +2,12 @@
 import { ref } from 'vue'
 import { userModifyPassword } from '@/api/user'
 import { ElMessage } from 'element-plus'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 
 defineProps(['modelValue'])
 const emit = defineEmits(['update:modelValue'])
 
-const userData = userStore()
+const userData = useUserStore()
 
 const form = ref()
 const formModel = ref({

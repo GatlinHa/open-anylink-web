@@ -1,5 +1,5 @@
 import { Msg, MsgType } from '@/proto/msg'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import { v4 as uuidv4 } from 'uuid'
 import { generateSign } from '../utils/crypto'
 import {
@@ -176,7 +176,7 @@ class WsConnect {
       return
     }
     // console.log('create websocket')
-    const userData = userStore()
+    const userData = useUserStore()
     const token = await userData.getAccessToken()
     const traceId = uuidv4()
     const timestamp = Math.floor(new Date().getTime() / 1000)

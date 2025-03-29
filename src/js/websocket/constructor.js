@@ -1,6 +1,6 @@
 import { Msg, Header, MsgType, Body } from '@/proto/msg'
 import { proto } from '@/const/msgConst'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import { v4 as uuidv4 } from 'uuid'
 
 export const chatConstructor = (sessionId, toId, content, seq) => {
@@ -11,7 +11,7 @@ export const chatConstructor = (sessionId, toId, content, seq) => {
     isExtension: false
   })
 
-  const userData = userStore()
+  const userData = useUserStore()
   const body = Body.create({
     fromId: userData.user.account,
     fromClient: userData.clientId,
@@ -35,7 +35,7 @@ export const groupChatConstructor = (sessionId, groupId, content, seq) => {
     isExtension: false
   })
 
-  const userData = userStore()
+  const userData = useUserStore()
   const body = Body.create({
     fromId: userData.user.account,
     fromClient: userData.clientId,
@@ -87,7 +87,7 @@ export const chatReadConstructor = (sessionId, toId, content) => {
     isExtension: false
   })
 
-  const userData = userStore()
+  const userData = useUserStore()
   const body = Body.create({
     fromId: userData.user.account,
     fromClient: userData.clientId,
@@ -111,7 +111,7 @@ export const groupChatReadConstructor = (sessionId, groupId, content) => {
     isExtension: false
   })
 
-  const userData = userStore()
+  const userData = useUserStore()
   const body = Body.create({
     fromId: userData.user.account,
     fromClient: userData.clientId,
@@ -135,7 +135,7 @@ export const statusReqConstructor = (accounts) => {
     isExtension: false
   })
 
-  const userData = userStore()
+  const userData = useUserStore()
   const body = Body.create({
     fromId: userData.user.account,
     fromClient: userData.clientId,
@@ -156,7 +156,7 @@ export const statusSyncConstructor = (status) => {
     isExtension: false
   })
 
-  const userData = userStore()
+  const userData = useUserStore()
   const body = Body.create({
     fromId: userData.user.account,
     fromClient: userData.clientId,

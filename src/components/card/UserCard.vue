@@ -11,16 +11,16 @@ import {
   VideoCamera
 } from '@element-plus/icons-vue'
 import default_avatar from '@/assets/image/default_avatar.png'
-import { userStore, messageStore, userCardStore } from '@/stores'
+import { useUserStore, useMessageStore, useUserCardStore } from '@/stores'
 import { combineId } from '@/js/utils/common'
 import { MsgType } from '@/proto/msg'
 import { msgChatCreateSessionService } from '@/api/message'
 import router from '@/router'
 import { ElMessage } from 'element-plus'
 
-const userData = userStore()
-const messageData = messageStore()
-const userCardData = userCardStore()
+const userData = useUserStore()
+const messageData = useMessageStore()
+const userCardData = useUserCardStore()
 
 const sessionId = computed(() => {
   return combineId(userData.user.account, userCardData.userInfo?.account)

@@ -1,12 +1,12 @@
-import { userStore, messageStore, groupStore } from '@/stores'
+import { useUserStore, useMessageStore, useGroupStore } from '@/stores'
 import { combineId, jsonParseSafe } from '@/js/utils/common'
 import { MsgType } from '@/proto/msg'
 
 export const onReceiveStatusResMsg = () => {
   return async (msg) => {
-    const userData = userStore()
-    const messageData = messageStore()
-    const groupData = groupStore()
+    const userData = useUserStore()
+    const messageData = useMessageStore()
+    const groupData = useGroupStore()
 
     // 1. 更新本账号的多端下的最终状态
     const content = jsonParseSafe(msg.body.content)

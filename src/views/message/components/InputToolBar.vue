@@ -10,7 +10,13 @@ import VoteIcon from '@/assets/svg/vote.svg'
 import EmojiBox from './EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
 import { mtsUploadService } from '@/api/mts'
-import { messageStore, imageStore, audioStore, videoStore, documentStore } from '@/stores'
+import {
+  useMessageStore,
+  useImageStore,
+  useAudioStore,
+  useVideoStore,
+  useDocumentStore
+} from '@/stores'
 import { el_loading_options } from '@/const/commonConst'
 import { MsgType } from '@/proto/msg'
 
@@ -24,11 +30,11 @@ const emit = defineEmits([
   'showRecorder'
 ])
 
-const messageData = messageStore()
-const imageData = imageStore()
-const audioData = audioStore()
-const videoData = videoStore()
-const documentData = documentStore()
+const messageData = useMessageStore()
+const imageData = useImageStore()
+const audioData = useAudioStore()
+const videoData = useVideoStore()
+const documentData = useDocumentStore()
 const isShowEmojiBox = ref(false)
 
 const onSelectedFile = (file) => {

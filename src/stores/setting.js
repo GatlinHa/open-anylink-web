@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 // 界面设置相关需要缓存的设置
-export const settingStore = defineStore(
+export const useSettingStore = defineStore(
   'anylink-setting',
   () => {
     const sessionListDrag = ref(0)

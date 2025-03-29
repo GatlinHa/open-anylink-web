@@ -4,13 +4,13 @@ import { ChatRound, Phone, VideoCamera, Edit, Delete, Check, Close } from '@elem
 import ContactItem from '@/components/item/ContactItem.vue'
 import { sessionShowTime } from '@/js/utils/common'
 import router from '@/router'
-import { messageStore } from '@/stores'
+import { useMessageStore } from '@/stores'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps(['type', 'session', 'partitions', 'keyWords'])
 const emit = defineEmits(['showUserCard'])
 
-const messageData = messageStore()
+const messageData = useMessageStore()
 
 const markEditing = ref(false)
 const newMark = ref('')

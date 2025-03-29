@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { userStore } from '@/stores'
+import { useUserStore } from '@/stores'
 import { Plus, Upload, RefreshLeft, RefreshRight, Refresh } from '@element-plus/icons-vue'
 import { mtsUploadService } from '@/api/mts'
 import { ElMessage } from 'element-plus'
@@ -9,7 +9,7 @@ import { VueCropper } from 'vue-cropper'
 
 const props = defineProps(['modelValue', 'model', 'groupInfo'])
 const emit = defineEmits(['update:modelValue', 'update:newAvatar'])
-const userData = userStore()
+const userData = useUserStore()
 
 const cropper = ref()
 const srcImg = ref('')

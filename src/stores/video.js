@@ -5,7 +5,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 // video的缓存数据，不持久化存储
-export const videoStore = defineStore('anylink-video', () => {
+export const useVideoStore = defineStore('anylink-video', () => {
   /**
    * {
    *   objectId_01: {objectId: objectId_01, url: xxx},

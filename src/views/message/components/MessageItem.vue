@@ -3,14 +3,14 @@ import { computed, onMounted, h, createApp, watch, nextTick, reactive } from 'vu
 import { WarningFilled } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
 import {
-  userStore,
-  messageStore,
-  groupStore,
-  groupCardStore,
-  imageStore,
-  audioStore,
-  videoStore,
-  documentStore
+  useUserStore,
+  useMessageStore,
+  useGroupStore,
+  useGroupCardStore,
+  useImageStore,
+  useAudioStore,
+  useVideoStore,
+  useDocumentStore
 } from '@/stores'
 import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/common'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
@@ -36,14 +36,14 @@ const props = defineProps([
 ])
 const emit = defineEmits(['loadMore', 'showUserCard', 'showGroupCard', 'resendMsg', 'loadFinished'])
 
-const userData = userStore()
-const messageData = messageStore()
-const groupData = groupStore()
-const groupCardData = groupCardStore()
-const imageData = imageStore()
-const audioData = audioStore()
-const videoData = videoStore()
-const documentData = documentStore()
+const userData = useUserStore()
+const messageData = useMessageStore()
+const groupData = useGroupStore()
+const groupCardData = useGroupCardStore()
+const imageData = useImageStore()
+const audioData = useAudioStore()
+const videoData = useVideoStore()
+const documentData = useDocumentStore()
 
 onMounted(() => {
   rendering()

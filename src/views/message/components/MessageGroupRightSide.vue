@@ -2,18 +2,24 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { MsgType } from '@/proto/msg'
 import { Edit, Search } from '@element-plus/icons-vue'
-import { userStore, settingStore, messageStore, groupStore, groupCardStore } from '@/stores'
+import {
+  useUserStore,
+  useSettingStore,
+  useMessageStore,
+  useGroupStore,
+  useGroupCardStore
+} from '@/stores'
 import DragLine from '@/components/common/DragLine.vue'
 import GroupMembersTable from '@/components/common/GroupMembersTable.vue'
 
 const props = defineProps(['sessionId'])
 const emit = defineEmits(['showGroupCard', 'openSession'])
 
-const userData = userStore()
-const settingData = settingStore()
-const messageData = messageStore()
-const groupData = groupStore()
-const groupCardData = groupCardStore()
+const userData = useUserStore()
+const settingData = useSettingStore()
+const messageData = useMessageStore()
+const groupData = useGroupStore()
+const groupCardData = useGroupCardStore()
 
 const msgGroupRightSideWidth = ref(0)
 const announcementInSideHeight = ref(0)
