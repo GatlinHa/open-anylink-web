@@ -1,35 +1,25 @@
 <script setup>
 import { onMounted, computed } from 'vue'
 import { formatFileSize } from '@/js/utils/common'
-import CsvIcon from '@/assets/svg/csv.svg'
-import DocIcon from '@/assets/svg/doc.svg'
 import DocumentIcon from '@/assets/svg/document.svg'
-import DocxIcon from '@/assets/svg/docx.svg'
-import HtmlIcon from '@/assets/svg/html.svg'
-import PdfIcon from '@/assets/svg/pdf.svg'
-import PptIcon from '@/assets/svg/ppt.svg'
-import PptxIcon from '@/assets/svg/pptx.svg'
-import TxtIcon from '@/assets/svg/txt.svg'
-import WpsIcon from '@/assets/svg/wps.svg'
-import XlsIcon from '@/assets/svg/xls.svg'
-import XlsxIcon from '@/assets/svg/xlsx.svg'
 import ArchiveIcon from '@/assets/svg/archive.svg'
+import FileTemplateIcon from '@/assets/svg/filetemplate.svg'
 
 const props = defineProps(['url', 'fileName', 'contentType', 'size'])
 const emits = defineEmits(['load'])
 
 const iconMap = {
-  'text/csv': CsvIcon,
-  'application/msword': DocIcon,
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': DocxIcon,
-  'text/html': HtmlIcon,
-  'application/pdf': PdfIcon,
-  'application/vnd.ms-powerpoint': PptIcon,
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation': PptxIcon,
-  'text/plain': TxtIcon,
-  'application/vnd.ms-works': WpsIcon,
-  'application/vnd.ms-excel': XlsIcon,
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': XlsxIcon,
+  'text/csv': 'CSV',
+  'application/msword': 'DOC',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+  'text/html': 'HTML',
+  'application/pdf': 'PDF',
+  'application/vnd.ms-powerpoint': 'PPT',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PPTX',
+  'text/plain': 'TXT',
+  'application/vnd.ms-works': 'WPS',
+  'application/vnd.ms-excel': 'XLS',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
   'application/zip': ArchiveIcon,
   'application/vnd.rar': ArchiveIcon,
   'application/x-zip-compressed': ArchiveIcon,
@@ -54,7 +44,11 @@ onMounted(() => {
 
 <template>
   <div class="document-msg-wrapper">
-    <component :is="iconComponent" />
+    <div v-if="typeof iconComponent === 'string'" class="file-template">
+      <FileTemplateIcon></FileTemplateIcon>
+      <span class="extension">{{ iconComponent }}</span>
+    </div>
+    <component v-else :is="iconComponent" />
     <div class="main">
       <span class="file-name text-ellipsis" :title="props.fileName || '未知'">
         {{ props.fileName || '未知' }}
@@ -72,6 +66,24 @@ onMounted(() => {
   padding: 4px 8px 4px 8px;
   display: flex;
   gap: 10px;
+
+  .file-template {
+    position: relative;
+
+    .extension {
+      width: 100%;
+      position: absolute;
+      left: 0;
+      top: 16px;
+      font-size: 16px;
+      line-height: 24px;
+      font-weight: bold;
+      letter-spacing: -2px;
+      text-align: center;
+      color: #fff;
+      user-select: none;
+    }
+  }
 
   .svg-icon {
     width: 48px;
