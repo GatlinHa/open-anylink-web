@@ -224,7 +224,10 @@ export const useMessageStore = defineStore('anylink-message', () => {
       const res = await msgChatSessionListService()
       Object.keys(res.data.data).forEach(async (item) => {
         addSession(res.data.data[item].session)
-        await addMsgRecords(item, res.data.data[item].msgList)
+        const msgList = res.data.data[item].msgList
+        if (msgList) {
+          await addMsgRecords(item, msgList)
+        }
       })
     }
   }
