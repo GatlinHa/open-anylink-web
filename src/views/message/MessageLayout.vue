@@ -604,12 +604,14 @@ const updateScroll = () => {
  */
 const msgListReachBottom = (behavior = 'instant') => {
   const scrollToBottom = () => {
-    msgListDiv.value.scrollTo({
-      top: msgListDiv.value.scrollHeight,
-      behavior: behavior
-    })
-    newMsgTips.value.isShowBottomTips = false
-    disToBottom.value = 0
+    setTimeout(() => {
+      msgListDiv.value.scrollTo({
+        top: msgListDiv.value.scrollHeight,
+        behavior: behavior
+      })
+      newMsgTips.value.isShowBottomTips = false
+      disToBottom.value = 0
+    }, 50)
   }
 
   if (msgListDiv.value) {
