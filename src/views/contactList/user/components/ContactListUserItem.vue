@@ -1,8 +1,7 @@
 <script setup>
-import { ref, nextTick, computed } from 'vue'
+import { ref, nextTick } from 'vue'
 import { ChatRound, Phone, VideoCamera, Edit, Delete, Check, Close } from '@element-plus/icons-vue'
 import ContactItem from '@/components/item/ContactItem.vue'
-import { sessionShowTime } from '@/js/utils/common'
 import router from '@/router'
 import { useMessageStore } from '@/stores'
 import { ElMessage } from 'element-plus'
@@ -18,14 +17,6 @@ const markEditRef = ref()
 
 const partitioEditing = ref(false)
 const newPartitionId = ref(props.session.partitionId)
-
-const lastMsg = computed(() => {
-  const msgIds = messageData.msgIdSortArray[props.session.sessionId]
-  if (!msgIds?.length) {
-    return {}
-  }
-  return messageData.getMsg(props.session.sessionId, msgIds[msgIds.length - 1])
-})
 
 const onShowCard = () => {
   emit('showUserCard', {
@@ -121,12 +112,6 @@ const onVideoCall = () => {
         style="width: 200px"
       ></ContactItem>
       <div class="diff-display">
-        <div v-if="props.type === 'all'" class="all">
-          <div class="tips-block">{{ sessionShowTime(lastMsg.msgTime) }}</div>
-          <div class="all-content text-ellipsis" :title="lastMsg.content">
-            {{ lastMsg.content }}
-          </div>
-        </div>
         <div v-if="props.type === 'mark'" class="mark">
           <div class="tips-block">备注</div>
           <div v-if="!markEditing" class="mark-content-wrapper">
@@ -323,17 +308,6 @@ const onVideoCall = () => {
       padding-right: 5px;
       background: rgb(221.7, 222.6, 224.4);
       flex-shrink: 0;
-    }
-
-    .all {
-      width: 200px;
-      height: 100%;
-      display: flex;
-      align-items: center;
-
-      .all-content {
-        margin-left: 5px;
-      }
     }
 
     .mark {
