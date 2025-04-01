@@ -16,7 +16,7 @@ export const msgContentType = {
   MIX: 0, // 组合，包含多种类型
   TEXT: 1, // 文本
   IMAGE: 2, // 图片
-  RECORDING: 3, // 录音
+  RECORDING: 3, // 语音
   AUDIO: 4, // 音频文件
   EMOJI: 5, // 视频
   VIDEO: 6, // 表情

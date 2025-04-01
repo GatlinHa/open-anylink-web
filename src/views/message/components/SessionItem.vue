@@ -228,11 +228,10 @@ const showDetailContent = computed(() => {
     if (jsonContent && jsonContent['type'] && jsonContent['value']) {
       if (jsonContent['type'] == msgContentType.IMAGE) {
         template = '[图片]'
-      } else if (
-        jsonContent['type'] == msgContentType.AUDIO ||
-        jsonContent['type'] == msgContentType.RECORDING
-      ) {
+      } else if (jsonContent['type'] == msgContentType.AUDIO) {
         template = '[音频]'
+      } else if (jsonContent['type'] == msgContentType.RECORDING) {
+        template = '[语音]'
       } else if (jsonContent['type'] == msgContentType.VIDEO) {
         template = '[视频]'
       } else if (jsonContent['type'] == msgContentType.DOCUMENT) {
