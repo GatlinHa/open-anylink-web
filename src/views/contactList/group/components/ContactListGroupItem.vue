@@ -1,5 +1,5 @@
 <script setup>
-import { ChatRound, Microphone, VideoCamera } from '@element-plus/icons-vue'
+import { ChatRound, Phone, VideoCamera } from '@element-plus/icons-vue'
 import GroupItem from '@/components/item/GroupItem.vue'
 import router from '@/router'
 import { ElMessage } from 'element-plus'
@@ -57,7 +57,7 @@ const onVideoCall = () => {
           color="#409eff"
           @click="onVoiceCall"
         >
-          <Microphone />
+          <Phone />
         </el-icon>
         <el-icon
           class="action-button"
