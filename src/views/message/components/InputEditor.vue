@@ -39,7 +39,8 @@ onMounted(async () => {
 onBeforeUnmount(async () => {
   let content = await getContent()
   // 草稿若没发生变动，则不触发存储
-  if (content !== messageData.sessionList[props.sessionId].draft) {
+  const draft = messageData.sessionList[props.sessionId]?.draft
+  if (content && draft && content !== draft) {
     messageData.updateSession({
       sessionId: props.sessionId,
       draft: content
