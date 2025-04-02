@@ -587,15 +587,6 @@ watch(tabMode, () => {
       <div class="row">
         <span class="item">©2024 - 2025 Open AnyLink</span>
       </div>
-      <div class="row">
-        <p class="item" style="margin: 0">
-          <img src="@/assets/image/beian-logo.png" width="16" />
-          <a href="https://beian.mps.gov.cn/#/query/webSearch?code=61011602000694" target="_blank">
-            陕公网安备61011602000694号
-          </a>
-        </p>
-        <a class="item" href="https://beian.miit.gov.cn/" target="_blank">陕ICP备2025059454号-2</a>
-      </div>
     </div>
   </div>
 </template>
