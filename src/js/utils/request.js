@@ -56,8 +56,12 @@ instance.interceptors.response.use(
     if (res.data.code === 0) {
       return res
     }
-
-    ElMessage.error(res.data.desc || '服务异常')
+    console.error(
+      'The response was not the expected code: ',
+      res.config?.url,
+      res.data?.code,
+      res.data?.desc
+    )
     return Promise.reject(res.data)
   },
   async (err) => {
@@ -67,7 +71,12 @@ instance.interceptors.response.use(
       ElMessage.error('您还未登录，请先登录')
       router.push('/login')
     } else {
-      ElMessage.error(err.response?.message || '服务异常')
+      console.error(
+        'The request was failed: ',
+        err.config?.url,
+        err.response?.status,
+        err.response?.message
+      )
     }
 
     return Promise.reject(err)
