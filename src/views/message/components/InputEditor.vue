@@ -37,35 +37,28 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(async () => {
-  const contentObj = parseContent()
   const draft = messageData.sessionList[props.sessionId]?.draft
-  const content = contentObj.contentFromLocal.join('').trim()
-  // 草稿若发生变动，则触发存储
-  if (content && draft && content !== draft) {
-    messageData.updateSession({
-      sessionId: props.sessionId,
-      draft: content
-    })
+  const callbacks = {
+    someOneUploadedSuccessFn: () => {},
+    someUploadedFailFn: () => {},
+    allUploadedSuccessFn: () => {}
+  }
+  const contentObj = parseContent(props.sessionId, callbacks)
+
+  const fn = (content) => {
+    // 草稿若发生变动，则触发存储
+    if (content && draft && content !== draft) {
+      messageData.updateSession({
+        sessionId: props.sessionId,
+        draft: content
+      })
+    }
   }
 
-  // 有图片需要上传，再保存一次draft
-  if (contentObj.needUploadCount.value > 0) {
-    const stopWatch = watch(
-      () => contentObj.uploadedTotalCount.value,
-      () => {
-        if (contentObj.needUploadCount.value === contentObj.uploadedTotalCount.value) {
-          // 满足第一个相等条件就停止监视
-          stopWatch()
-          if (contentObj.uploadSuccessCount.value === contentObj.needUploadCount.value) {
-            // 满足第二个相等条件才保存草稿
-            messageData.updateSession({
-              sessionId: props.sessionId,
-              draft: contentObj.contentFromServer.join('').trim()
-            })
-          }
-        }
-      }
-    )
+  fn(contentObj.contentFromLocal.join('').trim())
+
+  callbacks.allUploadedSuccessFn = () => {
+    fn(contentObj.contentFromServer.join('').trim())
   }
 })
 
@@ -79,13 +72,25 @@ onUnmounted(() => {
   }
 })
 
-const parseContent = (sessionId = props.sessionId) => {
+const parseContent = (sessionId, callbacks) => {
   const delta = getQuill().getContents()
   let contentFromLocal = new Array(delta.ops.length).fill('')
   let contentFromServer = new Array(delta.ops.length).fill('')
-  let needUploadCount = ref(0) // 需要上传的图片个数
-  let uploadedTotalCount = ref(0) // 已发上传请求的图片个数，包括上传成功和失败
-  let uploadSuccessCount = ref(0) // 已经上传成功的图片个数
+  let needUploadCount = 0 // 需要上传的图片个数
+  let uploadedTotalCount = 0 // 已发上传请求的图片个数，包括上传成功和失败
+  let uploadSuccessCount = 0 // 已经上传成功的图片个数
+
+  delta.ops.forEach((item) => {
+    if (
+      item.insert &&
+      item.insert.image &&
+      item.insert.image.startsWith('data:') &&
+      item.insert.image.includes('base64')
+    ) {
+      needUploadCount++
+    }
+  })
+
   for (let index = 0; index < delta.ops.length; index++) {
     const op = delta.ops[index]
     const insert = op.insert
@@ -105,7 +110,6 @@ const parseContent = (sessionId = props.sessionId) => {
         contentFromServer[index] = alt
       } else if (insert.image.startsWith('data:') && insert.image.includes('base64')) {
         // base64编码的图片
-        needUploadCount.value++
         const file = base64ToFile(insert.image, uuidv4()) // base64转file
         const tempObjectId = new Date().getTime()
         // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
@@ -123,15 +127,18 @@ const parseContent = (sessionId = props.sessionId) => {
         mtsUploadService({ file: file, storeType: 1 })
           .then((res) => {
             imageData.setServerImage(sessionId, res.data.data) // 缓存image数据
-            uploadSuccessCount.value++
+            uploadSuccessCount++
             contentFromServer[index] = `{${res.data.data.objectId}}`
-            // TODO 这里要判断是最后一个上传的图片
-            // 这里用异步有个问题，后面请求上传的图片传的块，在content中就会跑到前面去，图片的顺序会错乱
-            // 可以把content设成一个数组，按照index下标给每个数组元素设置，防止乱序
-            // 这样也可以watch每个元素如果都填满，就sendMessage
+            callbacks.someOneUploadedSuccessFn()
+            if (uploadSuccessCount === needUploadCount) {
+              callbacks.allUploadedSuccessFn()
+            }
           })
           .finally(() => {
-            uploadedTotalCount.value++
+            uploadedTotalCount++
+            if (uploadedTotalCount === needUploadCount && uploadSuccessCount < needUploadCount) {
+              callbacks.someUploadedFailFn()
+            }
           })
       } else {
         // 当文本处理
@@ -142,49 +149,40 @@ const parseContent = (sessionId = props.sessionId) => {
   }
 
   return {
-    needUploadCount: needUploadCount,
-    uploadedTotalCount: uploadedTotalCount,
-    uploadSuccessCount: uploadSuccessCount,
-    contentFromLocal: contentFromLocal,
-    contentFromServer: contentFromServer
+    needUploadCount,
+    uploadedTotalCount,
+    uploadSuccessCount,
+    contentFromLocal,
+    contentFromServer
   }
 }
 
 // 监控session发生了切换
 watch(
   () => props.sessionId,
-  async (newSessionId, oldSessionId) => {
-    const contentObj = parseContent(oldSessionId)
-    const content = contentObj.contentFromLocal.join('').trim()
-    // 草稿若发生变动，则触发存储
-    if (oldSessionId && content !== messageData.sessionList[oldSessionId].draft) {
-      messageData.updateSession({
-        sessionId: oldSessionId,
-        draft: content
-      })
+  (newSessionId, oldSessionId) => {
+    const callbacks = {
+      someOneUploadedSuccessFn: () => {},
+      someUploadedFailFn: () => {},
+      allUploadedSuccessFn: () => {}
+    }
+    const contentObj = parseContent(oldSessionId, callbacks)
+
+    const fn = (content) => {
+      // 草稿若发生变动，则触发存储
+      if (oldSessionId && content !== messageData.sessionList[oldSessionId].draft) {
+        messageData.updateSession({
+          sessionId: oldSessionId,
+          draft: content
+        })
+      }
     }
 
-    // 有图片需要上传，再保存一次draft
-    if (contentObj.needUploadCount.value > 0) {
-      const stopWatch = watch(
-        () => contentObj.uploadedTotalCount.value,
-        () => {
-          if (contentObj.needUploadCount.value === contentObj.uploadedTotalCount.value) {
-            // 满足第一个相等条件就停止监视
-            stopWatch()
-            if (contentObj.uploadSuccessCount.value === contentObj.needUploadCount.value) {
-              // 满足第二个相等条件才保存草稿
-              if (oldSessionId) {
-                messageData.updateSession({
-                  sessionId: oldSessionId,
-                  draft: contentObj.contentFromServer.join('').trim()
-                })
-              }
-            }
-          }
-        }
-      )
+    callbacks.allUploadedSuccessFn = () => {
+      fn(contentObj.contentFromServer.join('').trim())
     }
+
+    fn(contentObj.contentFromLocal.join('').trim())
 
     formatContent(messageData.sessionList[newSessionId].draft || '')
   },
@@ -201,7 +199,14 @@ const formatContent = (content) => {
 }
 
 const handleEnter = async () => {
-  const contentObj = parseContent()
+  const callbacks = {
+    someOneUploadedSuccessFn: () => {},
+    someUploadedFailFn: () => {},
+    allUploadedSuccessFn: () => {}
+  }
+
+  const contentObj = parseContent(props.sessionId, callbacks)
+
   const content = contentObj.contentFromLocal.join('').trim()
   if (!content) {
     ElMessage.warning('请勿发送空内容')
@@ -212,7 +217,7 @@ const handleEnter = async () => {
     return
   }
 
-  if (contentObj.needUploadCount.value === 0) {
+  if (contentObj.needUploadCount === 0) {
     emit('sendMessage', content)
   } else {
     // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
@@ -226,29 +231,29 @@ const handleEnter = async () => {
     })
 
     // 有图片需要上传
-    if (contentObj.needUploadCount.value > 0) {
+    if (contentObj.needUploadCount > 0) {
       msg.uploadStatus = msgFileUploadStatus.UPLOADING
       msg.uploadProgress = 0
     }
-    // 监视图片上传结果，图片上传完后向服务器发送消息
-    const stopWatch = watch(
-      () => contentObj.uploadedTotalCount.value,
-      () => {
-        msg.uploadProgress = Math.floor(
-          (contentObj.uploadSuccessCount.value / contentObj.needUploadCount.value) * 100
-        )
-        if (contentObj.uploadedTotalCount.value === contentObj.needUploadCount.value) {
-          stopWatch()
-          if (contentObj.uploadSuccessCount.value === contentObj.needUploadCount.value) {
-            msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
-            msg.content = contentObj.contentFromServer.join('').trim()
-            emit('sendMessage', msg)
-          }
-        } else {
-          msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
-        }
-      }
-    )
+
+    // callback：每成功上传一个图片，更新一下进度
+    callbacks.someOneUploadedSuccessFn = () => {
+      msg.uploadProgress = Math.floor(
+        (contentObj.uploadSuccessCount / contentObj.needUploadCount) * 100
+      )
+    }
+
+    // callback：如果有失败的上传，则状态修改为上传失败
+    callbacks.someUploadedFailFn = () => {
+      msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
+    }
+
+    // callback：所有图片均上传，则发送消息
+    callbacks.allUploadedSuccessFn = () => {
+      msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
+      msg.content = contentObj.contentFromServer.join('').trim()
+      emit('sendMessage', msg)
+    }
   }
   getQuill().setText('') // 编辑窗口置空
 }
