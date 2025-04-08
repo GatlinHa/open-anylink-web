@@ -1,14 +1,14 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { Microphone } from '@element-plus/icons-vue'
-import { ElLoading, ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { useAudioStore } from '@/stores'
 import { mtsUploadService } from '@/api/mts'
-import { el_loading_options } from '@/const/commonConst'
 import { v4 as uuidv4 } from 'uuid'
+import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
 
 const props = defineProps(['sessionId'])
-const emit = defineEmits(['exit', 'sendRecording'])
+const emit = defineEmits(['exit', 'sendMessage', 'saveLocalMsg'])
 
 const audioData = useAudioStore()
 const spaceDown = ref(false) // 空格键是否被按下
@@ -144,18 +144,47 @@ const stopRecording = () => {
 }
 
 const uploadRecord = () => {
-  const loadingInstance = ElLoading.service(el_loading_options)
   const fileName = `${uuidv4()}.${fileSuffix}`
   const file = new File([recordBlob.value], fileName, { type: recordType })
-  mtsUploadService({ file, storeType: 1, duration: Math.floor(recordDuration / 1000) })
+
+  // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
+  const duration = Math.floor(recordDuration / 1000)
+  const localSrc = URL.createObjectURL(file)
+  const tempObjectId = new Date().getTime()
+  audioData.setAudio(props.sessionId, {
+    objectId: tempObjectId,
+    duration: duration,
+    url: localSrc,
+    fileName: file.name,
+    size: file.size
+  })
+  let msg = {}
+  emit('saveLocalMsg', {
+    contentType: msgContentType.RECORDING,
+    objectId: tempObjectId,
+    fn: (result) => {
+      msg = result
+    }
+  })
+  msg.uploadStatus = msgFileUploadStatus.UPLOADING
+  msg.uploadProgress = 0
+
+  mtsUploadService({ file, storeType: 1, duration: duration })
     .then((res) => {
       if (res.data.code === 0) {
-        audioData.setAudio(props.sessionId, res.data.data) // 缓存audio的数据
-        emit('sendRecording', res.data.data)
+        audioData.setAudio(props.sessionId, res.data.data) // 缓存服务端响应的audio数据
+        msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
+        msg.uploadProgress = 100
+        msg.content = JSON.stringify({
+          type: msgContentType.RECORDING,
+          value: res.data.data.objectId
+        })
+        emit('sendMessage', msg)
       }
     })
-    .finally(() => {
-      loadingInstance.close()
+    .catch(() => {
+      msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
+      ElMessage.error('上传失败')
     })
 }
 

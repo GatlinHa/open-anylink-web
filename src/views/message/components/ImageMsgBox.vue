@@ -8,20 +8,16 @@ const emits = defineEmits(['load'])
 
 const onLoad = (e) => {
   const img = e.target
-  const ratio = img.naturalWidth / img.naturalHeight
-  const maxRatio = 300 / 200 // 最大宽高比
+  const maxWidth = 360
+  const maxHeight = 180
 
-  // 如果图片尺寸在限制范围内，保持原始尺寸
-  if (img.naturalWidth <= 300 && img.naturalHeight <= 200) {
-    img.style.width = img.naturalWidth + 'px'
-    img.style.height = img.naturalHeight + 'px'
-  } else if (ratio > maxRatio) {
+  if (img.naturalWidth / img.naturalHeight > maxWidth / maxHeight) {
     // 如果图片更宽，以宽度为基准
-    img.style.width = '300px'
+    img.style.width = maxWidth + 'px'
     img.style.height = 'auto'
   } else {
     // 如果图片更高，以高度为基准
-    img.style.height = '200px'
+    img.style.height = maxHeight + 'px'
     img.style.width = 'auto'
   }
 
@@ -63,8 +59,6 @@ const formatSize = computed(() => {
   position: relative;
 
   .el-image {
-    max-width: 300px;
-    max-height: 200px;
     width: auto;
     height: auto;
 

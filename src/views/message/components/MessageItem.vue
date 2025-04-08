@@ -170,13 +170,14 @@ const renderImage = (content, ishowInfo = true) => {
   const imgId = content
   const url = imageData.image[imgId]?.thumbUrl
   if (url) {
-    const imgIdList = imageData.imageInSession[props.sessionId].sort((a, b) => a - b)
-    const srcList = imgIdList.map((item) => imageData.image[item].originUrl)
+    const imgIdList = imageData.imageInSession[props.sessionId] || []
+    const imgIdListSorted = imgIdList.includes(imgId) ? imgIdList.sort((a, b) => a - b) : [imgId]
+    const srcList = imgIdListSorted.map((item) => imageData.image[item].originUrl)
     return h(ImageMsgBox, {
       url,
       imgId,
       srcList,
-      initialIndex: imgIdList.indexOf(imgId),
+      initialIndex: imgIdListSorted.indexOf(imgId),
       fileName: ishowInfo ? imageData.image[imgId].fileName : '',
       size: ishowInfo ? imageData.image[imgId].size : '',
       onLoad: () => {

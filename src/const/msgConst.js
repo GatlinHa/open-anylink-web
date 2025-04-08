@@ -29,3 +29,11 @@ export const msgSendStatus = {
   OK: 'ok', // 发送成功
   FAILED: 'failed' // 发送失败
 }
+
+// 消息中文件的上传状态
+export const msgFileUploadStatus = {
+  UPLOAD_DEFAULT: 0, // 默认状态，不上传
+  UPLOADING: 1, // 上传中
+  UPLOAD_SUCCESS: 2, // 上传成功
+  UPLOAD_FAILED: 3 // 上传失败
+}

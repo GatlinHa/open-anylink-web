@@ -4,14 +4,14 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { onMounted, onUnmounted, onBeforeUnmount, ref, watch } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { useMessageStore, useImageStore } from '@/stores'
-import { ElMessage, ElLoading } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { emojiTrans, getEmojiHtml } from '@/js/utils/emojis'
 import { base64ToFile } from '@/js/utils/common'
 import { mtsUploadService } from '@/api/mts'
-import { el_loading_options } from '@/const/commonConst'
+import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
 
 const props = defineProps(['sessionId', 'draft'])
-const emit = defineEmits(['sendMessage'])
+const emit = defineEmits(['saveLocalMsg', 'sendMessage'])
 const messageData = useMessageStore()
 const imageData = useImageStore()
 
@@ -37,14 +37,35 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(async () => {
-  let content = await getContent()
-  // 草稿若没发生变动，则不触发存储
+  const contentObj = parseContent()
   const draft = messageData.sessionList[props.sessionId]?.draft
+  const content = contentObj.contentFromLocal.join('').trim()
+  // 草稿若发生变动，则触发存储
   if (content && draft && content !== draft) {
     messageData.updateSession({
       sessionId: props.sessionId,
       draft: content
     })
+  }
+
+  // 有图片需要上传，再保存一次draft
+  if (contentObj.needUploadCount.value > 0) {
+    const stopWatch = watch(
+      () => contentObj.uploadedTotalCount.value,
+      () => {
+        if (contentObj.needUploadCount.value === contentObj.uploadedTotalCount.value) {
+          // 满足第一个相等条件就停止监视
+          stopWatch()
+          if (contentObj.uploadSuccessCount.value === contentObj.needUploadCount.value) {
+            // 满足第二个相等条件才保存草稿
+            messageData.updateSession({
+              sessionId: props.sessionId,
+              draft: contentObj.contentFromServer.join('').trim()
+            })
+          }
+        }
+      }
+    )
   }
 })
 
@@ -58,54 +79,114 @@ onUnmounted(() => {
   }
 })
 
-const getContent = async () => {
+const parseContent = (sessionId = props.sessionId) => {
   const delta = getQuill().getContents()
-  let content = ''
+  let contentFromLocal = new Array(delta.ops.length).fill('')
+  let contentFromServer = new Array(delta.ops.length).fill('')
+  let needUploadCount = ref(0) // 需要上传的图片个数
+  let uploadedTotalCount = ref(0) // 已发上传请求的图片个数，包括上传成功和失败
+  let uploadSuccessCount = ref(0) // 已经上传成功的图片个数
   for (let index = 0; index < delta.ops.length; index++) {
     const op = delta.ops[index]
     const insert = op.insert
     if (insert && typeof insert === 'string') {
       // 文本
-      content = content + insert
+      contentFromLocal[index] = insert
+      contentFromServer[index] = insert
     } else if (insert && insert.image) {
       const alt = op.attributes?.alt
       if (alt && alt.startsWith('[') && alt.endsWith(']')) {
-        // 表情
-        content = content + alt
+        // 表情id
+        contentFromLocal[index] = alt
+        contentFromServer[index] = alt
       } else if (alt && alt.startsWith('{') && alt.endsWith('}')) {
-        // 图片
-        content = content + alt
+        // 图片id
+        contentFromLocal[index] = alt
+        contentFromServer[index] = alt
       } else if (insert.image.startsWith('data:') && insert.image.includes('base64')) {
         // base64编码的图片
+        needUploadCount.value++
         const file = base64ToFile(insert.image, uuidv4()) // base64转file
-        el_loading_options.text = '图片上传中...' //上传中加一个loading效果
-        const loadingInstance = ElLoading.service(el_loading_options)
-        try {
-          const res = await mtsUploadService({ file: file, storeType: 1 }) //上传图片至服务端
-          imageData.setImage(props.sessionId, res.data.data) // 缓存image数据
-          content = content + `{${res.data.data.objectId}}`
-        } finally {
-          loadingInstance.close()
-        }
+        const tempObjectId = new Date().getTime()
+        // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
+        const localSrc = URL.createObjectURL(file)
+        imageData.setLocalImage({
+          objectId: tempObjectId,
+          originUrl: localSrc,
+          thumbUrl: localSrc,
+          fileName: file.name,
+          size: file.size
+        })
+        contentFromLocal[index] = `{${tempObjectId}}`
+
+        //上传图片至服务端
+        mtsUploadService({ file: file, storeType: 1 })
+          .then((res) => {
+            imageData.setServerImage(sessionId, res.data.data) // 缓存image数据
+            uploadSuccessCount.value++
+            contentFromServer[index] = `{${res.data.data.objectId}}`
+            // TODO 这里要判断是最后一个上传的图片
+            // 这里用异步有个问题，后面请求上传的图片传的块，在content中就会跑到前面去，图片的顺序会错乱
+            // 可以把content设成一个数组，按照index下标给每个数组元素设置，防止乱序
+            // 这样也可以watch每个元素如果都填满，就sendMessage
+          })
+          .finally(() => {
+            uploadedTotalCount.value++
+          })
+      } else {
+        // 当文本处理
+        contentFromLocal[index] = insert
+        contentFromServer[index] = insert
       }
     }
   }
-  return content.trim()
+
+  return {
+    needUploadCount: needUploadCount,
+    uploadedTotalCount: uploadedTotalCount,
+    uploadSuccessCount: uploadSuccessCount,
+    contentFromLocal: contentFromLocal,
+    contentFromServer: contentFromServer
+  }
 }
 
 // 监控session发生了切换
 watch(
   () => props.sessionId,
-  async (newValue, oldValue) => {
-    let content = await getContent()
-    // 草稿若没发生变动，则不触发存储
-    if (oldValue && content !== messageData.sessionList[oldValue].draft) {
+  async (newSessionId, oldSessionId) => {
+    const contentObj = parseContent(oldSessionId)
+    const content = contentObj.contentFromLocal.join('').trim()
+    // 草稿若发生变动，则触发存储
+    if (oldSessionId && content !== messageData.sessionList[oldSessionId].draft) {
       messageData.updateSession({
-        sessionId: oldValue,
+        sessionId: oldSessionId,
         draft: content
       })
     }
-    formatContent(messageData.sessionList[newValue].draft || '')
+
+    // 有图片需要上传，再保存一次draft
+    if (contentObj.needUploadCount.value > 0) {
+      const stopWatch = watch(
+        () => contentObj.uploadedTotalCount.value,
+        () => {
+          if (contentObj.needUploadCount.value === contentObj.uploadedTotalCount.value) {
+            // 满足第一个相等条件就停止监视
+            stopWatch()
+            if (contentObj.uploadSuccessCount.value === contentObj.needUploadCount.value) {
+              // 满足第二个相等条件才保存草稿
+              if (oldSessionId) {
+                messageData.updateSession({
+                  sessionId: oldSessionId,
+                  draft: contentObj.contentFromServer.join('').trim()
+                })
+              }
+            }
+          }
+        }
+      )
+    }
+
+    formatContent(messageData.sessionList[newSessionId].draft || '')
   },
   { deep: true }
 )
@@ -120,16 +201,56 @@ const formatContent = (content) => {
 }
 
 const handleEnter = async () => {
-  const content = await getContent()
+  const contentObj = parseContent()
+  const content = contentObj.contentFromLocal.join('').trim()
   if (!content) {
     ElMessage.warning('请勿发送空内容')
     getQuill().setText('')
+    return
   } else if (content.length > 3000) {
     ElMessage.warning('发送内容请不要超过3000个字')
-  } else {
-    emit('sendMessage', content)
-    getQuill().setText('')
+    return
   }
+
+  if (contentObj.needUploadCount.value === 0) {
+    emit('sendMessage', content)
+  } else {
+    // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
+    let msg = {}
+    emit('saveLocalMsg', {
+      contentType: msgContentType.MIX,
+      content: content,
+      fn: (result) => {
+        msg = result
+      }
+    })
+
+    // 有图片需要上传
+    if (contentObj.needUploadCount.value > 0) {
+      msg.uploadStatus = msgFileUploadStatus.UPLOADING
+      msg.uploadProgress = 0
+    }
+    // 监视图片上传结果，图片上传完后向服务器发送消息
+    const stopWatch = watch(
+      () => contentObj.uploadedTotalCount.value,
+      () => {
+        msg.uploadProgress = Math.floor(
+          (contentObj.uploadSuccessCount.value / contentObj.needUploadCount.value) * 100
+        )
+        if (contentObj.uploadedTotalCount.value === contentObj.needUploadCount.value) {
+          stopWatch()
+          if (contentObj.uploadSuccessCount.value === contentObj.needUploadCount.value) {
+            msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
+            msg.content = contentObj.contentFromServer.join('').trim()
+            emit('sendMessage', msg)
+          }
+        } else {
+          msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
+        }
+      }
+    )
+  }
+  getQuill().setText('') // 编辑窗口置空
 }
 
 /**

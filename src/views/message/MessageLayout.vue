@@ -9,6 +9,7 @@ import {
   ArrowDownBold,
   ArrowUp
 } from '@element-plus/icons-vue'
+import { v4 as uuidv4 } from 'uuid'
 import DragLine from '@/components/common/DragLine.vue'
 import SearchBox from '@/components/search/SearchBox.vue'
 import AddButton from '@/components/common/AddButton.vue'
@@ -478,7 +479,7 @@ const handleRead = () => {
   }
 }
 
-const handleSendMessage = (content, resendSeq = '') => {
+const handleSendMessage = (msg) => {
   if (isNotInGroup.value) {
     ElMessage.warning('您已离开该群或群已被解散')
     return
@@ -490,14 +491,16 @@ const handleSendMessage = (content, resendSeq = '') => {
 
   if (inputToolBarRef.value) inputToolBarRef.value.closeWindow()
 
-  const msg = {
-    sessionId: selectedSessionId.value,
-    fromId: myAccount.value,
-    msgType: selectedSession.value.sessionType,
-    content: content,
-    status: msgSendStatus.PENDING,
-    msgTime: new Date(),
-    sendTime: new Date()
+  if (typeof msg === 'string') {
+    msg = {
+      sessionId: selectedSessionId.value,
+      fromId: myAccount.value,
+      msgType: selectedSession.value.sessionType,
+      content: msg,
+      status: msgSendStatus.PENDING,
+      msgTime: new Date(),
+      sendTime: new Date()
+    }
   }
 
   const resendInterval = 2000 //2秒
@@ -556,8 +559,8 @@ const handleSendMessage = (content, resendSeq = '') => {
     msg.sessionId,
     showId.value,
     selectedSession.value.sessionType,
-    content,
-    resendSeq,
+    msg.content,
+    msg.seq,
     before,
     after
   )
@@ -567,8 +570,12 @@ const handleSendMessage = (content, resendSeq = '') => {
   locateSession(msg.sessionId)
 }
 
-const handleResendMessage = ({ content, seq }) => {
-  handleSendMessage(content, seq)
+const handleResendMessage = (msg) => {
+  // 重发消息时更新这三个属性，其他不变
+  msg.status = msgSendStatus.PENDING
+  msg.msgTime = new Date()
+  msg.sendTime = new Date()
+  handleSendMessage(msg)
 }
 
 const onLoadMore = async () => {
@@ -982,24 +989,27 @@ const onSendEmoji = (key) => {
   inputEditorRef.value.addEmoji(key)
 }
 
-const onSendImage = ({ objectId }) => {
-  handleSendMessage(JSON.stringify({ type: msgContentType.IMAGE, value: objectId }))
-}
-
-const onSendAudio = ({ objectId }) => {
-  handleSendMessage(JSON.stringify({ type: msgContentType.AUDIO, value: objectId }))
-}
-
-const onSendRecording = ({ objectId }) => {
-  handleSendMessage(JSON.stringify({ type: msgContentType.RECORDING, value: objectId }))
-}
-
-const onSendVideo = ({ objectId }) => {
-  handleSendMessage(JSON.stringify({ type: msgContentType.VIDEO, value: objectId }))
-}
-
-const onSendDocument = ({ objectId }) => {
-  handleSendMessage(JSON.stringify({ type: msgContentType.DOCUMENT, value: objectId }))
+/**
+ * 发送时先添加本地消息，可以立即渲染
+ */
+const handleLocalMsg = ({ content, contentType, objectId, fn }) => {
+  const seq = uuidv4()
+  const msg = {
+    msgId: seq,
+    seq: seq,
+    sessionId: selectedSessionId.value,
+    fromId: myAccount.value,
+    msgType: selectedSession.value.sessionType,
+    content:
+      contentType === msgContentType.MIX
+        ? content
+        : JSON.stringify({ type: contentType, value: objectId }),
+    status: msgSendStatus.PENDING,
+    msgTime: new Date(),
+    sendTime: new Date()
+  }
+  messageData.addMsgRecordsWithOutPreLoad(msg.sessionId, [msg])
+  fn(msg)
 }
 
 const inputRecorderRef = ref(null)
@@ -1193,7 +1203,8 @@ const onShowRecorder = () => {
                   ref="inputRecorderRef"
                   :sessionId="selectedSessionId"
                   @exit="isShowRecorder = false"
-                  @sendRecording="onSendRecording"
+                  @saveLocalMsg="handleLocalMsg"
+                  @sendMessage="handleSendMessage"
                 ></InputRecorder>
               </el-container>
               <el-container v-else class="input-box-container">
@@ -1203,11 +1214,9 @@ const onShowRecorder = () => {
                     :sessionId="selectedSessionId"
                     :isShowToolSet="!isNotInGroup"
                     @sendEmoji="onSendEmoji"
-                    @sendImage="onSendImage"
-                    @sendAudio="onSendAudio"
-                    @sendVideo="onSendVideo"
-                    @sendDocument="onSendDocument"
                     @showRecorder="onShowRecorder"
+                    @saveLocalMsg="handleLocalMsg"
+                    @sendMessage="handleSendMessage"
                   ></InputToolBar>
                 </el-header>
                 <el-main class="input-box-main">
@@ -1230,6 +1239,7 @@ const onShowRecorder = () => {
                     ref="inputEditorRef"
                     :sessionId="selectedSessionId"
                     :draft="selectedSession.draft || ''"
+                    @saveLocalMsg="handleLocalMsg"
                     @sendMessage="handleSendMessage"
                   ></InputEditor>
                 </el-main>

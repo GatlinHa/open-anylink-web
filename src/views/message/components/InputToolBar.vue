@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { Clock, Microphone } from '@element-plus/icons-vue'
-import { ElMessage, ElLoading } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import EmojiIcon from '@/assets/svg/emoji.svg'
 import FileIcon from '@/assets/svg/file.svg'
 import ImageIcon from '@/assets/svg/image.svg'
@@ -17,18 +17,11 @@ import {
   useVideoStore,
   useDocumentStore
 } from '@/stores'
-import { el_loading_options } from '@/const/commonConst'
 import { MsgType } from '@/proto/msg'
+import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
-const emit = defineEmits([
-  'sendEmoji',
-  'sendImage',
-  'sendAudio',
-  'sendVideo',
-  'sendDocument',
-  'showRecorder'
-])
+const emit = defineEmits(['sendEmoji', 'showRecorder', 'sendMessage', 'saveLocalMsg'])
 
 const messageData = useMessageStore()
 const imageData = useImageStore()
@@ -42,54 +35,107 @@ const onSelectedFile = (file) => {
     return
   }
 
-  if (file.raw.type && file.raw.type.startsWith('image/')) {
-    const loadingInstance = ElLoading.service(el_loading_options)
-    mtsUploadService({ file: file.raw, storeType: 1 })
-      .then((res) => {
-        if (res.data.code === 0) {
-          imageData.setImage(props.sessionId, res.data.data) // 缓存image数据
-          emit('sendImage', res.data.data)
-        }
+  let contentType = msgContentType.DOCUMENT
+  if (file.raw.type.startsWith('image/')) {
+    contentType = msgContentType.IMAGE
+  } else if (file.raw.type.startsWith('audio/')) {
+    contentType = msgContentType.AUDIO
+  } else if (file.raw.type.startsWith('video/')) {
+    contentType = msgContentType.VIDEO
+  }
+
+  setLocalData(contentType, file)
+  let msg = {}
+  emit('saveLocalMsg', {
+    contentType: contentType,
+    objectId: file.uid,
+    fn: (result) => {
+      msg = result
+    }
+  })
+  msg.uploadStatus = msgFileUploadStatus.UPLOADING
+  msg.uploadProgress = 0
+
+  mtsUploadService({ file: file.raw, storeType: 1 })
+    .then((res) => {
+      if (res.data.code === 0) {
+        setStoreData(contentType, res.data.data)
+        msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
+        msg.uploadProgress = 100
+        msg.content = JSON.stringify({ type: contentType, value: res.data.data.objectId })
+        emit('sendMessage', msg)
+      }
+    })
+    .catch(() => {
+      msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
+      ElMessage.error('上传失败')
+    })
+}
+
+/**
+ * 发送的时候设置本地缓存（非服务端数据），用于立即渲染
+ * @param contentType
+ * @param file
+ */
+const setLocalData = (contentType, file) => {
+  const localSrc = URL.createObjectURL(file.raw)
+  switch (contentType) {
+    case msgContentType.IMAGE:
+      imageData.setLocalImage({
+        objectId: file.uid,
+        originUrl: localSrc,
+        thumbUrl: localSrc,
+        fileName: file.name,
+        size: file.raw.size
       })
-      .finally(() => {
-        loadingInstance.close()
+      break
+    case msgContentType.AUDIO:
+      audioData.setAudio(props.sessionId, {
+        objectId: file.uid,
+        url: localSrc,
+        fileName: file.name,
+        size: file.raw.size
       })
-  } else if (file.raw.type && file.raw.type.startsWith('audio/')) {
-    const loadingInstance = ElLoading.service(el_loading_options)
-    mtsUploadService({ file: file.raw, storeType: 1 })
-      .then((res) => {
-        if (res.data.code === 0) {
-          audioData.setAudio(props.sessionId, res.data.data) // 缓存audio的数据
-          emit('sendAudio', res.data.data)
-        }
+      break
+    case msgContentType.VIDEO:
+      videoData.setVideo(props.sessionId, {
+        objectId: file.uid,
+        url: localSrc,
+        fileName: file.name,
+        size: file.raw.size
       })
-      .finally(() => {
-        loadingInstance.close()
+      break
+    case msgContentType.DOCUMENT:
+    default:
+      documentData.setDocument(props.sessionId, {
+        objectId: file.uid,
+        documentType: file.raw.type,
+        url: localSrc,
+        fileName: file.name,
+        size: file.raw.size
       })
-  } else if (file.raw.type && file.raw.type.startsWith('video/')) {
-    const loadingInstance = ElLoading.service(el_loading_options)
-    mtsUploadService({ file: file.raw, storeType: 1 })
-      .then((res) => {
-        if (res.data.code === 0) {
-          videoData.setVideo(props.sessionId, res.data.data) // 缓存video的数据
-          emit('sendVideo', res.data.data)
-        }
-      })
-      .finally(() => {
-        loadingInstance.close()
-      })
-  } else {
-    const loadingInstance = ElLoading.service(el_loading_options)
-    mtsUploadService({ file: file.raw, storeType: 1 })
-      .then((res) => {
-        if (res.data.code === 0) {
-          documentData.setDocument(props.sessionId, res.data.data) // 缓存video的数据
-          emit('sendDocument', res.data.data)
-        }
-      })
-      .finally(() => {
-        loadingInstance.close()
-      })
+  }
+}
+
+/**
+ * 服务端响应数据回来后，设置store缓存
+ * @param contentType
+ * @param file
+ */
+const setStoreData = (contentType, data) => {
+  switch (contentType) {
+    case msgContentType.IMAGE:
+      imageData.setServerImage(props.sessionId, data)
+      break
+    case msgContentType.AUDIO:
+      audioData.setAudio(props.sessionId, data)
+      break
+    case msgContentType.VIDEO:
+      videoData.setVideo(props.sessionId, data)
+      break
+    case msgContentType.DOCUMENT:
+    default:
+      documentData.setDocument(props.sessionId, data)
   }
 }
 

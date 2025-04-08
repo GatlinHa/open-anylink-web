@@ -21,7 +21,15 @@ export const useImageStore = defineStore('anylink-image', () => {
    */
   const imageInSession = ref({})
 
-  const setImage = (sessionId, obj) => {
+  /**
+   * 本地图片只是临时的，不用放进imageInSession
+   * @param {*} obj
+   */
+  const setLocalImage = (obj) => {
+    image.value[obj.objectId] = obj
+  }
+
+  const setServerImage = (sessionId, obj) => {
     image.value[obj.objectId] = obj
     if (!imageInSession.value[sessionId]) {
       imageInSession.value[sessionId] = []
@@ -29,7 +37,7 @@ export const useImageStore = defineStore('anylink-image', () => {
     imageInSession.value[sessionId].push(obj.objectId)
   }
 
-  const imageTrans = (content, maxWidth = 400, maxHeight = 300) => {
+  const imageTrans = (content, maxWidth = 360, maxHeight = 180) => {
     const matches = content.match(pattern)
     if (!matches || matches.length === 0) {
       return content
@@ -68,7 +76,7 @@ export const useImageStore = defineStore('anylink-image', () => {
     if (imageIds.size > 0) {
       const res = await mtsImageService({ objectIds: [...imageIds].join(',') })
       res.data.data.forEach((item) => {
-        setImage(sessionId, item) // 缓存image数据
+        setServerImage(sessionId, item) // 缓存image数据
       })
     }
   }
@@ -101,7 +109,7 @@ export const useImageStore = defineStore('anylink-image', () => {
     if (imageIds.size > 0) {
       const res = await mtsImageService({ objectIds: [...imageIds].join(',') })
       res.data.data.forEach((item) => {
-        setImage(sessionId, item)
+        setServerImage(sessionId, item)
       })
     }
   }
@@ -109,7 +117,8 @@ export const useImageStore = defineStore('anylink-image', () => {
   return {
     image,
     imageInSession,
-    setImage,
+    setLocalImage,
+    setServerImage,
     imageTrans,
     loadImageInfoFromContent,
     preloadImage

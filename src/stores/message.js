@@ -117,7 +117,7 @@ export const useMessageStore = defineStore('anylink-message', () => {
   }
 
   /**
-   * 对话列表中加入新的消息数组
+   * 对话列表中加入新的消息数组（预加载资源）
    * @param {*} sessionId 会话id
    * @param {*} msgRecords 新的消息数组
    */
@@ -128,6 +128,15 @@ export const useMessageStore = defineStore('anylink-message', () => {
     await useVideoStore().preloadVideo(sessionId, msgRecords)
     await useDocumentStore().preloadDocument(sessionId, msgRecords)
 
+    addMsgRecordsWithOutPreLoad(sessionId, msgRecords)
+  }
+
+  /**
+   * 对话列表中加入新的消息数组
+   * @param {*} sessionId 会话id
+   * @param {*} msgRecords 新的消息数组
+   */
+  const addMsgRecordsWithOutPreLoad = (sessionId, msgRecords) => {
     if (!msgRecords?.length) return
     msgRecords.forEach((item) => {
       if (!msgRecordsList.value[sessionId]) {
@@ -272,6 +281,7 @@ export const useMessageStore = defineStore('anylink-message', () => {
     msgRecordsList,
     msgIdSortArray,
     addMsgRecords,
+    addMsgRecordsWithOutPreLoad,
     removeMsgRecord,
     getMsg,
 
