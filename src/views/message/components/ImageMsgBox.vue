@@ -61,6 +61,7 @@ const formatSize = computed(() => {
   .el-image {
     width: auto;
     height: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 
     :deep(.el-image__inner) {
       margin: 0;
