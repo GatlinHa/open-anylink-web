@@ -14,17 +14,8 @@ export const useAudioStore = defineStore('anylink-audio', () => {
    */
   const audio = ref({})
 
-  /**
-   * 在同一个session中的audio（id）集合
-   */
-  const audioInSession = ref({})
-
   const setAudio = (sessionId, obj) => {
     audio.value[obj.objectId] = obj
-    if (!audioInSession.value[sessionId]) {
-      audioInSession.value[sessionId] = []
-    }
-    audioInSession.value[sessionId].push(obj.objectId)
   }
 
   const preloadAudio = async (sessionId, msgRecords) => {
@@ -53,7 +44,6 @@ export const useAudioStore = defineStore('anylink-audio', () => {
 
   return {
     audio,
-    audioInSession,
     setAudio,
     preloadAudio
   }

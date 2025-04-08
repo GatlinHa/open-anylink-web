@@ -14,17 +14,8 @@ export const useVideoStore = defineStore('anylink-video', () => {
    */
   const video = ref({})
 
-  /**
-   * 在同一个session中的video（id）集合
-   */
-  const videoInSession = ref({})
-
   const setVideo = (sessionId, obj) => {
     video.value[obj.objectId] = obj
-    if (!videoInSession.value[sessionId]) {
-      videoInSession.value[sessionId] = []
-    }
-    videoInSession.value[sessionId].push(obj.objectId)
   }
 
   const preloadVideo = async (sessionId, msgRecords) => {
@@ -50,7 +41,6 @@ export const useVideoStore = defineStore('anylink-video', () => {
 
   return {
     video,
-    videoInSession,
     setVideo,
     preloadVideo
   }

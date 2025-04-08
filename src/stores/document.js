@@ -14,17 +14,8 @@ export const useDocumentStore = defineStore('anylink-document', () => {
    */
   const document = ref({})
 
-  /**
-   * 在同一个session中的document（id）集合
-   */
-  const documentInSession = ref({})
-
   const setDocument = (sessionId, obj) => {
     document.value[obj.objectId] = obj
-    if (!documentInSession.value[sessionId]) {
-      documentInSession.value[sessionId] = []
-    }
-    documentInSession.value[sessionId].push(obj.objectId)
   }
 
   const preloadDocument = async (sessionId, msgRecords) => {
@@ -50,7 +41,6 @@ export const useDocumentStore = defineStore('anylink-document', () => {
 
   return {
     document,
-    documentInSession,
     setDocument,
     preloadDocument
   }
