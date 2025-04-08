@@ -50,13 +50,13 @@ onMounted(() => {
 })
 
 let app = null
-const rendering = async () => {
+const rendering = () => {
   const msgContent = document.querySelector(`#div-content-${msg.value.msgId}`)
   if (msgContent) {
     if (app) {
       app.unmount()
     }
-    const vnode = await renderComponent(msg.value.content)
+    const vnode = renderComponent(msg.value.content)
     app = createApp({
       render: () => vnode
     })
@@ -68,21 +68,21 @@ const rendering = async () => {
  * 动态渲染消息内容
  * @param content 消息内容
  */
-const renderComponent = async (content) => {
+const renderComponent = (content) => {
   const contentJson = jsonParseSafe(content)
   if (!contentJson) {
-    return await renderMix(content)
+    return renderMix(content)
   }
 
   const type = contentJson['type']
   const value = contentJson['value']
   if (!type || !value) {
-    return await renderMix(content)
+    return renderMix(content)
   }
 
   switch (type) {
     case msgContentType.MIX:
-      return await renderMix(value)
+      return renderMix(value)
     case msgContentType.TEXT:
       return renderText(value)
     case msgContentType.RECORDING:
@@ -106,7 +106,7 @@ const renderText = (content) => {
   return h('span', content)
 }
 
-const renderMix = async (content) => {
+const renderMix = (content) => {
   if (!content) return h('div', [])
   let contentArray = []
   //匹配内容中的图片
@@ -121,7 +121,7 @@ const renderMix = async (content) => {
 
   return contentArray.map((item) => {
     if (item.startsWith('{') && item.endsWith('}')) {
-      return renderImage(item.slice(1, -1), false)
+      return renderImage(item.slice(1, -1), true)
     } else if (item.startsWith('[') && item.endsWith(']')) {
       return renderEmoji(item.slice(1, -1))
     } else {
@@ -166,7 +166,7 @@ const renderVideo = (content) => {
   }
 }
 
-const renderImage = (content, ishowInfo = true) => {
+const renderImage = (content, isForMix = false) => {
   const imgId = content
   const url = imageData.image[imgId]?.thumbUrl
   if (url) {
@@ -178,14 +178,14 @@ const renderImage = (content, ishowInfo = true) => {
       imgId,
       srcList,
       initialIndex: imgIdListSorted.indexOf(imgId),
-      fileName: ishowInfo ? imageData.image[imgId].fileName : '',
-      size: ishowInfo ? imageData.image[imgId].size : '',
+      fileName: isForMix ? '' : imageData.image[imgId].fileName,
+      size: isForMix ? '' : imageData.image[imgId].size,
       onLoad: () => {
         emit('loadFinished')
       }
     })
   } else {
-    return h('span', `[${content}]`)
+    return h('span', isForMix ? `{${content}}` : `[${content}]`)
   }
 }
 
