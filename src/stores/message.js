@@ -152,9 +152,9 @@ export const useMessageStore = defineStore('anylink-message', () => {
     if (!msgRecords?.length) return
     msgRecords.forEach((item) => {
       if (!msgRecordsList.value[sessionId]) {
-        msgRecordsList.value[sessionId] = {}
+        msgRecordsList.value[sessionId] = ref({})
       }
-      msgRecordsList.value[sessionId][item.msgId] = item
+      msgRecordsList.value[sessionId][item.msgId] = ref(item)
     })
   }
 
@@ -171,9 +171,19 @@ export const useMessageStore = defineStore('anylink-message', () => {
 
   const getMsg = (sessionId, msgId) => {
     if (!msgRecordsList.value[sessionId] || !msgRecordsList.value[sessionId][msgId]) {
-      return {}
+      return ref({})
     }
     return msgRecordsList.value[sessionId][msgId]
+  }
+
+  const updateMsg = (sessionId, msgId, obj) => {
+    if (!msgRecordsList.value[sessionId] || !msgRecordsList.value[sessionId][msgId]) {
+      return
+    }
+    if ('status' in obj) msgRecordsList.value[sessionId][msgId].status = obj.status
+    if ('msgTime' in obj) msgRecordsList.value[sessionId][msgId].msgTime = obj.msgTime
+    if ('sendTime' in obj) msgRecordsList.value[sessionId][msgId].sendTime = obj.sendTime
+    updateMsgIdSort(sessionId)
   }
 
   const totalUnReadCount = computed(() => {
@@ -281,6 +291,7 @@ export const useMessageStore = defineStore('anylink-message', () => {
     addMsgRecords,
     removeMsgRecord,
     getMsg,
+    updateMsg,
 
     partitions,
     loadPartitions,

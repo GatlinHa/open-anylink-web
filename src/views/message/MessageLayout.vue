@@ -507,10 +507,9 @@ const handleSendMessage = (msg) => {
                 wsConnect.sendAgent(data)
                 setTimeout(() => {
                   if (msg.status === msgSendStatus.PENDING) {
-                    messageData.removeMsgRecord(msg.sessionId, msg.msgId)
-                    msg.status = msgSendStatus.FAILED
-                    messageData.addMsgRecords(msg.sessionId, [msg])
-                    messageData.updateMsgIdSort(msg.sessionId)
+                    messageData.updateMsg(msg.sessionId, msg.msgId, {
+                      status: msgSendStatus.FAILED
+                    })
                     ElMessage.error('消息发送失败')
                   }
                 }, resendInterval)
@@ -529,12 +528,7 @@ const handleSendMessage = (msg) => {
       readTime: new Date()
     })
 
-    messageData.removeMsgRecord(msg.sessionId, msg.msgId) //移除seq为key的msg
-    msg.msgId = msgId
-    msg.status = msgSendStatus.OK
-    messageData.addMsgRecords(msg.sessionId, [msg]) //添加服务端返回msgId为key的msg
-    messageData.updateMsgIdSort(msg.sessionId)
-
+    messageData.updateMsg(msg.sessionId, msg.msgId, { status: msgSendStatus.OK })
     if (!messageData.sessionList[msg.sessionId].dnd) {
       playMsgSend()
     }
@@ -556,9 +550,11 @@ const handleSendMessage = (msg) => {
 
 const handleResendMessage = (msg) => {
   // 重发消息时更新这三个属性，其他不变
-  msg.status = msgSendStatus.PENDING
-  msg.msgTime = new Date()
-  msg.sendTime = new Date()
+  messageData.updateMsg(msg.sessionId, msg.msgId, {
+    status: msgSendStatus.PENDING,
+    msgTime: new Date(),
+    sendTime: new Date()
+  })
   handleSendMessage(msg)
 }
 

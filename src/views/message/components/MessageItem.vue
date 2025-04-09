@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, h, createApp, watch, nextTick, reactive } from 'vue'
+import { computed, onMounted, h, createApp, watch, nextTick } from 'vue'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
 import {
@@ -242,7 +242,7 @@ const renderDocument = (content) => {
 }
 
 const msg = computed(() => {
-  return reactive({ ...messageData.getMsg(props.sessionId, props.msgId) })
+  return messageData.getMsg(props.sessionId, props.msgId)
 })
 
 const msgStatus = computed(() => {

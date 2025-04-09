@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, reactive } from 'vue'
+import { ref, computed, watch } from 'vue'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import GroupAvatarIcon from '@/components/common/GroupAvatarIcon.vue'
 import SessionTag from './SessionTag.vue'
@@ -84,9 +84,9 @@ const isNotInGroup = computed(() => {
 const lastMsg = computed(() => {
   const msgIds = messageData.msgIdSortArray[props.sessionId]
   if (!msgIds?.length) {
-    return reactive({})
+    return ref({})
   }
-  return reactive({ ...messageData.getMsg(props.sessionId, msgIds[msgIds.length - 1]) })
+  return messageData.getMsg(props.sessionId, msgIds[msgIds.length - 1])
 })
 
 const lastMsgId = computed(() => {
@@ -470,7 +470,7 @@ defineExpose({
             <span v-if="isShowDraft" class="draft">[草稿]</span>
             <span v-else-if="isShowUnread" class="unread-or-read">[未读]</span>
             <span v-else-if="isShowRead" class="unread-or-read">[已读]</span>
-            <span v-else-if="isShowUnSend" class="unread-or-read">[未送达]</span>
+            <span v-else-if="isShowUnSend" class="unread-or-read">[发送失败]</span>
             <span class="detail text-ellipsis"> {{ showDetailContent }}</span>
           </div>
           <div class="action">
