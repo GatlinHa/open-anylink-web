@@ -481,6 +481,39 @@ const handleRead = () => {
   }
 }
 
+/**
+ * 发送时先添加本地消息，可以立即渲染
+ */
+const handleLocalMsg = ({ content, contentType, objectId, fn }) => {
+  const seq = uuidv4()
+  const msg = {
+    msgId: seq,
+    seq: seq,
+    sessionId: selectedSessionId.value,
+    fromId: myAccount.value,
+    msgType: selectedSession.value.sessionType,
+    content:
+      contentType === msgContentType.MIX
+        ? content
+        : JSON.stringify({ type: contentType, value: objectId }),
+    status: msgSendStatus.PENDING,
+    msgTime: new Date(),
+    sendTime: new Date()
+  }
+  messageData.addMsgRecords(msg.sessionId, [msg])
+  messageData.updateMsgIdSort(msg.sessionId)
+  capacity.value++
+  msgListReachBottom()
+
+  messageData.updateSession({
+    sessionId: selectedSessionId.value,
+    unreadCount: 0, // 最后一条消息是自己发的，因此未读是0
+    draft: '' //草稿意味着要清空
+  })
+
+  fn(msg)
+}
+
 const handleSendMessage = (msg) => {
   if (isNotInGroup.value) {
     ElMessage.warning('您已离开该群或群已被解散')
@@ -967,38 +1000,6 @@ const onConfirmSelect = async (selected) => {
 const inputEditorRef = ref()
 const onSendEmoji = (key) => {
   inputEditorRef.value.addEmoji(key)
-}
-
-/**
- * 发送时先添加本地消息，可以立即渲染
- */
-const handleLocalMsg = ({ content, contentType, objectId, fn }) => {
-  const seq = uuidv4()
-  const msg = {
-    msgId: seq,
-    seq: seq,
-    sessionId: selectedSessionId.value,
-    fromId: myAccount.value,
-    msgType: selectedSession.value.sessionType,
-    content:
-      contentType === msgContentType.MIX
-        ? content
-        : JSON.stringify({ type: contentType, value: objectId }),
-    status: msgSendStatus.PENDING,
-    msgTime: new Date(),
-    sendTime: new Date()
-  }
-  messageData.addMsgRecords(msg.sessionId, [msg])
-  messageData.updateMsgIdSort(msg.sessionId)
-  capacity.value++
-
-  messageData.updateSession({
-    sessionId: selectedSessionId.value,
-    unreadCount: 0, // 最后一条消息是自己发的，因此未读是0
-    draft: '' //草稿意味着要清空
-  })
-
-  fn(msg)
 }
 
 const inputRecorderRef = ref(null)

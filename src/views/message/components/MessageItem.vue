@@ -709,7 +709,7 @@ watch(
                 <div v-if="myMsgIsRead" class="remote_read"></div>
                 <div v-else class="remote_unread"></div>
               </div>
-              <div class="div-content" :id="`div-content-${msg.msgId}`">内容加载中...</div>
+              <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
             </el-main>
           </el-container>
         </el-main>
