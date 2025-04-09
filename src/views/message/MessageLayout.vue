@@ -416,7 +416,9 @@ const pullMsg = async (endMsgId = null) => {
     const res = await msgChatPullMsgService(params)
     const msgCount = res.data.data.count
     if (msgCount > 0) {
-      await messageData.addMsgRecords(sessionId, res.data.data.msgList)
+      await messageData.preloadResource(sessionId, res.data.data.msgList)
+      messageData.addMsgRecords(sessionId, res.data.data.msgList)
+      messageData.updateMsgIdSort(sessionId)
     }
 
     if (msgCount < pageSize) {
@@ -491,20 +493,8 @@ const handleSendMessage = (msg) => {
 
   if (inputToolBarRef.value) inputToolBarRef.value.closeWindow()
 
-  if (typeof msg === 'string') {
-    msg = {
-      sessionId: selectedSessionId.value,
-      fromId: myAccount.value,
-      msgType: selectedSession.value.sessionType,
-      content: msg,
-      status: msgSendStatus.PENDING,
-      msgTime: new Date(),
-      sendTime: new Date()
-    }
-  }
-
   const resendInterval = 2000 //2秒
-  const before = async (seq, data) => {
+  const before = (data) => {
     // 当2s内status如果还是pending中，则重发3次。如果最后还是pending，则把status置为failed
     setTimeout(() => {
       if (msg.status === msgSendStatus.PENDING) {
@@ -515,11 +505,12 @@ const handleSendMessage = (msg) => {
             setTimeout(() => {
               if (msg.status === msgSendStatus.PENDING) {
                 wsConnect.sendAgent(data)
-                setTimeout(async () => {
+                setTimeout(() => {
                   if (msg.status === msgSendStatus.PENDING) {
                     messageData.removeMsgRecord(msg.sessionId, msg.msgId)
                     msg.status = msgSendStatus.FAILED
-                    await messageData.addMsgRecords(msg.sessionId, [msg])
+                    messageData.addMsgRecords(msg.sessionId, [msg])
+                    messageData.updateMsgIdSort(msg.sessionId)
                     ElMessage.error('消息发送失败')
                   }
                 }, resendInterval)
@@ -529,27 +520,21 @@ const handleSendMessage = (msg) => {
         }, resendInterval)
       }
     }, resendInterval)
-
-    messageData.updateSession({
-      sessionId: msg.sessionId,
-      unreadCount: 0, // 最后一条消息是自己发的，因此未读是0
-      draft: '' //草稿意味着要清空
-    })
-    msg.seq = seq
-    msg.msgId = seq //服务器没有回复DELIVERED消息之前，都用seq暂代msgId
-    await messageData.addMsgRecords(msg.sessionId, [msg])
   }
 
-  const after = async (msgId) => {
+  const after = (msgId) => {
     messageData.updateSession({
       sessionId: msg.sessionId,
       readMsgId: msgId, // 最后一条消息是自己发的，因此已读更新到刚发的这条消息的msgId
       readTime: new Date()
     })
+
     messageData.removeMsgRecord(msg.sessionId, msg.msgId) //移除seq为key的msg
     msg.msgId = msgId
     msg.status = msgSendStatus.OK
-    await messageData.addMsgRecords(msg.sessionId, [msg]) //添加服务端返回msgId为key的msg
+    messageData.addMsgRecords(msg.sessionId, [msg]) //添加服务端返回msgId为key的msg
+    messageData.updateMsgIdSort(msg.sessionId)
+
     if (!messageData.sessionList[msg.sessionId].dnd) {
       playMsgSend()
     }
@@ -565,7 +550,6 @@ const handleSendMessage = (msg) => {
     after
   )
 
-  capacity.value++
   msgListReachBottom()
   locateSession(msg.sessionId)
 }
@@ -1008,7 +992,16 @@ const handleLocalMsg = ({ content, contentType, objectId, fn }) => {
     msgTime: new Date(),
     sendTime: new Date()
   }
-  messageData.addMsgRecordsWithOutPreLoad(msg.sessionId, [msg])
+  messageData.addMsgRecords(msg.sessionId, [msg])
+  messageData.updateMsgIdSort(msg.sessionId)
+  capacity.value++
+
+  messageData.updateSession({
+    sessionId: selectedSessionId.value,
+    unreadCount: 0, // 最后一条消息是自己发的，因此未读是0
+    draft: '' //草稿意味着要清空
+  })
+
   fn(msg)
 }
 

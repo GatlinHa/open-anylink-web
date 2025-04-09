@@ -338,7 +338,7 @@ class WsConnect {
   sendMsg(sessionId, remoteId, msgType, content, seq, before, after) {
     const sequence = seq || uuidv4()
     const data = this.dataConstructor[msgType](sessionId, remoteId, content, sequence)
-    before(sequence, data)
+    before(data)
     this.msgIdRefillCallback[sequence] = after
     this.sendAgent(data)
   }

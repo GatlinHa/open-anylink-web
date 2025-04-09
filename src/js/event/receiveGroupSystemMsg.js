@@ -26,17 +26,17 @@ export const onReceiveGroupSystemMsg = (updateScroll, capacity) => {
       })
     })
 
-    // 更新聊天记录
-    await messageData.addMsgRecords(sessionId, [
-      {
-        sessionId: sessionId,
-        msgId: msg.body.msgId,
-        fromId: msg.body.fromId,
-        msgType: msg.header.msgType,
-        content: msg.body.content,
-        msgTime: now
-      }
-    ])
+    const showMsg = {
+      sessionId: sessionId,
+      msgId: msg.body.msgId,
+      fromId: msg.body.fromId,
+      msgType: msg.header.msgType,
+      content: msg.body.content,
+      msgTime: now
+    }
+    await messageData.preloadResource(sessionId, [showMsg])
+    messageData.addMsgRecords(sessionId, [showMsg])
+    messageData.updateMsgIdSort(sessionId)
 
     // 如果是当前正打开的会话
     if (messageData.selectedSessionId === sessionId) {

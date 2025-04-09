@@ -36,16 +36,17 @@ export const onReceiveChatMsg = (updateScroll, capacity) => {
       ...readParams
     })
 
-    await messageData.addMsgRecords(sessionId, [
-      {
-        sessionId: sessionId,
-        msgId: msg.body.msgId,
-        fromId: msg.body.fromId,
-        msgType: MsgType.CHAT,
-        content: msg.body.content,
-        msgTime: now
-      }
-    ])
+    const showMsg = {
+      sessionId: sessionId,
+      msgId: msg.body.msgId,
+      fromId: msg.body.fromId,
+      msgType: MsgType.CHAT,
+      content: msg.body.content,
+      msgTime: now
+    }
+    await messageData.preloadResource(sessionId, [showMsg])
+    messageData.addMsgRecords(sessionId, [showMsg])
+    messageData.updateMsgIdSort(sessionId)
 
     if (!messageData.sessionList[sessionId].dnd) {
       playMsgReceive()

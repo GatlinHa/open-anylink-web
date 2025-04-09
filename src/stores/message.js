@@ -117,34 +117,22 @@ export const useMessageStore = defineStore('anylink-message', () => {
   }
 
   /**
-   * 对话列表中加入新的消息数组（预加载资源）
-   * @param {*} sessionId 会话id
-   * @param {*} msgRecords 新的消息数组
+   * 预加载消息中的媒体资源
+   * @param {*} sessionId
+   * @param {*} msgRecords
    */
-  const addMsgRecords = async (sessionId, msgRecords) => {
-    // 预加载消息中的图片和音频
+  const preloadResource = async (sessionId, msgRecords) => {
     await useImageStore().preloadImage(sessionId, msgRecords)
     await useAudioStore().preloadAudio(sessionId, msgRecords)
     await useVideoStore().preloadVideo(sessionId, msgRecords)
     await useDocumentStore().preloadDocument(sessionId, msgRecords)
-
-    addMsgRecordsWithOutPreLoad(sessionId, msgRecords)
   }
 
   /**
-   * 对话列表中加入新的消息数组
+   * 更新msgId排序
    * @param {*} sessionId 会话id
-   * @param {*} msgRecords 新的消息数组
    */
-  const addMsgRecordsWithOutPreLoad = (sessionId, msgRecords) => {
-    if (!msgRecords?.length) return
-    msgRecords.forEach((item) => {
-      if (!msgRecordsList.value[sessionId]) {
-        msgRecordsList.value[sessionId] = {}
-      }
-      msgRecordsList.value[sessionId][item.msgId] = item
-    })
-
+  const updateMsgIdSort = (sessionId) => {
     // 更新排序
     const array = Object.values(msgRecordsList.value[sessionId])
     array.sort((a, b) => {
@@ -156,6 +144,21 @@ export const useMessageStore = defineStore('anylink-message', () => {
   }
 
   /**
+   * 对话列表中加入新的消息数组（预加载资源）
+   * @param {*} sessionId 会话id
+   * @param {*} msgRecords 新的消息数组
+   */
+  const addMsgRecords = (sessionId, msgRecords) => {
+    if (!msgRecords?.length) return
+    msgRecords.forEach((item) => {
+      if (!msgRecordsList.value[sessionId]) {
+        msgRecordsList.value[sessionId] = {}
+      }
+      msgRecordsList.value[sessionId][item.msgId] = item
+    })
+  }
+
+  /**
    * 移除某个消息：消息已发出后，用正式消息替换temp消息场景
    * @param {*} sessionId 会话id
    * @param {*} msgId 消息id
@@ -163,15 +166,6 @@ export const useMessageStore = defineStore('anylink-message', () => {
   const removeMsgRecord = (sessionId, msgId) => {
     if (msgRecordsList.value[sessionId] && msgId in msgRecordsList.value[sessionId]) {
       delete msgRecordsList.value[sessionId][msgId]
-
-      // 更新排序
-      const array = Object.values(msgRecordsList.value[sessionId])
-      array.sort((a, b) => {
-        const timeA = new Date(a.sendTime || a.msgTime).getTime()
-        const timeB = new Date(b.sendTime || b.msgTime).getTime()
-        return timeA - timeB
-      })
-      msgIdSortArray.value[sessionId] = array.map((item) => item.msgId)
     }
   }
 
@@ -235,7 +229,9 @@ export const useMessageStore = defineStore('anylink-message', () => {
         addSession(res.data.data[item].session)
         const msgList = res.data.data[item].msgList
         if (msgList) {
-          await addMsgRecords(item, msgList)
+          await preloadResource(item, msgList)
+          addMsgRecords(item, msgList)
+          updateMsgIdSort(item)
         }
       })
     }
@@ -280,8 +276,9 @@ export const useMessageStore = defineStore('anylink-message', () => {
 
     msgRecordsList,
     msgIdSortArray,
+    preloadResource,
+    updateMsgIdSort,
     addMsgRecords,
-    addMsgRecordsWithOutPreLoad,
     removeMsgRecord,
     getMsg,
 

@@ -217,44 +217,42 @@ const handleEnter = async () => {
     return
   }
 
-  if (contentObj.needUploadCount === 0) {
-    emit('sendMessage', content)
+  // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
+  let msg = {}
+  emit('saveLocalMsg', {
+    contentType: msgContentType.MIX,
+    content: content,
+    fn: (result) => {
+      msg = result
+    }
+  })
+
+  if (contentObj.needUploadCount > 0) {
+    msg.uploadStatus = msgFileUploadStatus.UPLOADING
+    msg.uploadProgress = 0
   } else {
-    // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
-    let msg = {}
-    emit('saveLocalMsg', {
-      contentType: msgContentType.MIX,
-      content: content,
-      fn: (result) => {
-        msg = result
-      }
-    })
-
-    // 有图片需要上传
-    if (contentObj.needUploadCount > 0) {
-      msg.uploadStatus = msgFileUploadStatus.UPLOADING
-      msg.uploadProgress = 0
-    }
-
-    // callback：每成功上传一个图片，更新一下进度
-    callbacks.someOneUploadedSuccessFn = () => {
-      msg.uploadProgress = Math.floor(
-        (contentObj.uploadSuccessCount / contentObj.needUploadCount) * 100
-      )
-    }
-
-    // callback：如果有失败的上传，则状态修改为上传失败
-    callbacks.someUploadedFailFn = () => {
-      msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
-    }
-
-    // callback：所有图片均上传，则发送消息
-    callbacks.allUploadedSuccessFn = () => {
-      msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
-      msg.content = contentObj.contentFromServer.join('').trim()
-      emit('sendMessage', msg)
-    }
+    emit('sendMessage', msg)
   }
+
+  // callback：每成功上传一个图片，更新一下进度
+  callbacks.someOneUploadedSuccessFn = () => {
+    msg.uploadProgress = Math.floor(
+      (contentObj.uploadSuccessCount / contentObj.needUploadCount) * 100
+    )
+  }
+
+  // callback：如果有失败的上传，则状态修改为上传失败
+  callbacks.someUploadedFailFn = () => {
+    msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
+  }
+
+  // callback：所有图片均上传，则发送消息
+  callbacks.allUploadedSuccessFn = () => {
+    msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
+    msg.content = contentObj.contentFromServer.join('').trim()
+    emit('sendMessage', msg)
+  }
+
   getQuill().setText('') // 编辑窗口置空
 }
 
