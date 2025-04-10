@@ -30,13 +30,13 @@ export const useMessageStore = defineStore('anylink-message', () => {
    * 格式：
    * {
    *   sessionId_1: {
-   *     msgId_1: {msgId: msgId_1, fromId: xxx,...},
-   *     msgId_2: {msgId: msgId_2, fromId: xxx,...},
+   *     msgKey_1: {msgId: msgId_1, fromId: xxx,...}, //msgKey取自msgId，msgId在发消息之后会更新，但msgKey不会
+   *     msgKey_2: {msgId: msgId_2, fromId: xxx,...},
    *     ...
    *   }
    *   sessionId_2: {
-   *     msgId_a: {msgId: msgId_a, fromId: xxx,...},
-   *     msgId_b: {msgId: msgId_b, fromId: xxx,...},
+   *     msgKey_a: {msgId: msgId_a, fromId: xxx,...},
+   *     msgKey_b: {msgId: msgId_b, fromId: xxx,...},
    *     ...
    *   }
    *   ...
@@ -45,15 +45,15 @@ export const useMessageStore = defineStore('anylink-message', () => {
   const msgRecordsList = ref({})
 
   /**
-   * 会话消息ID排序后的数组，只存msgId,方便顺序查找
+   * sessionList中同一会话下的msgKey排序后的数组
    * 格式：
    * {
-   *   sessionId_1: [msgId_1, msgId_2...],
-   *   sessionId_2: [msgId_a, msgId_b...]
+   *   sessionId_1: [msgKey_1, msgKey_2...],
+   *   sessionId_2: [msgKey_a, msgKey_b...]
    *   ...
    * }
    */
-  const msgIdSortArray = ref({})
+  const msgKeySortedArray = ref({})
 
   const addSession = (session) => {
     sessionList.value[session.sessionId] = session
@@ -129,18 +129,18 @@ export const useMessageStore = defineStore('anylink-message', () => {
   }
 
   /**
-   * 更新msgId排序
+   * 更新msgKey排序
    * @param {*} sessionId 会话id
    */
-  const updateMsgIdSort = (sessionId) => {
+  const updateMsgKeySort = (sessionId) => {
     // 更新排序
-    const array = Object.values(msgRecordsList.value[sessionId])
-    array.sort((a, b) => {
-      const timeA = new Date(a.sendTime || a.msgTime).getTime()
-      const timeB = new Date(b.sendTime || b.msgTime).getTime()
+    const msgs = msgRecordsList.value[sessionId]
+    const array = Object.keys(msgs).sort((a, b) => {
+      const timeA = new Date(msgs[a].sendTime || msgs[a].msgTime).getTime()
+      const timeB = new Date(msgs[b].sendTime || msgs[b].msgTime).getTime()
       return timeA - timeB
     })
-    msgIdSortArray.value[sessionId] = array.map((item) => item.msgId)
+    msgKeySortedArray.value[sessionId] = array
   }
 
   /**
@@ -161,29 +161,31 @@ export const useMessageStore = defineStore('anylink-message', () => {
   /**
    * 移除某个消息：消息已发出后，用正式消息替换temp消息场景
    * @param {*} sessionId 会话id
-   * @param {*} msgId 消息id
+   * @param {*} msgKey 消息id
    */
-  const removeMsgRecord = (sessionId, msgId) => {
-    if (msgRecordsList.value[sessionId] && msgId in msgRecordsList.value[sessionId]) {
-      delete msgRecordsList.value[sessionId][msgId]
+  const removeMsgRecord = (sessionId, msgKey) => {
+    if (msgRecordsList.value[sessionId] && msgKey in msgRecordsList.value[sessionId]) {
+      delete msgRecordsList.value[sessionId][msgKey]
     }
   }
 
-  const getMsg = (sessionId, msgId) => {
-    if (!msgRecordsList.value[sessionId] || !msgRecordsList.value[sessionId][msgId]) {
+  const getMsg = (sessionId, msgKey) => {
+    if (!msgRecordsList.value[sessionId] || !msgRecordsList.value[sessionId][msgKey]) {
       return ref({})
     }
-    return msgRecordsList.value[sessionId][msgId]
+    return msgRecordsList.value[sessionId][msgKey]
   }
 
-  const updateMsg = (sessionId, msgId, obj) => {
-    if (!msgRecordsList.value[sessionId] || !msgRecordsList.value[sessionId][msgId]) {
+  const updateMsg = (sessionId, msgKey, obj) => {
+    if (!msgRecordsList.value[sessionId] || !msgRecordsList.value[sessionId][msgKey]) {
       return
     }
-    if ('status' in obj) msgRecordsList.value[sessionId][msgId].status = obj.status
-    if ('msgTime' in obj) msgRecordsList.value[sessionId][msgId].msgTime = obj.msgTime
-    if ('sendTime' in obj) msgRecordsList.value[sessionId][msgId].sendTime = obj.sendTime
-    updateMsgIdSort(sessionId)
+
+    if ('msgId' in obj) msgRecordsList.value[sessionId][msgKey].msgId = obj.msgId
+    if ('status' in obj) msgRecordsList.value[sessionId][msgKey].status = obj.status
+    if ('msgTime' in obj) msgRecordsList.value[sessionId][msgKey].msgTime = obj.msgTime
+    if ('sendTime' in obj) msgRecordsList.value[sessionId][msgKey].sendTime = obj.sendTime
+    updateMsgKeySort(sessionId)
   }
 
   const totalUnReadCount = computed(() => {
@@ -241,7 +243,7 @@ export const useMessageStore = defineStore('anylink-message', () => {
         if (msgList) {
           await preloadResource(msgList)
           addMsgRecords(item, msgList)
-          updateMsgIdSort(item)
+          updateMsgKeySort(item)
         }
       })
     }
@@ -285,9 +287,9 @@ export const useMessageStore = defineStore('anylink-message', () => {
     loadSessionList,
 
     msgRecordsList,
-    msgIdSortArray,
+    msgKeySortedArray,
     preloadResource,
-    updateMsgIdSort,
+    updateMsgKeySort,
     addMsgRecords,
     removeMsgRecord,
     getMsg,

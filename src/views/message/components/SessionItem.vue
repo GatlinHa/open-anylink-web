@@ -82,11 +82,11 @@ const isNotInGroup = computed(() => {
 })
 
 const lastMsg = computed(() => {
-  const msgIds = messageData.msgIdSortArray[props.sessionId]
-  if (!msgIds?.length) {
+  const msgKeyS = messageData.msgKeySortedArray[props.sessionId]
+  if (!msgKeyS?.length) {
     return ref({})
   }
-  return messageData.getMsg(props.sessionId, msgIds[msgIds.length - 1])
+  return messageData.getMsg(props.sessionId, msgKeyS[msgKeyS.length - 1])
 })
 
 const lastMsgId = computed(() => {

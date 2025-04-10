@@ -36,7 +36,7 @@ export const onReceiveGroupSystemMsg = (updateScroll, capacity) => {
     }
     await messageData.preloadResource([showMsg])
     messageData.addMsgRecords(sessionId, [showMsg])
-    messageData.updateMsgIdSort(sessionId)
+    messageData.updateMsgKeySort(sessionId)
 
     // 如果是当前正打开的会话
     if (messageData.selectedSessionId === sessionId) {

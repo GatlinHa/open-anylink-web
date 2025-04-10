@@ -44,7 +44,7 @@ export const onReceiveGroupChatMsg = (updateScroll, capacity) => {
     }
     await messageData.preloadResource([showMsg])
     messageData.addMsgRecords(sessionId, [showMsg])
-    messageData.updateMsgIdSort(sessionId)
+    messageData.updateMsgKeySort(sessionId)
 
     if (!messageData.sessionList[sessionId].dnd) {
       playMsgReceive()

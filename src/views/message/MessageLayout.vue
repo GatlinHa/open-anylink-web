@@ -95,18 +95,18 @@ const pullMsgDone = computed(() => {
   return selectedSession.value.pullMsgDone || false
 })
 
-const msgIdSortArray = computed(() => {
-  return messageData.msgIdSortArray[selectedSessionId.value]
+const msgKeySortedArray = computed(() => {
+  return messageData.msgKeySortedArray[selectedSessionId.value]
 })
 
 // 缓存的消息列表是否为空，注意和hasNoMoreMsg的区别
 const noMsg = computed(() => {
-  return msgIdSortArray.value?.length === 0
+  return msgKeySortedArray.value?.length === 0
 })
 // 当前session的第一条消息ID
 const firstMsgId = computed(() => {
   if (!noMsg.value) {
-    return msgIdSortArray.value[0]
+    return msgKeySortedArray.value[0]
   } else {
     return 0
   }
@@ -114,8 +114,8 @@ const firstMsgId = computed(() => {
 // 当前session的最后一条消息ID
 const lastMsgId = computed(() => {
   if (!noMsg.value) {
-    const len = msgIdSortArray.value?.length
-    return len ? msgIdSortArray.value[len - 1] : 0
+    const len = msgKeySortedArray.value?.length
+    return len ? msgKeySortedArray.value[len - 1] : 0
   } else {
     return 0
   }
@@ -162,7 +162,7 @@ const capacity = ref(15) //TODO 现在是调试值
 const step = 15 //TODO 现在是调试值
 const startIndex = computed(() => {
   if (selectedSessionId.value) {
-    const len = msgIdSortArray.value?.length
+    const len = msgKeySortedArray.value?.length
     return len > capacity.value ? len - capacity.value : 0
   } else {
     return 0
@@ -210,8 +210,8 @@ const locateSession = (sessionId) => {
   }, 200)
 }
 
-const msgIdsShow = computed(() => {
-  const ids = msgIdSortArray.value?.slice(startIndex.value)
+const msgKeysShow = computed(() => {
+  const ids = msgKeySortedArray.value?.slice(startIndex.value)
   if (!ids) return []
   return ids
 })
@@ -219,10 +219,10 @@ const msgIdsShow = computed(() => {
 let lastReadMsgId = 0
 const msgExtend = computed(() => {
   const data = {}
-  for (let index = 0; index < msgIdsShow.value.length; index++) {
+  for (let index = 0; index < msgKeysShow.value.length; index++) {
     const ext = {}
     if (index > 0) {
-      const preMsg = messageData.getMsg(selectedSessionId.value, msgIdsShow.value[index - 1])
+      const preMsg = messageData.getMsg(selectedSessionId.value, msgKeysShow.value[index - 1])
       // 上一条消息的时间，相邻的时间只出一条tips
       ext['preMsgTime'] = preMsg.msgTime
       // 判断是否是打开session后的第一条未读消息
@@ -235,7 +235,7 @@ const msgExtend = computed(() => {
       ext['preMsgTime'] = null
       ext['isFirstNew'] = false
     }
-    data[msgIdsShow.value[index]] = ext
+    data[msgKeysShow.value[index]] = ext
   }
   return data
 })
@@ -320,11 +320,11 @@ const sessionListSorted = computed(() => {
           return 1
         } else {
           // 排序第三优先级：最后一条消息的时间
-          const a_msgIds = messageData.msgIdSortArray[a.sessionId]
+          const a_msgIds = messageData.msgKeySortedArray[a.sessionId]
           const a_msgIds_len = a_msgIds?.length
           if (!a_msgIds_len) return 1
           const a_lastMsg = messageData.getMsg(a.sessionId, a_msgIds[a_msgIds_len - 1])
-          const b_msgIds = messageData.msgIdSortArray[b.sessionId]
+          const b_msgIds = messageData.msgKeySortedArray[b.sessionId]
           const b_msgIds_len = b_msgIds?.length
           if (!b_msgIds_len) return -1
           const b_lastMsg = messageData.getMsg(b.sessionId, b_msgIds[b_msgIds_len - 1])
@@ -421,7 +421,7 @@ const pullMsg = async (endMsgId = null) => {
     if (msgCount > 0) {
       await messageData.preloadResource(res.data.data.msgList)
       messageData.addMsgRecords(sessionId, res.data.data.msgList)
-      messageData.updateMsgIdSort(sessionId)
+      messageData.updateMsgKeySort(sessionId)
     }
 
     if (msgCount < pageSize) {
@@ -504,7 +504,7 @@ const handleLocalMsg = ({ content, contentType, objectId, fn }) => {
     sendTime: new Date()
   }
   messageData.addMsgRecords(msg.sessionId, [msg])
-  messageData.updateMsgIdSort(msg.sessionId)
+  messageData.updateMsgKeySort(msg.sessionId)
   capacity.value++
   msgListReachBottom()
 
@@ -564,7 +564,7 @@ const handleSendMessage = (msg) => {
       readTime: new Date()
     })
 
-    messageData.updateMsg(msg.sessionId, msg.msgId, { status: msgSendStatus.OK })
+    messageData.updateMsg(msg.sessionId, msg.msgId, { msgId, status: msgSendStatus.OK })
     if (!messageData.sessionList[msg.sessionId].dnd) {
       playMsgSend()
     }
@@ -597,10 +597,10 @@ const handleResendMessage = (msg) => {
 const onLoadMore = async () => {
   const scrollHeight = msgListDiv.value.scrollHeight
   const scrollTop = msgListDiv.value.scrollTop
-  if (msgIdSortArray.value?.length <= capacity.value) {
-    await pullMsg(msgIdsShow.value[0])
+  if (msgKeySortedArray.value?.length <= capacity.value) {
+    await pullMsg(msgKeysShow.value[0])
   }
-  const len = msgIdSortArray.value?.length
+  const len = msgKeySortedArray.value?.length
   if (len > capacity.value) {
     if (len - capacity.value > step) {
       capacity.value += step
@@ -809,10 +809,10 @@ const onOpenSession = async ({ msgType, objectInfo }) => {
 }
 
 /**
- * 监视msgIdsShow的数据变化,给出新消息的tips提示
+ * 监视msgKeysShow的数据变化,给出新消息的tips提示
  */
 watch(
-  () => msgIdsShow.value,
+  () => msgKeysShow.value,
   (newValue) => {
     if (!newValue || selectedSession.value.unreadCount === 0) return
     nextTick(() => {
@@ -1143,10 +1143,10 @@ const onShowRecorder = () => {
                 @wheel="handleMsgListWheel"
               >
                 <MessageItem
-                  v-for="item in msgIdsShow"
+                  v-for="item in msgKeysShow"
                   :key="selectedSessionId + '-' + item"
                   :sessionId="selectedSessionId"
-                  :msgId="item"
+                  :msgKey="item"
                   :extend="msgExtend[item]"
                   :obj="getMsgSenderObj(item)"
                   :readMsgId="selectedSession.readMsgId"

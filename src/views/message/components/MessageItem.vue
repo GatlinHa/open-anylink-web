@@ -24,7 +24,7 @@ import DocumentMsgBox from '@/views/message/components/DocumentMsgBox.vue'
 
 const props = defineProps([
   'sessionId',
-  'msgId',
+  'msgKey',
   'extend',
   'obj',
   'readMsgId',
@@ -237,7 +237,7 @@ const renderDocument = (content) => {
 }
 
 const msg = computed(() => {
-  return messageData.getMsg(props.sessionId, props.msgId)
+  return messageData.getMsg(props.sessionId, props.msgKey)
 })
 
 const msgStatus = computed(() => {
@@ -736,7 +736,7 @@ watch(
               <span>{{ msgTime }}</span>
             </el-header>
             <el-main class="message-content">
-              <div class="div-content" :id="`div-content-${msg.msgId}`">内容加载中...</div>
+              <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
             </el-main>
           </el-container>
         </el-main>

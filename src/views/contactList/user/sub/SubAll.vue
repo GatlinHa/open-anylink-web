@@ -43,12 +43,12 @@ const allData = computed(() => {
     return data
   } else {
     return data.sort((a, b) => {
-      const a_msgIds = messageData.msgIdSortArray[a.sessionId]
+      const a_msgIds = messageData.msgKeySortedArray[a.sessionId]
       const a_msgIds_len = a_msgIds?.length
       if (!a_msgIds_len) return 1
       const a_lastMsg = messageData.getMsg(a.sessionId, a_msgIds[a_msgIds_len - 1])
 
-      const b_msgIds = messageData.msgIdSortArray[b.sessionId]
+      const b_msgIds = messageData.msgKeySortedArray[b.sessionId]
       const b_msgIds_len = b_msgIds?.length
       if (!b_msgIds_len) return -1
       const b_lastMsg = messageData.getMsg(b.sessionId, b_msgIds[b_msgIds_len - 1])
