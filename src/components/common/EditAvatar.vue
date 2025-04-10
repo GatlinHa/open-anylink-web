@@ -179,6 +179,7 @@ const onRotateRight = () => {
             :auto-upload="false"
             :show-file-list="false"
             :on-change="onSelected"
+            accept="image/*"
             style="display: flex"
           >
             <template #trigger>
