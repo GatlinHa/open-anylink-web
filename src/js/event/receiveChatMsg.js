@@ -44,7 +44,7 @@ export const onReceiveChatMsg = (updateScroll, capacity) => {
       content: msg.body.content,
       msgTime: now
     }
-    await messageData.preloadResource(sessionId, [showMsg])
+    await messageData.preloadResource([showMsg])
     messageData.addMsgRecords(sessionId, [showMsg])
     messageData.updateMsgIdSort(sessionId)
 

@@ -14,11 +14,11 @@ export const useVideoStore = defineStore('anylink-video', () => {
    */
   const video = ref({})
 
-  const setVideo = (sessionId, obj) => {
+  const setVideo = (obj) => {
     video.value[obj.objectId] = obj
   }
 
-  const preloadVideo = async (sessionId, msgRecords) => {
+  const preloadVideo = async (msgRecords) => {
     const videoIds = new Set()
     msgRecords.forEach((item) => {
       const content = item.content
@@ -34,7 +34,7 @@ export const useVideoStore = defineStore('anylink-video', () => {
     if (videoIds.size > 0) {
       const res = await mtsVideoService({ objectIds: [...videoIds].join(',') })
       res.data.data.forEach((item) => {
-        setVideo(sessionId, item)
+        setVideo(item)
       })
     }
   }

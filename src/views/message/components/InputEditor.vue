@@ -24,7 +24,7 @@ const getQuill = () => {
 onMounted(async () => {
   // 给组件增加滚动条样式
   document.querySelector('.ql-editor').classList.add('my-scrollbar')
-  await imageData.loadImageInfoFromContent(props.sessionId, props.draft)
+  await imageData.loadImageInfoFromContent(props.draft)
   formatContent(props.draft)
   getQuill().on('composition-start', () => {
     // 当用户使用拼音输入法开始输入汉字时，这个事件就会被触发
@@ -43,7 +43,7 @@ onBeforeUnmount(async () => {
     someUploadedFailFn: () => {},
     allUploadedSuccessFn: () => {}
   }
-  const contentObj = parseContent(props.sessionId, callbacks)
+  const contentObj = parseContent(callbacks)
 
   const fn = (content) => {
     // 草稿若发生变动，则触发存储
@@ -72,7 +72,7 @@ onUnmounted(() => {
   }
 })
 
-const parseContent = (sessionId, callbacks) => {
+const parseContent = (callbacks) => {
   const delta = getQuill().getContents()
   let contentFromLocal = new Array(delta.ops.length).fill('')
   let contentFromServer = new Array(delta.ops.length).fill('')
@@ -114,19 +114,20 @@ const parseContent = (sessionId, callbacks) => {
         const tempObjectId = new Date().getTime()
         // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
         const localSrc = URL.createObjectURL(file)
-        imageData.setLocalImage({
+        imageData.setImage({
           objectId: tempObjectId,
           originUrl: localSrc,
           thumbUrl: localSrc,
           fileName: file.name,
-          size: file.size
+          size: file.size,
+          createdTime: new Date()
         })
         contentFromLocal[index] = `{${tempObjectId}}`
 
         //上传图片至服务端
         mtsUploadService({ file: file, storeType: 1 })
           .then((res) => {
-            imageData.setServerImage(sessionId, res.data.data) // 缓存image数据
+            imageData.setImage(res.data.data) // 缓存image数据
             uploadSuccessCount++
             contentFromServer[index] = `{${res.data.data.objectId}}`
             callbacks.someOneUploadedSuccessFn()
@@ -166,7 +167,7 @@ watch(
       someUploadedFailFn: () => {},
       allUploadedSuccessFn: () => {}
     }
-    const contentObj = parseContent(oldSessionId, callbacks)
+    const contentObj = parseContent(callbacks)
 
     const fn = (content) => {
       // 草稿若发生变动，则触发存储
@@ -205,7 +206,7 @@ const handleEnter = async () => {
     allUploadedSuccessFn: () => {}
   }
 
-  const contentObj = parseContent(props.sessionId, callbacks)
+  const contentObj = parseContent(callbacks)
 
   const content = contentObj.contentFromLocal.join('').trim()
   if (!content) {

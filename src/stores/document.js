@@ -14,11 +14,11 @@ export const useDocumentStore = defineStore('anylink-document', () => {
    */
   const document = ref({})
 
-  const setDocument = (sessionId, obj) => {
+  const setDocument = (obj) => {
     document.value[obj.objectId] = obj
   }
 
-  const preloadDocument = async (sessionId, msgRecords) => {
+  const preloadDocument = async (msgRecords) => {
     const documentIds = new Set()
     msgRecords.forEach((item) => {
       const content = item.content
@@ -34,7 +34,7 @@ export const useDocumentStore = defineStore('anylink-document', () => {
     if (documentIds.size > 0) {
       const res = await mtsDocumentService({ objectIds: [...documentIds].join(',') })
       res.data.data.forEach((item) => {
-        setDocument(sessionId, item)
+        setDocument(item)
       })
     }
   }

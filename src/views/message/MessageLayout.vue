@@ -25,7 +25,8 @@ import {
   useMessageStore,
   useUserCardStore,
   useGroupCardStore,
-  useGroupStore
+  useGroupStore,
+  useImageStore
 } from '@/stores'
 import backgroupImage from '@/assets/svg/messagebx_bg.svg'
 import {
@@ -57,6 +58,7 @@ const messageData = useMessageStore()
 const userCardData = useUserCardStore()
 const groupCardData = useGroupCardStore()
 const groupData = useGroupStore()
+const imageData = useImageStore()
 const sessionListRef = ref()
 
 const asideWidth = ref(0)
@@ -180,6 +182,7 @@ const initSession = (sessionId) => {
   }
   isShowRecorder.value = false // 麦克风输入状态重置
   inputRecorderRef.value?.cancelSend() // 取消音频发送
+  imageData.clearImageInSession(sessionId) // 清除待渲染的图片队列
 }
 
 /**
@@ -326,9 +329,9 @@ const sessionListSorted = computed(() => {
           if (!b_msgIds_len) return -1
           const b_lastMsg = messageData.getMsg(b.sessionId, b_msgIds[b_msgIds_len - 1])
           const bTime = new Date(b_lastMsg.msgTime).getTime()
-          const aTIme = new Date(a_lastMsg.msgTime).getTime()
-          if (bTime !== aTIme) {
-            return bTime - aTIme
+          const aTime = new Date(a_lastMsg.msgTime).getTime()
+          if (bTime !== aTime) {
+            return bTime - aTime
           }
         }
       }
@@ -416,7 +419,7 @@ const pullMsg = async (endMsgId = null) => {
     const res = await msgChatPullMsgService(params)
     const msgCount = res.data.data.count
     if (msgCount > 0) {
-      await messageData.preloadResource(sessionId, res.data.data.msgList)
+      await messageData.preloadResource(res.data.data.msgList)
       messageData.addMsgRecords(sessionId, res.data.data.msgList)
       messageData.updateMsgIdSort(sessionId)
     }
@@ -1191,7 +1194,6 @@ const onShowRecorder = () => {
               <el-container v-if="isShowRecorder">
                 <InputRecorder
                   ref="inputRecorderRef"
-                  :sessionId="selectedSessionId"
                   @exit="isShowRecorder = false"
                   @saveLocalMsg="handleLocalMsg"
                   @sendMessage="handleSendMessage"

@@ -7,7 +7,6 @@ import { mtsUploadService } from '@/api/mts'
 import { v4 as uuidv4 } from 'uuid'
 import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
 
-const props = defineProps(['sessionId'])
 const emit = defineEmits(['exit', 'sendMessage', 'saveLocalMsg'])
 
 const audioData = useAudioStore()
@@ -151,7 +150,7 @@ const uploadRecord = () => {
   const duration = Math.floor(recordDuration / 1000)
   const localSrc = URL.createObjectURL(file)
   const tempObjectId = new Date().getTime()
-  audioData.setAudio(props.sessionId, {
+  audioData.setAudio({
     objectId: tempObjectId,
     duration: duration,
     url: localSrc,
@@ -172,7 +171,7 @@ const uploadRecord = () => {
   mtsUploadService({ file, storeType: 1, duration: duration })
     .then((res) => {
       if (res.data.code === 0) {
-        audioData.setAudio(props.sessionId, res.data.data) // 缓存服务端响应的audio数据
+        audioData.setAudio(res.data.data) // 缓存服务端响应的audio数据
         msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
         msg.uploadProgress = 100
         msg.content = JSON.stringify({

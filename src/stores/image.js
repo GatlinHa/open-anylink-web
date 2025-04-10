@@ -17,24 +17,25 @@ export const useImageStore = defineStore('anylink-image', () => {
   const image = ref({})
 
   /**
-   * 在同一个session中的image（id）集合
+   * 在同一个session中的需要渲染的image对象数组
    */
   const imageInSession = ref({})
 
-  /**
-   * 本地图片只是临时的，不用放进imageInSession
-   * @param {*} obj
-   */
-  const setLocalImage = (obj) => {
+  const setImage = (obj) => {
     image.value[obj.objectId] = obj
   }
 
-  const setServerImage = (sessionId, obj) => {
-    image.value[obj.objectId] = obj
+  const setImageInSession = (sessionId, obj) => {
     if (!imageInSession.value[sessionId]) {
       imageInSession.value[sessionId] = []
     }
-    imageInSession.value[sessionId].push(obj.objectId)
+    imageInSession.value[sessionId].push(obj)
+  }
+
+  const clearImageInSession = (sessionId) => {
+    if (imageInSession.value[sessionId]) {
+      imageInSession.value[sessionId] = []
+    }
   }
 
   const imageTrans = (content, maxWidth = 360, maxHeight = 180) => {
@@ -60,7 +61,7 @@ export const useImageStore = defineStore('anylink-image', () => {
     return content
   }
 
-  const loadImageInfoFromContent = async (sessionId, content) => {
+  const loadImageInfoFromContent = async (content) => {
     const imageIds = new Set()
     const matches = content.match(pattern)
     if (matches && matches.length > 0) {
@@ -76,12 +77,12 @@ export const useImageStore = defineStore('anylink-image', () => {
     if (imageIds.size > 0) {
       const res = await mtsImageService({ objectIds: [...imageIds].join(',') })
       res.data.data.forEach((item) => {
-        setServerImage(sessionId, item) // 缓存image数据
+        setImage(item) // 缓存image数据
       })
     }
   }
 
-  const preloadImage = async (sessionId, msgRecords) => {
+  const preloadImage = async (msgRecords) => {
     const imageIds = new Set()
     msgRecords.forEach((item) => {
       const content = item.content
@@ -109,7 +110,7 @@ export const useImageStore = defineStore('anylink-image', () => {
     if (imageIds.size > 0) {
       const res = await mtsImageService({ objectIds: [...imageIds].join(',') })
       res.data.data.forEach((item) => {
-        setServerImage(sessionId, item)
+        setImage(item)
       })
     }
   }
@@ -117,8 +118,9 @@ export const useImageStore = defineStore('anylink-image', () => {
   return {
     image,
     imageInSession,
-    setLocalImage,
-    setServerImage,
+    setImage,
+    setImageInSession,
+    clearImageInSession,
     imageTrans,
     loadImageInfoFromContent,
     preloadImage

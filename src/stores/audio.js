@@ -14,11 +14,11 @@ export const useAudioStore = defineStore('anylink-audio', () => {
    */
   const audio = ref({})
 
-  const setAudio = (sessionId, obj) => {
+  const setAudio = (obj) => {
     audio.value[obj.objectId] = obj
   }
 
-  const preloadAudio = async (sessionId, msgRecords) => {
+  const preloadAudio = async (msgRecords) => {
     const audioIds = new Set()
     msgRecords.forEach((item) => {
       const content = item.content
@@ -37,7 +37,7 @@ export const useAudioStore = defineStore('anylink-audio', () => {
     if (audioIds.size > 0) {
       const res = await mtsAudioService({ objectIds: [...audioIds].join(',') })
       res.data.data.forEach((item) => {
-        setAudio(sessionId, item)
+        setAudio(item)
       })
     }
   }

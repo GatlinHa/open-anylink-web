@@ -121,11 +121,11 @@ export const useMessageStore = defineStore('anylink-message', () => {
    * @param {*} sessionId
    * @param {*} msgRecords
    */
-  const preloadResource = async (sessionId, msgRecords) => {
-    await useImageStore().preloadImage(sessionId, msgRecords)
-    await useAudioStore().preloadAudio(sessionId, msgRecords)
-    await useVideoStore().preloadVideo(sessionId, msgRecords)
-    await useDocumentStore().preloadDocument(sessionId, msgRecords)
+  const preloadResource = async (msgRecords) => {
+    await useImageStore().preloadImage(msgRecords)
+    await useAudioStore().preloadAudio(msgRecords)
+    await useVideoStore().preloadVideo(msgRecords)
+    await useDocumentStore().preloadDocument(msgRecords)
   }
 
   /**
@@ -239,7 +239,7 @@ export const useMessageStore = defineStore('anylink-message', () => {
         addSession(res.data.data[item].session)
         const msgList = res.data.data[item].msgList
         if (msgList) {
-          await preloadResource(item, msgList)
+          await preloadResource(msgList)
           addMsgRecords(item, msgList)
           updateMsgIdSort(item)
         }

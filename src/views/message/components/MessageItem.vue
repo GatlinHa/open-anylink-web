@@ -168,18 +168,13 @@ const renderVideo = (content) => {
 
 const renderImage = (content, isForMix = false) => {
   const imgId = content
-  const url = imageData.image[imgId]?.thumbUrl
-  if (url) {
-    const imgIdList = imageData.imageInSession[props.sessionId] || []
-    const imgIdListSorted = imgIdList.includes(imgId) ? imgIdList.sort((a, b) => a - b) : [imgId]
-    const srcList = imgIdListSorted.map((item) => imageData.image[item].originUrl)
+  if (imageData.image[imgId]) {
+    // 只要这里渲染，就收集该session下的所有image，用于preview-src-list
+    imageData.setImageInSession(props.sessionId, imageData.image[imgId])
     return h(ImageMsgBox, {
-      url,
+      sessionId: props.sessionId,
       imgId,
-      srcList,
-      initialIndex: imgIdListSorted.indexOf(imgId),
-      fileName: isForMix ? '' : imageData.image[imgId].fileName,
-      size: isForMix ? '' : imageData.image[imgId].size,
+      isForMix,
       onLoad: () => {
         emit('loadFinished')
       }

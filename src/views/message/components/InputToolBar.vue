@@ -81,16 +81,17 @@ const setLocalData = (contentType, file) => {
   const localSrc = URL.createObjectURL(file.raw)
   switch (contentType) {
     case msgContentType.IMAGE:
-      imageData.setLocalImage({
+      imageData.setImage({
         objectId: file.uid,
         originUrl: localSrc,
         thumbUrl: localSrc,
         fileName: file.name,
-        size: file.raw.size
+        size: file.raw.size,
+        createdTime: new Date()
       })
       break
     case msgContentType.AUDIO:
-      audioData.setAudio(props.sessionId, {
+      audioData.setAudio({
         objectId: file.uid,
         url: localSrc,
         fileName: file.name,
@@ -98,7 +99,7 @@ const setLocalData = (contentType, file) => {
       })
       break
     case msgContentType.VIDEO:
-      videoData.setVideo(props.sessionId, {
+      videoData.setVideo({
         objectId: file.uid,
         url: localSrc,
         fileName: file.name,
@@ -107,7 +108,7 @@ const setLocalData = (contentType, file) => {
       break
     case msgContentType.DOCUMENT:
     default:
-      documentData.setDocument(props.sessionId, {
+      documentData.setDocument({
         objectId: file.uid,
         documentType: file.raw.type,
         url: localSrc,
@@ -125,17 +126,17 @@ const setLocalData = (contentType, file) => {
 const setStoreData = (contentType, data) => {
   switch (contentType) {
     case msgContentType.IMAGE:
-      imageData.setServerImage(props.sessionId, data)
+      imageData.setImage(data)
       break
     case msgContentType.AUDIO:
-      audioData.setAudio(props.sessionId, data)
+      audioData.setAudio(data)
       break
     case msgContentType.VIDEO:
-      videoData.setVideo(props.sessionId, data)
+      videoData.setVideo(data)
       break
     case msgContentType.DOCUMENT:
     default:
-      documentData.setDocument(props.sessionId, data)
+      documentData.setDocument(data)
   }
 }
 

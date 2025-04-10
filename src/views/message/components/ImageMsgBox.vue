@@ -2,9 +2,12 @@
 import { computed } from 'vue'
 import { ElImage } from 'element-plus'
 import { formatFileSize } from '@/js/utils/common'
+import { useImageStore } from '@/stores'
 
-const props = defineProps(['url', 'imgId', 'srcList', 'initialIndex', 'fileName', 'size'])
+const props = defineProps(['sessionId', 'imgId', 'isForMix'])
 const emits = defineEmits(['load'])
+
+const imageData = useImageStore()
 
 const onLoad = (e) => {
   const img = e.target
@@ -24,27 +27,57 @@ const onLoad = (e) => {
   emits('load') //向父组件暴露load事件
 }
 
+const url = computed(() => {
+  return imageData.image[props.imgId]?.thumbUrl
+})
+
+const imageInSessionSort = computed(() => {
+  const imageList = imageData.imageInSession[props.sessionId]
+  return imageList.sort((a, b) => {
+    const bTime = new Date(b.createdTime).getTime()
+    const aTime = new Date(a.createdTime).getTime()
+    return aTime - bTime
+  })
+})
+
+const srcList = computed(() => {
+  return imageInSessionSort.value.map((item) => item.originUrl)
+})
+
+const initialIndex = computed(() => {
+  const imgIdList = imageInSessionSort.value.map((item) => item.objectId.toString())
+  return imgIdList.indexOf(props.imgId.toString())
+})
+
+const fileName = computed(() => {
+  return props.isForMix ? '' : imageData.image[props.imgId].fileName
+})
+
+const size = computed(() => {
+  return props.isForMix ? '' : imageData.image[props.imgId].size
+})
+
 const formatSize = computed(() => {
-  return formatFileSize(props.size)
+  return formatFileSize(size.value)
 })
 </script>
 
 <template>
   <div class="image-msg-wrapper">
     <el-image
-      :src="props.url"
+      :src="url"
       :alt="props.imgId"
-      :preview-src-list="props.srcList"
-      :initial-index="props.initialIndex"
+      :preview-src-list="srcList"
+      :initial-index="initialIndex"
       :infinite="false"
       :lazy="false"
       fit="contain"
       @load="onLoad"
     >
     </el-image>
-    <div v-if="props.fileName || props.size > 0" class="info">
-      <span class="name item text-ellipsis" :title="props.fileName">
-        {{ props.fileName || '' }}
+    <div v-if="fileName || size > 0" class="info">
+      <span class="name item text-ellipsis" :title="fileName">
+        {{ fileName || '' }}
       </span>
       <span class="size item text-ellipsis" :title="formatSize">
         {{ formatSize }}
