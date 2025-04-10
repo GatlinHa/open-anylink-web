@@ -190,7 +190,7 @@ const renderRecording = (content) => {
   const duration = audioData.audio[audioId]?.duration
   if (url) {
     return h(RecordingMsgBox, {
-      audioUrl: import.meta.env.VITE_OSS_CORS_FLAG + url,
+      audioUrl: url,
       duration: duration,
       onLoad: () => {
         emit('loadFinished')
@@ -206,7 +206,7 @@ const renderAudio = (content) => {
   const url = audioData.audio[audioId]?.url
   if (url) {
     return h(AudioMsgBox, {
-      url: import.meta.env.VITE_OSS_CORS_FLAG + url,
+      url,
       fileName: audioData.audio[audioId].fileName,
       size: audioData.audio[audioId].size,
       onLoad: () => {
@@ -223,7 +223,7 @@ const renderDocument = (content) => {
   const url = documentData.document[documentId]?.url
   if (url) {
     return h(DocumentMsgBox, {
-      url: import.meta.env.VITE_OSS_CORS_FLAG + url,
+      url,
       fileName: documentData.document[documentId].fileName,
       contentType: documentData.document[documentId].documentType,
       size: documentData.document[documentId].size,
