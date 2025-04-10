@@ -17,6 +17,7 @@ const previewImg = ref('')
 const isLoading = ref(false)
 const fileName = ref('')
 const resetData = ref({})
+const currentBlobUrl = ref('') // 新增变量，用于存储当前的 Blob URL
 
 const avatar = computed(() => {
   if (props.model === 'user') {
@@ -41,13 +42,25 @@ const onOpen = () => {
 // 关闭的时候触发
 const onClose = () => {
   isLoading.value = false
+  // 释放当前的 Blob URL
+  if (currentBlobUrl.value) {
+    URL.revokeObjectURL(currentBlobUrl.value)
+    currentBlobUrl.value = ''
+  }
 }
 
 // 选择了文件触发
 const onSelected = (file) => {
+  // 释放之前的 Blob URL
+  if (currentBlobUrl.value) {
+    URL.revokeObjectURL(currentBlobUrl.value)
+    currentBlobUrl.value = ''
+  }
+
   fileName.value = file.name
   srcImg.value = URL.createObjectURL(file.raw)
   previewImg.value = srcImg.value
+  currentBlobUrl.value = srcImg.value // 存储当前的 Blob URL
   resetData.value = {
     previewImg: previewImg.value
   }
