@@ -26,6 +26,7 @@ onMounted(async () => {
 const onNewAvatar = ({ avatarId, avatar }) => {
   formModel.value.avatarId = avatarId
   avatarUrl.value = avatar
+  onSave()
 }
 
 const onSave = () => {

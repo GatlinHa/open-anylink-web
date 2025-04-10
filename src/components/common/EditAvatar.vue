@@ -1,9 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/stores'
-import { Plus, Upload, RefreshLeft, RefreshRight, Refresh } from '@element-plus/icons-vue'
+import { Plus, Check, RefreshLeft, RefreshRight, Refresh } from '@element-plus/icons-vue'
 import { mtsUploadService } from '@/api/mts'
-import { ElMessage } from 'element-plus'
 import 'vue-cropper/dist/index.css'
 import { VueCropper } from 'vue-cropper'
 
@@ -66,7 +65,7 @@ const onSelected = (file) => {
   }
 }
 
-const onUpload = async () => {
+const onSave = async () => {
   cropper.value.getCropBlob(async (blob) => {
     const lastDotIndex = fileName.value.lastIndexOf('.')
     const prefix = fileName.value.substring(0, lastDotIndex)
@@ -88,8 +87,7 @@ const onUpload = async () => {
         avatar: res.data.data.originUrl,
         avatarThumb: res.data.data.thumbUrl
       })
-      emit('update:modelValue', false)
-      ElMessage.success('头像上传成功')
+      emit('update:modelValue', false) //关闭窗口
     } catch (error) {
       /* empty */
     } finally {
@@ -188,13 +186,13 @@ const onRotateRight = () => {
             </template>
             <el-button
               type="success"
-              :icon="Upload"
+              :icon="Check"
               size="large"
-              @click="onUpload"
+              @click="onSave"
               :loading="isLoading"
               style="margin-left: 10px"
             >
-              上传头像
+              保存头像
             </el-button>
           </el-upload>
         </div>
