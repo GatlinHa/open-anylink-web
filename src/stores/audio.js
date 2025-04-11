@@ -42,9 +42,20 @@ export const useAudioStore = defineStore('anylink-audio', () => {
     }
   }
 
+  const clear = () => {
+    Object.values(audio.value).forEach((item) => {
+      if (item.url.startsWith('blob:')) {
+        URL.revokeObjectURL(item.url)
+      }
+    })
+
+    audio.value = {}
+  }
+
   return {
     audio,
     setAudio,
-    preloadAudio
+    preloadAudio,
+    clear
   }
 })

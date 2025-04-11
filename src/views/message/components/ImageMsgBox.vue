@@ -50,11 +50,11 @@ const initialIndex = computed(() => {
 })
 
 const fileName = computed(() => {
-  return props.isForMix ? '' : imageData.image[props.imgId].fileName
+  return props.isForMix ? '' : imageData.image[props.imgId]?.fileName
 })
 
 const size = computed(() => {
-  return props.isForMix ? '' : imageData.image[props.imgId].size
+  return props.isForMix ? '' : imageData.image[props.imgId]?.size
 })
 
 const formatSize = computed(() => {

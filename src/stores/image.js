@@ -92,6 +92,20 @@ export const useImageStore = defineStore('anylink-image', () => {
     }
   }
 
+  const clear = () => {
+    Object.values(image.value).forEach((item) => {
+      if (item.originUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(item.originUrl)
+      }
+
+      if (item.thumbUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(item.thumbUrl)
+      }
+    })
+
+    image.value = {}
+  }
+
   return {
     image,
     imageInSession,
@@ -99,6 +113,7 @@ export const useImageStore = defineStore('anylink-image', () => {
     setImageInSession,
     clearImageInSession,
     loadImageInfoFromContent,
-    preloadImage
+    preloadImage,
+    clear
   }
 })

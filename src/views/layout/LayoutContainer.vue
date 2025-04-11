@@ -8,7 +8,16 @@ import {
 } from '@element-plus/icons-vue'
 import { onMounted, onUnmounted, ref, computed } from 'vue'
 import ContactUs from '@/views/layout/components/ContactUs.vue'
-import { useUserStore, useMessageStore, useSearchStore, useGroupStore } from '@/stores'
+import {
+  useUserStore,
+  useMessageStore,
+  useSearchStore,
+  useGroupStore,
+  useImageStore,
+  useAudioStore,
+  useVideoStore,
+  useDocumentStore
+} from '@/stores'
 import router from '@/router'
 import MyCard from '@/views/layout/components/MyCard.vue'
 import NaviMenu from '@/views/layout/components/NaviMenu.vue'
@@ -34,6 +43,10 @@ const userData = useUserStore()
 const messageData = useMessageStore()
 const searchData = useSearchStore()
 const groupData = useGroupStore()
+const imageData = useImageStore()
+const audioData = useAudioStore()
+const videoData = useVideoStore()
+const documentData = useDocumentStore()
 const isShowMyCard = ref(false)
 const contactUsRef = ref(null)
 const sourceCodeRef = ref(null)
@@ -87,6 +100,10 @@ onUnmounted(() => {
   userData.clear()
   messageData.clear()
   searchData.clear()
+  imageData.clear()
+  audioData.clear()
+  videoData.clear()
+  documentData.clear()
   wsConnect.closeWs()
 })
 
