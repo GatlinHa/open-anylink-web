@@ -11,15 +11,13 @@ const imageData = useImageStore()
 
 const onLoad = (e) => {
   const img = e.target
-  const maxWidth = 360
-  const maxHeight = 180
+  const maxWidth = props.isForMix ? Math.min(img.naturalWidth, 360) : 360
+  const maxHeight = props.isForMix ? Math.min(img.naturalHeight, 180) : 180
 
   if (img.naturalWidth / img.naturalHeight > maxWidth / maxHeight) {
-    // 如果图片更宽，以宽度为基准
     img.style.width = maxWidth + 'px'
     img.style.height = 'auto'
   } else {
-    // 如果图片更高，以高度为基准
     img.style.height = maxHeight + 'px'
     img.style.width = 'auto'
   }
