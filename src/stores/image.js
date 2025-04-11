@@ -38,29 +38,6 @@ export const useImageStore = defineStore('anylink-image', () => {
     }
   }
 
-  const imageTrans = (content, maxWidth = 360, maxHeight = 180) => {
-    const matches = content.match(pattern)
-    if (!matches || matches.length === 0) {
-      return content
-    }
-
-    new Set(matches).forEach((item) => {
-      let startIndex = item.indexOf('{')
-      let endIndex = item.indexOf('}')
-      const objectId = item.slice(startIndex + 1, endIndex)
-      const thumbUrl = image.value[objectId]?.thumbUrl
-      const originUrl = image.value[objectId]?.originUrl
-      if (thumbUrl) {
-        const imageHtml =
-          `<img class="image" alt="{${objectId}}" src="${thumbUrl}" data-origin-url="${originUrl}" ` +
-          `style="max-width: ${maxWidth}px; max-height: ${maxHeight}px; width: auto; height: auto;cursor: pointer;">`
-        content = content.replaceAll(item, imageHtml)
-      }
-    })
-
-    return content
-  }
-
   const loadImageInfoFromContent = async (content) => {
     const imageIds = new Set()
     const matches = content.match(pattern)
@@ -121,7 +98,6 @@ export const useImageStore = defineStore('anylink-image', () => {
     setImage,
     setImageInSession,
     clearImageInSession,
-    imageTrans,
     loadImageInfoFromContent,
     preloadImage
   }

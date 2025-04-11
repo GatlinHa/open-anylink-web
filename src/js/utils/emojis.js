@@ -97,25 +97,3 @@ export const getEmojiHtml = (emojiId) => {
     return emojiId
   }
 }
-
-/**
- * 把消息内容中的"[xxx]"替换为img html元素
- * @param {*} content 消息内容
- */
-export const emojiTrans = (content) => {
-  const pattern = /\[(.*?)\]/g
-  const matches = content.match(pattern)
-  if (!matches || matches.length === 0) {
-    return content
-  }
-
-  new Set(matches).forEach((item) => {
-    const url = emojis[item]
-    if (url) {
-      const emojiHtml = `<img class='emoji' alt='${item}':' title='${item.slice(1, -1)}' src='${url}'>`
-      content = content.replaceAll(item, emojiHtml)
-    }
-  })
-
-  return content
-}

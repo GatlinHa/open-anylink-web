@@ -5,7 +5,7 @@ import { onMounted, onUnmounted, onBeforeUnmount, ref, watch } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { useMessageStore, useImageStore } from '@/stores'
 import { ElMessage } from 'element-plus'
-import { emojiTrans, getEmojiHtml } from '@/js/utils/emojis'
+import { emojis } from '@/js/utils/emojis'
 import { base64ToFile } from '@/js/utils/common'
 import { mtsUploadService } from '@/api/mts'
 import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
@@ -25,7 +25,7 @@ onMounted(async () => {
   // 给组件增加滚动条样式
   document.querySelector('.ql-editor').classList.add('my-scrollbar')
   await imageData.loadImageInfoFromContent(props.draft)
-  formatContent(props.draft)
+  renderContent(props.draft)
   getQuill().on('composition-start', () => {
     // 当用户使用拼音输入法开始输入汉字时，这个事件就会被触发
     getQuill().root.dataset.placeholder = ''
@@ -72,6 +72,10 @@ onUnmounted(() => {
   }
 })
 
+/**
+ * 解析输入框内容
+ * @param callbacks 解析过程中需要触发的回调
+ */
 const parseContent = (callbacks) => {
   const delta = getQuill().getContents()
   let contentFromLocal = new Array(delta.ops.length).fill('')
@@ -185,18 +189,50 @@ watch(
 
     fn(contentObj.contentFromLocal.join('').trim())
 
-    formatContent(messageData.sessionList[newSessionId].draft || '')
+    renderContent(messageData.sessionList[newSessionId].draft || '')
   },
   { deep: true }
 )
 
-const formatContent = (content) => {
-  let html = emojiTrans(content)
-  html = imageData.imageTrans(html)
-  html = html.replace(/\n/g, '<br>')
-  getQuill().setText('')
-  getQuill().clipboard.dangerouslyPasteHTML(0, html)
-  getQuill().setSelection(getQuill().getLength(), 0, 'user')
+/**
+ * 把输入框的字符串内容渲染成富媒体内容
+ * @param content 字符串内容
+ */
+const renderContent = (content) => {
+  if (!content) {
+    getQuill().setText('')
+    return
+  }
+
+  let contentArray = []
+  //匹配内容中的图片
+  content.split(/(\{.*?\})/).forEach((item) => {
+    //匹配内容中的表情
+    item.split(/(\[.*?\])/).forEach((item) => {
+      if (item) {
+        contentArray.push(item)
+      }
+    })
+  })
+
+  // 创建一个新的 Delta 对象
+  const delta = new Delta()
+  contentArray.map((item) => {
+    if (item.startsWith('{') && item.endsWith('}')) {
+      const imageId = item.slice(1, -1)
+      const imageUrl = imageData.image[imageId].originUrl
+      delta.insert({ image: imageUrl }, { alt: item })
+    } else if (item.startsWith('[') && item.endsWith(']')) {
+      const emojiUrl = emojis[item]
+      delta.insert({ image: emojiUrl }, { alt: item })
+    } else {
+      delta.insert(item)
+    }
+  })
+
+  getQuill().setText('') // 清空编辑器内容
+  getQuill().updateContents(delta) // 使用 Delta 对象更新编辑器内容
+  getQuill().setSelection(getQuill().getLength(), 0, 'user') // 设置光标位置
 }
 
 const handleEnter = async () => {
@@ -308,7 +344,10 @@ const addEmoji = (key) => {
     index = 0
   }
 
-  quill.clipboard.dangerouslyPasteHTML(index, getEmojiHtml(key))
+  const delta = new Delta()
+  delta.retain(index)
+  delta.insert({ image: emojis[key] }, { alt: key })
+  quill.updateContents(delta)
   quill.setSelection(index + 1, 0, 'user')
 }
 
