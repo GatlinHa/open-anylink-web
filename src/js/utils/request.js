@@ -68,7 +68,7 @@ instance.interceptors.response.use(
     if (err.response?.status === 401) {
       useUserStore().clearAt()
       useUserStore().clearRt()
-      ElMessage.error('您还未登录，请先登录')
+      ElMessage.error('未登录或登录已过期，请登录')
       router.push('/login')
     } else {
       console.error(
