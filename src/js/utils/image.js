@@ -42,7 +42,6 @@ export const generateThumb = async (blob, originalWidth = null, originalHeight =
         canvas.toBlob(
           async (blob) => {
             if (blob) {
-              console.log(blob.size)
               if (blob.size <= THUMB_IMAGE_MAX) {
                 const thumbFile = new File([blob], blob.name, {
                   type: blob.type
