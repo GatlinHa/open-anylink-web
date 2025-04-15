@@ -15,7 +15,10 @@ export const mtsUploadServiceForImage = async (requestBody, { originFile, thumbF
     // 2 上传原图
     const originResponse = await fetch(uploadOriginUrl, {
       method: 'PUT',
-      body: originFile
+      body: originFile,
+      headers: {
+        'Content-Type': originFile.type || 'application/octet-stream' // 设置 Content-Type
+      }
     })
 
     if (!originResponse.ok) {
@@ -26,7 +29,10 @@ export const mtsUploadServiceForImage = async (requestBody, { originFile, thumbF
     if (uploadThumbUrl !== uploadOriginUrl) {
       const thumbResponse = await fetch(uploadThumbUrl, {
         method: 'PUT',
-        body: thumbFile
+        body: thumbFile,
+        headers: {
+          'Content-Type': thumbFile.type || 'application/octet-stream' // 设置 Content-Type
+        }
       })
 
       if (!thumbResponse.ok) {
@@ -56,7 +62,10 @@ export const mtsUploadService = async (requestBody, { originFile }) => {
     // 2 上传文件
     const uploadResponse = await fetch(uploadUrl, {
       method: 'PUT',
-      body: originFile
+      body: originFile,
+      headers: {
+        'Content-Type': originFile.type || 'application/octet-stream' // 设置 Content-Type
+      }
     })
 
     if (!uploadResponse.ok) {
