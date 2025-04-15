@@ -150,7 +150,7 @@ const renderEmoji = (content) => {
 
 const renderVideo = (content) => {
   const videoId = content
-  const url = videoData.video[videoId]?.url
+  const url = videoData.video[videoId]?.downloadUrl
   if (url) {
     return h(VideoMsgBox, {
       videoId,
@@ -186,7 +186,7 @@ const renderImage = (content, isForMix = false) => {
 
 const renderRecording = (content) => {
   const audioId = content
-  const url = audioData.audio[audioId]?.url
+  const url = audioData.audio[audioId]?.downloadUrl
   const duration = audioData.audio[audioId]?.duration
   if (url) {
     return h(RecordingMsgBox, {
@@ -203,7 +203,7 @@ const renderRecording = (content) => {
 
 const renderAudio = (content) => {
   const audioId = content
-  const url = audioData.audio[audioId]?.url
+  const url = audioData.audio[audioId]?.downloadUrl
   if (url) {
     return h(AudioMsgBox, {
       url,
@@ -220,7 +220,7 @@ const renderAudio = (content) => {
 
 const renderDocument = (content) => {
   const documentId = content
-  const url = documentData.document[documentId]?.url
+  const url = documentData.document[documentId]?.downloadUrl
   if (url) {
     return h(DocumentMsgBox, {
       url,

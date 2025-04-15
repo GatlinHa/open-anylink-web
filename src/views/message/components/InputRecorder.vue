@@ -6,6 +6,7 @@ import { useAudioStore } from '@/stores'
 import { mtsUploadService } from '@/api/mts'
 import { v4 as uuidv4 } from 'uuid'
 import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
+import { getMd5 } from '@/js/utils/file'
 
 const emit = defineEmits(['exit', 'sendMessage', 'saveLocalMsg'])
 
@@ -142,7 +143,7 @@ const stopRecording = () => {
   }
 }
 
-const uploadRecord = () => {
+const uploadRecord = async () => {
   const fileName = `${uuidv4()}.${fileSuffix}`
   const file = new File([recordBlob.value], fileName, { type: recordType })
 
@@ -153,7 +154,7 @@ const uploadRecord = () => {
   audioData.setAudio({
     objectId: tempObjectId,
     duration: duration,
-    url: localSrc,
+    downloadUrl: localSrc,
     fileName: file.name,
     size: file.size
   })
@@ -168,7 +169,20 @@ const uploadRecord = () => {
   msg.uploadStatus = msgFileUploadStatus.UPLOADING
   msg.uploadProgress = 0
 
-  mtsUploadService({ file, storeType: 1, duration: duration })
+  const md5 = await getMd5(file)
+  const files = {
+    originFile: file
+  }
+  const requestBody = {
+    storeType: 0,
+    md5,
+    fileName: file.name,
+    fileRawType: file.type,
+    size: file.size,
+    audioDuration: duration
+  }
+
+  mtsUploadService(requestBody, files)
     .then((res) => {
       if (res.data.code === 0) {
         audioData.setAudio(res.data.data) // 缓存服务端响应的audio数据

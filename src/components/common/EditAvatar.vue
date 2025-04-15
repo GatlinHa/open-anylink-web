@@ -2,7 +2,9 @@
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/stores'
 import { Plus, Check, RefreshLeft, RefreshRight, Refresh } from '@element-plus/icons-vue'
-import { mtsUploadService } from '@/api/mts'
+import { mtsUploadServiceForImage } from '@/api/mts'
+import { getMd5 } from '@/js/utils/file'
+import { generateThumb } from '@/js/utils/image'
 import 'vue-cropper/dist/index.css'
 import { VueCropper } from 'vue-cropper'
 
@@ -81,7 +83,24 @@ const onSave = async () => {
 
     isLoading.value = true
     try {
-      const res = await mtsUploadService({ file: file, storeType: 0 })
+      const md5 = await getMd5(file)
+      const thumbObj = await generateThumb(file)
+      const files = {
+        originFile: file,
+        thumbFile: thumbObj.thumbFile
+      }
+      const requestBody = {
+        storeType: 0,
+        md5,
+        fileName: file.name,
+        fileRawType: file.type,
+        size: file.size,
+        originWidth: thumbObj.originWidth,
+        originHeight: thumbObj.originHeight,
+        thumbWidth: thumbObj.thumbWidth,
+        thumbHeight: thumbObj.thumbHeight
+      }
+      const res = await mtsUploadServiceForImage(requestBody, files)
       emit('update:newAvatar', {
         avatarId: res.data.data.objectId,
         avatar: res.data.data.originUrl,

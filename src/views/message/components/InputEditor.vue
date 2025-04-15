@@ -7,8 +7,10 @@ import { useMessageStore, useImageStore } from '@/stores'
 import { ElMessage } from 'element-plus'
 import { emojis } from '@/js/utils/emojis'
 import { base64ToFile } from '@/js/utils/common'
-import { mtsUploadService } from '@/api/mts'
+import { mtsUploadServiceForImage } from '@/api/mts'
 import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
+import { getMd5 } from '@/js/utils/file'
+import { generateThumb } from '@/js/utils/image'
 
 const props = defineProps(['sessionId', 'draft'])
 const emit = defineEmits(['saveLocalMsg', 'sendMessage'])
@@ -43,7 +45,7 @@ onBeforeUnmount(async () => {
     someUploadedFailFn: () => {},
     allUploadedSuccessFn: () => {}
   }
-  const contentObj = parseContent(callbacks)
+  const contentObj = await parseContent(callbacks)
 
   const fn = (content) => {
     // 草稿若发生变动，则触发存储
@@ -76,7 +78,7 @@ onUnmounted(() => {
  * 解析输入框内容
  * @param callbacks 解析过程中需要触发的回调
  */
-const parseContent = (callbacks) => {
+const parseContent = async (callbacks) => {
   const delta = getQuill().getContents()
   let contentFromLocal = new Array(delta.ops.length).fill('')
   let contentFromServer = new Array(delta.ops.length).fill('')
@@ -128,8 +130,26 @@ const parseContent = (callbacks) => {
         })
         contentFromLocal[index] = `{${tempObjectId}}`
 
+        const md5 = await getMd5(file)
+        const thumbObj = await generateThumb(file)
+        const files = {
+          originFile: file,
+          thumbFile: thumbObj.thumbFile
+        }
+        const requestBody = {
+          storeType: 0,
+          md5,
+          fileName: file.name,
+          fileRawType: file.type,
+          size: file.size,
+          originWidth: thumbObj.originWidth,
+          originHeight: thumbObj.originHeight,
+          thumbWidth: thumbObj.thumbWidth,
+          thumbHeight: thumbObj.thumbHeight
+        }
+
         //上传图片至服务端
-        mtsUploadService({ file: file, storeType: 1 })
+        mtsUploadServiceForImage(requestBody, files)
           .then((res) => {
             imageData.setImage(res.data.data) // 缓存image数据
             uploadSuccessCount++
@@ -165,13 +185,13 @@ const parseContent = (callbacks) => {
 // 监控session发生了切换
 watch(
   () => props.sessionId,
-  (newSessionId, oldSessionId) => {
+  async (newSessionId, oldSessionId) => {
     const callbacks = {
       someOneUploadedSuccessFn: () => {},
       someUploadedFailFn: () => {},
       allUploadedSuccessFn: () => {}
     }
-    const contentObj = parseContent(callbacks)
+    const contentObj = await parseContent(callbacks)
 
     const fn = (content) => {
       // 草稿若发生变动，则触发存储
@@ -242,7 +262,7 @@ const handleEnter = async () => {
     allUploadedSuccessFn: () => {}
   }
 
-  const contentObj = parseContent(callbacks)
+  const contentObj = await parseContent(callbacks)
 
   const content = contentObj.contentFromLocal.join('').trim()
   if (!content) {

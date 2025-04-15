@@ -9,7 +9,7 @@ import CodeIcon from '@/assets/svg/code.svg'
 import VoteIcon from '@/assets/svg/vote.svg'
 import EmojiBox from './EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
-import { mtsUploadService } from '@/api/mts'
+import { mtsUploadService, mtsUploadServiceForImage } from '@/api/mts'
 import {
   useMessageStore,
   useImageStore,
@@ -19,6 +19,8 @@ import {
 } from '@/stores'
 import { MsgType } from '@/proto/msg'
 import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
+import { generateThumb } from '@/js/utils/image'
+import { getMd5 } from '@/js/utils/file'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
 const emit = defineEmits(['sendEmoji', 'showRecorder', 'sendMessage', 'saveLocalMsg'])
@@ -30,14 +32,17 @@ const videoData = useVideoStore()
 const documentData = useDocumentStore()
 const isShowEmojiBox = ref(false)
 
-const onSelectedFile = (file) => {
+const onSelectedFile = async (file) => {
   if (!file) {
     return
   }
 
   let contentType = msgContentType.DOCUMENT
+  const md5 = await getMd5(file.raw)
+  let thumbObj
   if (file.raw.type.startsWith('image/')) {
     contentType = msgContentType.IMAGE
+    thumbObj = await generateThumb(file.raw)
   } else if (file.raw.type.startsWith('audio/')) {
     contentType = msgContentType.AUDIO
   } else if (file.raw.type.startsWith('video/')) {
@@ -56,7 +61,26 @@ const onSelectedFile = (file) => {
   msg.uploadStatus = msgFileUploadStatus.UPLOADING
   msg.uploadProgress = 0
 
-  mtsUploadService({ file: file.raw, storeType: 1 })
+  let requestApi = mtsUploadService
+  const requestBody = {
+    storeType: 1,
+    md5,
+    fileName: file.name,
+    fileRawType: file.raw.type,
+    size: file.raw.size
+  }
+  const files = { originFile: file.raw }
+
+  if (contentType === msgContentType.IMAGE) {
+    requestBody.originWidth = thumbObj.originWidth
+    requestBody.originHeight = thumbObj.originHeight
+    requestBody.thumbWidth = thumbObj.thumbWidth
+    requestBody.thumbHeight = thumbObj.thumbHeight
+    files.thumbFile = thumbObj.thumbFile
+    requestApi = mtsUploadServiceForImage
+  }
+
+  requestApi(requestBody, files)
     .then((res) => {
       if (res.data.code === 0) {
         setStoreData(contentType, res.data.data)
@@ -93,7 +117,7 @@ const setLocalData = (contentType, file) => {
     case msgContentType.AUDIO:
       audioData.setAudio({
         objectId: file.uid,
-        url: localSrc,
+        downloadUrl: localSrc,
         fileName: file.name,
         size: file.raw.size
       })
@@ -101,7 +125,7 @@ const setLocalData = (contentType, file) => {
     case msgContentType.VIDEO:
       videoData.setVideo({
         objectId: file.uid,
-        url: localSrc,
+        downloadUrl: localSrc,
         fileName: file.name,
         size: file.raw.size
       })
@@ -111,7 +135,7 @@ const setLocalData = (contentType, file) => {
       documentData.setDocument({
         objectId: file.uid,
         documentType: file.raw.type,
-        url: localSrc,
+        downloadUrl: localSrc,
         fileName: file.name,
         size: file.raw.size
       })
