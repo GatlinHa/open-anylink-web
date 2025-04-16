@@ -2,14 +2,15 @@
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { Microphone } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { useAudioStore } from '@/stores'
+import { useMessageStore, useAudioStore } from '@/stores'
 import { mtsUploadService } from '@/api/mts'
 import { v4 as uuidv4 } from 'uuid'
-import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
+import { msgContentType, msgFileUploadStatus, msgSendStatus } from '@/const/msgConst'
 import { getMd5 } from '@/js/utils/file'
 
 const emit = defineEmits(['exit', 'sendMessage', 'saveLocalMsg'])
 
+const messageData = useMessageStore()
 const audioData = useAudioStore()
 const spaceDown = ref(false) // 空格键是否被按下
 const isRecord = ref(false) // 是否开始录音
@@ -166,8 +167,11 @@ const uploadRecord = async () => {
       msg = result
     }
   })
-  msg.uploadStatus = msgFileUploadStatus.UPLOADING
-  msg.uploadProgress = 0
+
+  messageData.updateMsg(msg.sessionId, msg.msgId, {
+    uploadStatus: msgFileUploadStatus.UPLOADING,
+    uploadProgress: 0
+  })
 
   const md5 = await getMd5(file)
   const files = {
@@ -186,8 +190,10 @@ const uploadRecord = async () => {
     .then((res) => {
       if (res.data.code === 0) {
         audioData.setAudio(res.data.data) // 缓存服务端响应的audio数据
-        msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
-        msg.uploadProgress = 100
+        messageData.updateMsg(msg.sessionId, msg.msgId, {
+          uploadStatus: msgFileUploadStatus.UPLOAD_SUCCESS,
+          uploadProgress: 100
+        })
         msg.content = JSON.stringify({
           type: msgContentType.RECORDING,
           value: res.data.data.objectId
@@ -196,7 +202,10 @@ const uploadRecord = async () => {
       }
     })
     .catch((error) => {
-      msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
+      messageData.updateMsg(msg.sessionId, msg.msgId, {
+        uploadStatus: msgFileUploadStatus.UPLOAD_FAILED,
+        status: msgSendStatus.UPLOAD_FAILED
+      })
       if (error.status === 200 && error.data?.code !== 0) {
         ElMessage.error(error.data.desc || '文件上传失败')
       } else {

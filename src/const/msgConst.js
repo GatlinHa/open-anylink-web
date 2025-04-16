@@ -27,10 +27,14 @@ export const msgContentType = {
 export const msgSendStatus = {
   PENDING: 'pending', // 发送中
   OK: 'ok', // 发送成功
-  FAILED: 'failed' // 发送失败
+  FAILED: 'failed', // 发送失败
+  UPLOAD_FAILED: 'uploadFailed' // 文件上传失败
 }
 
-// 消息中文件的上传状态
+/**
+ * 消息中文件的上传状态
+ * 目前没有实现上传状态以及上传进度的效果
+ */
 export const msgFileUploadStatus = {
   UPLOAD_DEFAULT: 0, // 默认状态，不上传
   UPLOADING: 1, // 上传中

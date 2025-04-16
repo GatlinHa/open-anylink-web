@@ -636,7 +636,9 @@ const onClickSystemMsg = (e) => {
 }
 
 const onResendMsg = () => {
-  emit('resendMsg', msg.value)
+  if (msg.value.status === msgSendStatus.FAILED) {
+    emit('resendMsg', msg.value)
+  }
 }
 
 /**
@@ -693,7 +695,9 @@ watch(
                 <div class="loading-circular" v-loading="true"></div>
               </div>
               <div
-                v-else-if="msgStatus === msgSendStatus.FAILED"
+                v-else-if="
+                  msgStatus === msgSendStatus.FAILED || msgStatus === msgSendStatus.UPLOAD_FAILED
+                "
                 class="my-message-status my-message-status-failed"
               >
                 <el-icon color="red" title="点击重发" @click="onResendMsg"

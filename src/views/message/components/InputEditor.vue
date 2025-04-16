@@ -8,7 +8,7 @@ import { ElMessage } from 'element-plus'
 import { emojis } from '@/js/utils/emojis'
 import { base64ToFile } from '@/js/utils/common'
 import { mtsUploadServiceForImage } from '@/api/mts'
-import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
+import { msgContentType, msgFileUploadStatus, msgSendStatus } from '@/const/msgConst'
 import { getMd5 } from '@/js/utils/file'
 import { generateThumb } from '@/js/utils/image'
 
@@ -285,8 +285,10 @@ const handleEnter = async () => {
   })
 
   if (contentObj.needUploadCount > 0) {
-    msg.uploadStatus = msgFileUploadStatus.UPLOADING
-    msg.uploadProgress = 0
+    messageData.updateMsg(msg.sessionId, msg.msgId, {
+      uploadStatus: msgFileUploadStatus.UPLOADING,
+      uploadProgress: 0
+    })
   } else {
     emit('sendMessage', msg)
   }
@@ -300,12 +302,18 @@ const handleEnter = async () => {
 
   // callback：如果有失败的上传，则状态修改为上传失败
   callbacks.someUploadedFailFn = () => {
-    msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
+    messageData.updateMsg(msg.sessionId, msg.msgId, {
+      uploadStatus: msgFileUploadStatus.UPLOAD_FAILED,
+      status: msgSendStatus.UPLOAD_FAILED
+    })
   }
 
   // callback：所有图片均上传，则发送消息
   callbacks.allUploadedSuccessFn = () => {
-    msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
+    messageData.updateMsg(msg.sessionId, msg.msgId, {
+      uploadStatus: msgFileUploadStatus.UPLOAD_SUCCESS,
+      uploadProgress: 100
+    })
     msg.content = contentObj.contentFromServer.join('').trim()
     emit('sendMessage', msg)
   }

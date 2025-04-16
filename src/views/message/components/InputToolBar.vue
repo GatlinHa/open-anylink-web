@@ -18,7 +18,7 @@ import {
   useDocumentStore
 } from '@/stores'
 import { MsgType } from '@/proto/msg'
-import { msgContentType, msgFileUploadStatus } from '@/const/msgConst'
+import { msgContentType, msgFileUploadStatus, msgSendStatus } from '@/const/msgConst'
 import { generateThumb } from '@/js/utils/image'
 import { getMd5 } from '@/js/utils/file'
 
@@ -58,8 +58,6 @@ const onSelectedFile = async (file) => {
       msg = result
     }
   })
-  msg.uploadStatus = msgFileUploadStatus.UPLOADING
-  msg.uploadProgress = 0
 
   let requestApi = mtsUploadService
   const requestBody = {
@@ -80,18 +78,27 @@ const onSelectedFile = async (file) => {
     requestApi = mtsUploadServiceForImage
   }
 
+  messageData.updateMsg(msg.sessionId, msg.msgId, {
+    uploadStatus: msgFileUploadStatus.UPLOADING,
+    uploadProgress: 0
+  })
   requestApi(requestBody, files)
     .then((res) => {
       if (res.data.code === 0) {
         setStoreData(contentType, res.data.data)
-        msg.uploadStatus = msgFileUploadStatus.UPLOAD_SUCCESS
-        msg.uploadProgress = 100
+        messageData.updateMsg(msg.sessionId, msg.msgId, {
+          uploadStatus: msgFileUploadStatus.UPLOAD_SUCCESS,
+          uploadProgress: 100
+        })
         msg.content = JSON.stringify({ type: contentType, value: res.data.data.objectId })
         emit('sendMessage', msg)
       }
     })
     .catch((error) => {
-      msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
+      messageData.updateMsg(msg.sessionId, msg.msgId, {
+        uploadStatus: msgFileUploadStatus.UPLOAD_FAILED,
+        status: msgSendStatus.UPLOAD_FAILED
+      })
       if (error.status === 200 && error.data?.code !== 0) {
         ElMessage.error(error.data.desc || '文件上传失败')
       } else {
