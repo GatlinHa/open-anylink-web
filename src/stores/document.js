@@ -41,8 +41,8 @@ export const useDocumentStore = defineStore('anylink-document', () => {
 
   const clear = () => {
     Object.values(document.value).forEach((item) => {
-      if (item.url.startsWith('blob:')) {
-        URL.revokeObjectURL(item.url)
+      if (item.downloadUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(item.downloadUrl)
       }
     })
 

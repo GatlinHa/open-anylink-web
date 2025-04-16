@@ -44,8 +44,6 @@ export const mtsUploadServiceForImage = async (requestBody, { originFile, thumbF
     const reportResponse = await request.postForm('/mts/reportUploaded', { objectId })
     return reportResponse
   }
-
-  // TODO 上传期间查询上传进度
 }
 
 export const mtsUploadService = async (requestBody, { originFile }) => {
@@ -76,8 +74,6 @@ export const mtsUploadService = async (requestBody, { originFile }) => {
     const reportResponse = await request.postForm('/mts/reportUploaded', { objectId })
     return reportResponse
   }
-
-  // TODO 上传期间查询上传进度
 }
 
 export const mtsImageService = (obj) => {

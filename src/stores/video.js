@@ -41,8 +41,8 @@ export const useVideoStore = defineStore('anylink-video', () => {
 
   const clear = () => {
     Object.values(video.value).forEach((item) => {
-      if (item.url.startsWith('blob:')) {
-        URL.revokeObjectURL(item.url)
+      if (item.downloadUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(item.downloadUrl)
       }
     })
 
