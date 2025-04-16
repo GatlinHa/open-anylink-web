@@ -477,7 +477,7 @@ const calibratedRemoteRead = computed(() => {
       return Math.max(msg.msgId, selectedSession.value.remoteRead)
     }
   }
-  return selectedSession.value.readMsgId
+  return selectedSession.value.remoteRead
 })
 
 const sendRead = () => {
