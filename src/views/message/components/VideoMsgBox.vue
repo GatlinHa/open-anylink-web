@@ -4,7 +4,7 @@ import Player from 'xgplayer'
 import 'xgplayer/dist/index.min.css'
 import { formatFileSize } from '@/js/utils/common'
 
-const props = defineProps(['videoId', 'url', 'fileName', 'size'])
+const props = defineProps(['videoId', 'url', 'fileName', 'size', 'width', 'height'])
 const emits = defineEmits(['load'])
 
 const isLoaded = ref(false)
@@ -13,6 +13,26 @@ const videoWrapperRef = ref(null)
 
 const formatSize = computed(() => {
   return formatFileSize(props.size)
+})
+
+const renderWidth = computed(() => {
+  if (!props.width || !props.height) {
+    return 480
+  } else if (props.width > props.height) {
+    return 480
+  } else {
+    return Math.floor((props.width / props.height) * 320)
+  }
+})
+
+const renderHeight = computed(() => {
+  if (!props.width || !props.height) {
+    return 270
+  } else if (props.width > props.height) {
+    return Math.floor((props.height / props.width) * 480)
+  } else {
+    return 320
+  }
 })
 
 onMounted(() => {
@@ -35,29 +55,10 @@ onMounted(() => {
   player.on('ready', () => {
     // 监听视频元数据加载完成事件
     const videoElement = player.root.querySelector('video')
-    videoElement.addEventListener('loadedmetadata', () => {
-      const videoWidth = videoElement.videoWidth
-      const videoHeight = videoElement.videoHeight
-      const maxWidth = 480
-      const maxHeight = 270
-      let newWidth = videoWidth
-      let newHeight = videoHeight
-
-      // 判断是横屏还是竖屏
-      if (videoWidth > videoHeight) {
-        // 横屏视频，宽度固定为 480，高度按比例计算
-        newWidth = maxWidth
-        newHeight = Math.floor((maxWidth / videoWidth) * videoHeight)
-      } else {
-        // 竖屏视频，高度固定为 270，宽度按比例计算
-        newHeight = maxHeight
-        newWidth = Math.floor((maxHeight / videoHeight) * videoWidth)
-      }
-
-      videoWrapperRef.value.style.width = `${newWidth}px`
-      videoWrapperRef.value.style.height = `${newHeight}px`
+    videoElement.addEventListener('loadedmetadata', async () => {
+      videoWrapperRef.value.style.width = `${renderWidth.value}px`
+      videoWrapperRef.value.style.height = `${renderHeight.value}px`
       videoWrapperRef.value.style.padding = 0
-
       isLoaded.value = true
       emits('load') //向父组件暴露load事件
     })
@@ -66,7 +67,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="video-msg-wrapper">
+  <div
+    class="video-msg-wrapper loading"
+    :style="{ width: `${renderWidth}px`, height: `${renderHeight}px` }"
+  >
     <div v-show="isLoaded" ref="videoWrapperRef" :id="`msg-xgplayer-${props.videoId}`"></div>
     <div v-if="!isClickPlay && (props.fileName || props.size > 0)" class="info">
       <span class="name item text-ellipsis" :title="props.fileName">
@@ -82,6 +86,7 @@ onMounted(() => {
 <style lang="scss" scoped>
 .video-msg-wrapper {
   position: relative;
+  background: #000;
 
   .info {
     width: 100%;
@@ -107,6 +112,28 @@ onMounted(() => {
     .size {
       margin-right: 8px;
     }
+  }
+}
+
+.video-msg-wrapper.loading::before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  margin-top: -15px;
+  margin-left: -15px;
+  border-radius: 50%;
+  border: 3px solid #ccc;
+  border-top-color: #007bff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>

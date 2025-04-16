@@ -10,7 +10,7 @@ import { base64ToFile } from '@/js/utils/common'
 import { mtsUploadServiceForImage } from '@/api/mts'
 import { msgContentType, msgFileUploadStatus, msgSendStatus } from '@/const/msgConst'
 import { getMd5 } from '@/js/utils/file'
-import { generateThumb } from '@/js/utils/image'
+import { prehandleImage } from '@/js/utils/image'
 
 const props = defineProps(['sessionId', 'draft'])
 const emit = defineEmits(['saveLocalMsg', 'sendMessage'])
@@ -131,7 +131,7 @@ const parseContent = async (callbacks) => {
         contentFromLocal[index] = `{${tempObjectId}}`
 
         const md5 = await getMd5(file)
-        const thumbObj = await generateThumb(file)
+        const thumbObj = await prehandleImage(file)
         const files = {
           originFile: file,
           thumbFile: thumbObj.thumbFile

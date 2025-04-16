@@ -5,7 +5,7 @@ import { THUMB_IMAGE_MAX } from '@/const/mtsConst'
  * @param {*}
  * @returns 缩略图file对象，原图宽高，缩略图宽高
  */
-export const generateThumb = async (blob, originalWidth = null, originalHeight = null) => {
+export const prehandleImage = async (blob, originalWidth = null, originalHeight = null) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.readAsDataURL(blob)
@@ -54,7 +54,7 @@ export const generateThumb = async (blob, originalWidth = null, originalHeight =
                   thumbHeight
                 })
               } else {
-                const result = await generateThumb(blob, width, height)
+                const result = await prehandleImage(blob, width, height)
                 resolve(result)
               }
             } else {

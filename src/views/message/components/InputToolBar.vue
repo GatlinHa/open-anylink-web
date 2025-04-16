@@ -1,7 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import { Clock, Microphone } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElLoading, ElMessage } from 'element-plus'
+import { el_loading_options } from '@/const/commonConst'
 import EmojiIcon from '@/assets/svg/emoji.svg'
 import FileIcon from '@/assets/svg/file.svg'
 import ImageIcon from '@/assets/svg/image.svg'
@@ -19,7 +20,8 @@ import {
 } from '@/stores'
 import { MsgType } from '@/proto/msg'
 import { msgContentType, msgFileUploadStatus, msgSendStatus } from '@/const/msgConst'
-import { generateThumb } from '@/js/utils/image'
+import { prehandleImage } from '@/js/utils/image'
+import { prehandleVideo } from '@/js/utils/video'
 import { getMd5 } from '@/js/utils/file'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
@@ -38,26 +40,39 @@ const onSelectedFile = async (file) => {
   }
 
   let contentType = msgContentType.DOCUMENT
-  const md5 = await getMd5(file.raw)
+  let md5
   let thumbObj
-  if (file.raw.type.startsWith('image/')) {
-    contentType = msgContentType.IMAGE
-    thumbObj = await generateThumb(file.raw)
-  } else if (file.raw.type.startsWith('audio/')) {
-    contentType = msgContentType.AUDIO
-  } else if (file.raw.type.startsWith('video/')) {
-    contentType = msgContentType.VIDEO
-  }
-
-  setLocalData(contentType, file)
+  let videoObj
   let msg = {}
-  emit('saveLocalMsg', {
-    contentType: contentType,
-    objectId: file.uid,
-    fn: (result) => {
-      msg = result
+  let loadingInstance
+
+  try {
+    loadingInstance = ElLoading.service(el_loading_options)
+    md5 = await getMd5(file.raw)
+    if (file.raw.type.startsWith('image/')) {
+      contentType = msgContentType.IMAGE
+      thumbObj = await prehandleImage(file.raw)
+    } else if (file.raw.type.startsWith('audio/')) {
+      contentType = msgContentType.AUDIO
+    } else if (file.raw.type.startsWith('video/')) {
+      contentType = msgContentType.VIDEO
+      videoObj = await prehandleVideo(file.raw)
     }
-  })
+
+    setLocalData(contentType, file, videoObj)
+
+    emit('saveLocalMsg', {
+      contentType: contentType,
+      objectId: file.uid,
+      fn: (result) => {
+        msg = result
+      }
+    })
+  } catch (error) {
+    return
+  } finally {
+    loadingInstance.close()
+  }
 
   let requestApi = mtsUploadService
   const requestBody = {
@@ -76,6 +91,9 @@ const onSelectedFile = async (file) => {
     requestBody.thumbHeight = thumbObj.thumbHeight
     files.thumbFile = thumbObj.thumbFile
     requestApi = mtsUploadServiceForImage
+  } else if (contentType === msgContentType.VIDEO) {
+    requestBody.videoWidth = videoObj.width
+    requestBody.videoHeight = videoObj.height
   }
 
   messageData.updateMsg(msg.sessionId, msg.msgId, {
@@ -112,7 +130,7 @@ const onSelectedFile = async (file) => {
  * @param contentType
  * @param file
  */
-const setLocalData = (contentType, file) => {
+const setLocalData = (contentType, file, videoObj) => {
   const localSrc = URL.createObjectURL(file.raw)
   switch (contentType) {
     case msgContentType.IMAGE:
@@ -138,7 +156,9 @@ const setLocalData = (contentType, file) => {
         objectId: file.uid,
         downloadUrl: localSrc,
         fileName: file.name,
-        size: file.raw.size
+        size: file.raw.size,
+        width: videoObj.width,
+        height: videoObj.height
       })
       break
     case msgContentType.DOCUMENT:

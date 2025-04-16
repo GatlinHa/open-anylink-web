@@ -157,6 +157,8 @@ const renderVideo = (content) => {
       url,
       fileName: videoData.video[videoId].fileName,
       size: videoData.video[videoId].size,
+      width: videoData.video[videoId].width,
+      height: videoData.video[videoId].height,
       onLoad: () => {
         emit('loadFinished')
       }

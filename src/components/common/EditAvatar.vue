@@ -4,7 +4,7 @@ import { useUserStore } from '@/stores'
 import { Plus, Check, RefreshLeft, RefreshRight, Refresh } from '@element-plus/icons-vue'
 import { mtsUploadServiceForImage } from '@/api/mts'
 import { getMd5 } from '@/js/utils/file'
-import { generateThumb } from '@/js/utils/image'
+import { prehandleImage } from '@/js/utils/image'
 import 'vue-cropper/dist/index.css'
 import { VueCropper } from 'vue-cropper'
 
@@ -84,7 +84,7 @@ const onSave = async () => {
     isLoading.value = true
     try {
       const md5 = await getMd5(file)
-      const thumbObj = await generateThumb(file)
+      const thumbObj = await prehandleImage(file)
       const files = {
         originFile: file,
         thumbFile: thumbObj.thumbFile
