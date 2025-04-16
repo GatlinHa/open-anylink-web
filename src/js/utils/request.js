@@ -62,13 +62,13 @@ instance.interceptors.response.use(
       res.data?.code,
       res.data?.desc
     )
-    return Promise.reject(res.data)
+    return Promise.reject(res)
   },
   async (err) => {
     if (err.response?.status === 401) {
       useUserStore().clearAt()
       useUserStore().clearRt()
-      ElMessage.error('未登录或登录已过期，请登录')
+      ElMessage.error('登录已过期，请重新登录')
       router.push('/login')
     } else {
       console.error(

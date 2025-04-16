@@ -90,9 +90,13 @@ const onSelectedFile = async (file) => {
         emit('sendMessage', msg)
       }
     })
-    .catch(() => {
+    .catch((error) => {
       msg.uploadStatus = msgFileUploadStatus.UPLOAD_FAILED
-      ElMessage.error('文件上传失败')
+      if (error.status === 200 && error.data?.code !== 0) {
+        ElMessage.error(error.data.desc || '文件上传失败')
+      } else {
+        ElMessage.error('文件上传失败')
+      }
     })
 }
 
