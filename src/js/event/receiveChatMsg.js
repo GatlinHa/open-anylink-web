@@ -30,10 +30,19 @@ export const onReceiveChatMsg = (updateScroll, capacity) => {
           }
         : {}
 
+    // 对方发的消息，把remoteRead更新到最新
+    const remoteReadParams =
+      msg.body.fromId !== msg.body.toId
+        ? {
+            remoteRead: msg.body.msgId
+          }
+        : {}
+
     messageData.updateSession({
       sessionId: sessionId,
       unreadCount: messageData.sessionList[sessionId].unreadCount + 1,
-      ...readParams
+      ...readParams,
+      ...remoteReadParams
     })
 
     const showMsg = {

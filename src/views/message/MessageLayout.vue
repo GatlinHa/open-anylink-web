@@ -113,9 +113,11 @@ const firstMsgId = computed(() => {
 })
 // 当前session的最后一条消息ID
 const lastMsgId = computed(() => {
-  if (!noMsg.value) {
-    const len = msgKeySortedArray.value?.length
-    return len ? msgKeySortedArray.value[len - 1] : 0
+  if (!noMsg.value && msgKeySortedArray.value && msgKeySortedArray.value.length > 0) {
+    // msgKeySortedArray有序数组最后一个对应的msgid
+    const key = msgKeySortedArray.value.at(-1)
+    const lastMsg = messageData.getMsg(selectedSessionId.value, key)
+    return lastMsg.msgId
   } else {
     return 0
   }
@@ -462,11 +464,23 @@ const handleSelectedSession = async (sessionId) => {
     }
 
     lastReadMsgId = selectedSession.value.readMsgId //保存这个readMsgId,要留给MessageItem用
-    handleRead()
+    sendRead()
   }
 }
 
-const handleRead = () => {
+const calibratedRemoteRead = computed(() => {
+  const len = msgKeysShow.value.length
+  for (let index = len - 1; index >= 0; index--) {
+    const key = msgKeysShow.value[index]
+    const msg = messageData.getMsg(selectedSessionId.value, key)
+    if (msg.fromId === selectedSession.value.remoteId) {
+      return Math.max(msg.msgId, selectedSession.value.remoteRead)
+    }
+  }
+  return selectedSession.value.readMsgId
+})
+
+const sendRead = () => {
   if (selectedSessionId.value && selectedSession.value.readMsgId < lastMsgId.value) {
     const content = lastMsgId.value.toString()
     const msgType =
@@ -663,7 +677,7 @@ const onReachFirstUnReadMsg = () => {
 }
 
 const onClickMsgContainer = () => {
-  handleRead()
+  sendRead()
 }
 
 const onShowUserCard = ({ sessionId, account }) => {
@@ -1150,7 +1164,7 @@ const onShowRecorder = () => {
                   :extend="msgExtend[item]"
                   :obj="getMsgSenderObj(item)"
                   :readMsgId="selectedSession.readMsgId"
-                  :remoteRead="selectedSession.remoteRead"
+                  :remoteRead="calibratedRemoteRead"
                   :firstMsgId="firstMsgId"
                   :lastMsgId="lastMsgId"
                   :hasNoMoreMsg="hasNoMoreMsg"
