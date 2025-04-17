@@ -120,6 +120,7 @@ const formatSize = computed(() => {
 .image-msg-wrapper {
   display: flex;
   position: relative;
+  background-color: #000;
 
   .el-image {
     width: auto;
