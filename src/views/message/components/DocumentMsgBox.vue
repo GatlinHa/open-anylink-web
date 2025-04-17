@@ -62,13 +62,7 @@ const onDownload = async () => {
       return
     }
     const contentLength = response.headers.get('content-length')
-    if (!contentLength) {
-      ElMessage.error('无法获取文件大小，无法显示进度。')
-      isDownloading.value = false
-      isDownloadError.value = true
-      return
-    }
-    const total = parseInt(contentLength, 10)
+    const total = contentLength ? parseInt(contentLength, 10) : 0
     let loaded = 0
 
     const reader = response.body.getReader()
@@ -79,7 +73,7 @@ const onDownload = async () => {
       if (done) break
       chunks.push(value)
       loaded += value.length
-      progress.value = (loaded / total) * 100
+      progress.value = total > 0 ? (loaded / total) * 100 : 0
     }
     const blob = new Blob(chunks)
     const url = URL.createObjectURL(blob)
