@@ -3,11 +3,12 @@ import { ref, onMounted, computed } from 'vue'
 import Player from 'xgplayer'
 import 'xgplayer/dist/index.min.css'
 import { formatFileSize } from '@/js/utils/common'
+import VideoloadfailedIcon from '@/assets/svg/videoloadfailed.svg'
 
 const props = defineProps(['videoId', 'url', 'fileName', 'size', 'width', 'height'])
 const emits = defineEmits(['load'])
 
-const isLoaded = ref(false)
+const isLoaded = ref(0) // 0未加载，1加载成功，2加载失败
 const isClickPlay = ref(false)
 const videoWrapperRef = ref(null)
 
@@ -59,9 +60,14 @@ onMounted(() => {
       videoWrapperRef.value.style.width = `${renderWidth.value}px`
       videoWrapperRef.value.style.height = `${renderHeight.value}px`
       videoWrapperRef.value.style.padding = 0
-      isLoaded.value = true
+      isLoaded.value = 1
       emits('load') //向父组件暴露load事件
     })
+  })
+
+  // 监听视频加载失败事件
+  player.on('error', () => {
+    isLoaded.value = 2
   })
 })
 </script>
@@ -69,10 +75,15 @@ onMounted(() => {
 <template>
   <div
     class="video-msg-wrapper"
-    :class="{ loading: !isLoaded }"
+    :class="{ loading: isLoaded === 0 }"
     :style="{ width: `${renderWidth}px`, height: `${renderHeight}px` }"
   >
-    <div v-show="isLoaded" ref="videoWrapperRef" :id="`msg-xgplayer-${props.videoId}`"></div>
+    <div v-show="isLoaded === 1" ref="videoWrapperRef" :id="`msg-xgplayer-${props.videoId}`"></div>
+    <div v-show="isLoaded === 2" class="error">
+      <VideoloadfailedIcon style="width: 48px; height: 48px; fill: #fff" />
+      <span style="color: #fff">视频加载失败</span>
+    </div>
+
     <div v-if="!isClickPlay && (props.fileName || props.size > 0)" class="info">
       <span class="name item text-ellipsis" :title="props.fileName">
         {{ props.fileName || '' }}
@@ -88,6 +99,9 @@ onMounted(() => {
 .video-msg-wrapper {
   position: relative;
   background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   .info {
     width: 100%;
@@ -113,6 +127,13 @@ onMounted(() => {
     .size {
       margin-right: 8px;
     }
+  }
+
+  .error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
   }
 }
 

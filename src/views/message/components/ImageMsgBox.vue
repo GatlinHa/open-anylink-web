@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { ElImage } from 'element-plus'
 import { formatFileSize } from '@/js/utils/common'
 import { useImageStore } from '@/stores'
+import ImageloadfailedIcon from '@/assets/svg/imageloadfailed.svg'
 
 const props = defineProps(['sessionId', 'imgId', 'isForMix', 'thumbWidth', 'thumbHeight'])
 const emits = defineEmits(['load'])
@@ -91,9 +92,17 @@ const formatSize = computed(() => {
     >
       <template #placeholder>
         <div
-          class="image-msg-placeholder loading"
+          class="image-msg-bgc loading"
           :style="{ width: `${renderWidth}px`, height: `${renderHeight}px` }"
         ></div>
+      </template>
+      <template #error>
+        <div
+          class="image-msg-bgc error"
+          :style="{ width: `${renderWidth}px`, height: `${renderHeight}px` }"
+        >
+          <ImageloadfailedIcon style="width: 48px; height: 48px; fill: #fff" />
+        </div>
       </template>
     </el-image>
     <div v-if="fileName || size > 0" class="info">
@@ -149,11 +158,11 @@ const formatSize = computed(() => {
   }
 }
 
-.image-msg-placeholder {
+.image-msg-bgc {
   background-color: #000;
 }
 
-.image-msg-placeholder.loading::before {
+.image-msg-bgc.loading::before {
   content: '';
   box-sizing: border-box;
   position: absolute;
@@ -167,6 +176,13 @@ const formatSize = computed(() => {
   border: 3px solid #ccc;
   border-top-color: #007bff;
   animation: spin 1s ease-in-out infinite;
+}
+
+.image-msg-bgc.error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 @keyframes spin {
