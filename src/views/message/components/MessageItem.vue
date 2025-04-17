@@ -704,7 +704,10 @@ watch(
                 "
                 class="my-message-status my-message-status-failed"
               >
-                <el-icon color="red" title="点击重发" @click="onResendMsg"
+                <el-icon
+                  color="red"
+                  :title="msgStatus === msgSendStatus.FAILED ? 点击重发 : ''"
+                  @click="onResendMsg"
                   ><WarningFilled
                 /></el-icon>
               </div>
