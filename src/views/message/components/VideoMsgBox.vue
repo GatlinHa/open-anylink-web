@@ -17,19 +17,19 @@ const formatSize = computed(() => {
 
 const renderWidth = computed(() => {
   if (!props.width || !props.height) {
-    return 480
+    return 480 // 如果拿不到视频大小，默认以 480*270 尺寸播放
   } else if (props.width > props.height) {
     return 480
   } else {
-    return Math.floor((props.width / props.height) * 320)
+    return (props.width / props.height) * 320
   }
 })
 
 const renderHeight = computed(() => {
   if (!props.width || !props.height) {
-    return 270
+    return 270 // 如果拿不到视频大小，默认以 480*270 尺寸播放
   } else if (props.width > props.height) {
-    return Math.floor((props.height / props.width) * 480)
+    return (props.height / props.width) * 480
   } else {
     return 320
   }
@@ -55,7 +55,7 @@ onMounted(() => {
   player.on('ready', () => {
     // 监听视频元数据加载完成事件
     const videoElement = player.root.querySelector('video')
-    videoElement.addEventListener('loadedmetadata', async () => {
+    videoElement.addEventListener('loadedmetadata', () => {
       videoWrapperRef.value.style.width = `${renderWidth.value}px`
       videoWrapperRef.value.style.height = `${renderHeight.value}px`
       videoWrapperRef.value.style.padding = 0
@@ -68,7 +68,8 @@ onMounted(() => {
 
 <template>
   <div
-    class="video-msg-wrapper loading"
+    class="video-msg-wrapper"
+    :class="{ loading: !isLoaded }"
     :style="{ width: `${renderWidth}px`, height: `${renderHeight}px` }"
   >
     <div v-show="isLoaded" ref="videoWrapperRef" :id="`msg-xgplayer-${props.videoId}`"></div>

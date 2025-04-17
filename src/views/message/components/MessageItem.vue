@@ -177,6 +177,8 @@ const renderImage = (content, isForMix = false) => {
       sessionId: props.sessionId,
       imgId,
       isForMix,
+      thumbWidth: imageData.image[imgId].thumbWidth,
+      thumbHeight: imageData.image[imgId].thumbHeight,
       onLoad: () => {
         emit('loadFinished')
       }

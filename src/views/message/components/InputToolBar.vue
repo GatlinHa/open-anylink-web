@@ -1,8 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { Clock, Microphone } from '@element-plus/icons-vue'
-import { ElLoading, ElMessage } from 'element-plus'
-import { el_loading_options } from '@/const/commonConst'
+import { ElMessage } from 'element-plus'
 import EmojiIcon from '@/assets/svg/emoji.svg'
 import FileIcon from '@/assets/svg/file.svg'
 import ImageIcon from '@/assets/svg/image.svg'
@@ -41,25 +40,23 @@ const onSelectedFile = async (file) => {
 
   let contentType = msgContentType.DOCUMENT
   let md5
-  let thumbObj
-  let videoObj
+  let prehandleImageObj
+  let prehandleVideoObj
   let msg = {}
-  let loadingInstance
 
   try {
-    loadingInstance = ElLoading.service(el_loading_options)
     md5 = await getMd5(file.raw)
     if (file.raw.type.startsWith('image/')) {
       contentType = msgContentType.IMAGE
-      thumbObj = await prehandleImage(file.raw)
+      prehandleImageObj = await prehandleImage(file.raw)
     } else if (file.raw.type.startsWith('audio/')) {
       contentType = msgContentType.AUDIO
     } else if (file.raw.type.startsWith('video/')) {
       contentType = msgContentType.VIDEO
-      videoObj = await prehandleVideo(file.raw)
+      prehandleVideoObj = await prehandleVideo(file.raw)
     }
 
-    setLocalData(contentType, file, videoObj)
+    setLocalData(contentType, file, prehandleImageObj, prehandleVideoObj)
 
     emit('saveLocalMsg', {
       contentType: contentType,
@@ -70,8 +67,6 @@ const onSelectedFile = async (file) => {
     })
   } catch (error) {
     return
-  } finally {
-    loadingInstance.close()
   }
 
   let requestApi = mtsUploadService
@@ -85,15 +80,15 @@ const onSelectedFile = async (file) => {
   const files = { originFile: file.raw }
 
   if (contentType === msgContentType.IMAGE) {
-    requestBody.originWidth = thumbObj.originWidth
-    requestBody.originHeight = thumbObj.originHeight
-    requestBody.thumbWidth = thumbObj.thumbWidth
-    requestBody.thumbHeight = thumbObj.thumbHeight
-    files.thumbFile = thumbObj.thumbFile
+    requestBody.originWidth = prehandleImageObj.originWidth
+    requestBody.originHeight = prehandleImageObj.originHeight
+    requestBody.thumbWidth = prehandleImageObj.thumbWidth
+    requestBody.thumbHeight = prehandleImageObj.thumbHeight
+    files.thumbFile = prehandleImageObj.thumbFile
     requestApi = mtsUploadServiceForImage
   } else if (contentType === msgContentType.VIDEO) {
-    requestBody.videoWidth = videoObj.width
-    requestBody.videoHeight = videoObj.height
+    requestBody.videoWidth = prehandleVideoObj.width
+    requestBody.videoHeight = prehandleVideoObj.height
   }
 
   messageData.updateMsg(msg.sessionId, msg.msgId, {
@@ -130,16 +125,18 @@ const onSelectedFile = async (file) => {
  * @param contentType
  * @param file
  */
-const setLocalData = (contentType, file, videoObj) => {
+const setLocalData = (contentType, file, prehandleImageObj, prehandleVideoObj) => {
   const localSrc = URL.createObjectURL(file.raw)
   switch (contentType) {
     case msgContentType.IMAGE:
       imageData.setImage({
         objectId: file.uid,
         originUrl: localSrc,
-        thumbUrl: localSrc,
+        thumbUrl: localSrc, // 本地缓存缩略图用的是原图
         fileName: file.name,
         size: file.raw.size,
+        thumbWidth: prehandleImageObj.originWidth,
+        thumbHeight: prehandleImageObj.originHeight,
         createdTime: new Date()
       })
       break
@@ -157,8 +154,8 @@ const setLocalData = (contentType, file, videoObj) => {
         downloadUrl: localSrc,
         fileName: file.name,
         size: file.raw.size,
-        width: videoObj.width,
-        height: videoObj.height
+        width: prehandleVideoObj.width,
+        height: prehandleVideoObj.height
       })
       break
     case msgContentType.DOCUMENT:

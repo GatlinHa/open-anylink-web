@@ -84,10 +84,10 @@ const onSave = async () => {
     isLoading.value = true
     try {
       const md5 = await getMd5(file)
-      const thumbObj = await prehandleImage(file)
+      const prehandleImageObj = await prehandleImage(file)
       const files = {
         originFile: file,
-        thumbFile: thumbObj.thumbFile
+        thumbFile: prehandleImageObj.thumbFile
       }
       const requestBody = {
         storeType: 0,
@@ -95,10 +95,10 @@ const onSave = async () => {
         fileName: file.name,
         fileRawType: file.type,
         size: file.size,
-        originWidth: thumbObj.originWidth,
-        originHeight: thumbObj.originHeight,
-        thumbWidth: thumbObj.thumbWidth,
-        thumbHeight: thumbObj.thumbHeight
+        originWidth: prehandleImageObj.originWidth,
+        originHeight: prehandleImageObj.originHeight,
+        thumbWidth: prehandleImageObj.thumbWidth,
+        thumbHeight: prehandleImageObj.thumbHeight
       }
       const res = await mtsUploadServiceForImage(requestBody, files)
       emit('update:newAvatar', {

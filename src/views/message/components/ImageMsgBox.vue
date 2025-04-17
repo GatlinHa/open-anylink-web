@@ -4,24 +4,40 @@ import { ElImage } from 'element-plus'
 import { formatFileSize } from '@/js/utils/common'
 import { useImageStore } from '@/stores'
 
-const props = defineProps(['sessionId', 'imgId', 'isForMix'])
+const props = defineProps(['sessionId', 'imgId', 'isForMix', 'thumbWidth', 'thumbHeight'])
 const emits = defineEmits(['load'])
 
 const imageData = useImageStore()
 
-const onLoad = (e) => {
-  const img = e.target
-  const maxWidth = props.isForMix ? Math.min(img.naturalWidth, 360) : 360
-  const maxHeight = props.isForMix ? Math.min(img.naturalHeight, 180) : 180
+const maxWidth = computed(() => {
+  return props.isForMix ? Math.min(props.thumbWidth, 360) : 360
+})
 
-  if (img.naturalWidth / img.naturalHeight > maxWidth / maxHeight) {
-    img.style.width = maxWidth + 'px'
-    img.style.height = 'auto'
+const maxHeight = computed(() => {
+  return props.isForMix ? Math.min(props.thumbHeight, 270) : 270
+})
+
+const renderWidth = computed(() => {
+  if (!props.thumbWidth || !props.thumbHeight) {
+    return 360 // 如果拿不到缩略图大小，默认以 360*270 尺寸显示
+  } else if (props.thumbWidth / props.thumbHeight > maxWidth.value / maxHeight.value) {
+    return maxWidth.value
   } else {
-    img.style.height = maxHeight + 'px'
-    img.style.width = 'auto'
+    return (props.thumbWidth / props.thumbHeight) * maxHeight.value
   }
+})
 
+const renderHeight = computed(() => {
+  if (!props.thumbWidth || !props.thumbHeight) {
+    return 270 // 如果拿不到缩略图大小，默认以 360*270 尺寸显示
+  } else if (props.thumbWidth / props.thumbHeight > maxWidth.value / maxHeight.value) {
+    return (props.thumbHeight / props.thumbWidth) * maxWidth.value
+  } else {
+    return maxHeight.value
+  }
+})
+
+const onLoad = async () => {
   emits('load') //向父组件暴露load事件
 }
 
@@ -70,8 +86,15 @@ const formatSize = computed(() => {
       :infinite="false"
       :lazy="false"
       fit="contain"
+      :style="{ width: `${renderWidth}px`, height: `${renderHeight}px` }"
       @load="onLoad"
     >
+      <template #placeholder>
+        <div
+          class="image-msg-placeholder loading"
+          :style="{ width: `${renderWidth}px`, height: `${renderHeight}px` }"
+        ></div>
+      </template>
     </el-image>
     <div v-if="fileName || size > 0" class="info">
       <span class="name item text-ellipsis" :title="fileName">
@@ -123,6 +146,32 @@ const formatSize = computed(() => {
     .size {
       margin-right: 8px;
     }
+  }
+}
+
+.image-msg-placeholder {
+  background-color: #000;
+}
+
+.image-msg-placeholder.loading::before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  margin-top: -15px;
+  margin-left: -15px;
+  border-radius: 50%;
+  border: 3px solid #ccc;
+  border-top-color: #007bff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>

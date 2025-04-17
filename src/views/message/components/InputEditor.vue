@@ -118,23 +118,24 @@ const parseContent = async (callbacks) => {
         // base64编码的图片
         const file = base64ToFile(insert.image, uuidv4()) // base64转file
         const tempObjectId = new Date().getTime()
+        contentFromLocal[index] = `{${tempObjectId}}`
         // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
+        const md5 = await getMd5(file)
+        const prehandleImageObj = await prehandleImage(file)
         const localSrc = URL.createObjectURL(file)
         imageData.setImage({
           objectId: tempObjectId,
           originUrl: localSrc,
-          thumbUrl: localSrc,
+          thumbUrl: localSrc, // 本地缓存缩略图用的是原图
           fileName: file.name,
           size: file.size,
+          thumbWidth: prehandleImageObj.originWidth,
+          thumbHeight: prehandleImageObj.originHeight,
           createdTime: new Date()
         })
-        contentFromLocal[index] = `{${tempObjectId}}`
-
-        const md5 = await getMd5(file)
-        const thumbObj = await prehandleImage(file)
         const files = {
           originFile: file,
-          thumbFile: thumbObj.thumbFile
+          thumbFile: prehandleImageObj.thumbFile
         }
         const requestBody = {
           storeType: 0,
@@ -142,10 +143,10 @@ const parseContent = async (callbacks) => {
           fileName: file.name,
           fileRawType: file.type,
           size: file.size,
-          originWidth: thumbObj.originWidth,
-          originHeight: thumbObj.originHeight,
-          thumbWidth: thumbObj.thumbWidth,
-          thumbHeight: thumbObj.thumbHeight
+          originWidth: prehandleImageObj.originWidth,
+          originHeight: prehandleImageObj.originHeight,
+          thumbWidth: prehandleImageObj.thumbWidth,
+          thumbHeight: prehandleImageObj.thumbHeight
         }
 
         //上传图片至服务端
