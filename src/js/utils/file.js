@@ -11,7 +11,7 @@ export const getMd5 = (file) => {
       resolve(md5)
     }
     reader.onerror = () => {
-      reject(new Error('Failed to get md5 of file.'))
+      reject(new Error('读取文件md5值失败'))
     }
   })
 }

@@ -58,7 +58,7 @@ export const prehandleImage = async (blob, originalWidth = null, originalHeight 
                 resolve(result)
               }
             } else {
-              reject(new Error('Failed to generate thumb.'))
+              reject(new Error('生成缩略图遇到了问题'))
             }
           },
           blob.type,
@@ -66,11 +66,11 @@ export const prehandleImage = async (blob, originalWidth = null, originalHeight 
         )
       }
       img.onerror = () => {
-        reject(new Error('Failed to load image.'))
+        reject(new Error('加载图片失败'))
       }
     }
     reader.onerror = () => {
-      reject(new Error('Failed to read file.'))
+      reject(new Error('读取图片失败'))
     }
   })
 }

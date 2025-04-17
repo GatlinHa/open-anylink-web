@@ -1,5 +1,3 @@
-import { ElMessage } from 'element-plus'
-
 /**
  * 流控：在duration时间内只允许task任务被执行countLimit次
  * @param {*} task 待执行的任务Promise，可以是请求或者其他
@@ -11,8 +9,7 @@ export const flowLimiteWrapper = (task, countLimit, duration) => {
   let count = 0
   return async () => {
     if (count >= countLimit) {
-      ElMessage.warning('请求太过频繁，请稍后再试')
-      return Promise.reject(new Error('REQUEST_LIMITED')) // 返回一个拒绝的 Promise
+      return Promise.reject(new Error('请求太过频繁，请稍后再试')) // 返回一个拒绝的 Promise
     }
 
     count++

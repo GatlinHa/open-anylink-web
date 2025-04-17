@@ -66,6 +66,7 @@ const onSelectedFile = async (file) => {
       }
     })
   } catch (error) {
+    ElMessage.error(error.message)
     return
   }
 
