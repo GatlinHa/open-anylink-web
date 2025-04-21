@@ -17,10 +17,10 @@ import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import { emojis } from '@/js/utils/emojis'
 import { msgContentType, msgSendStatus } from '@/const/msgConst'
 import RecordingMsgBox from '@/views/message/components/RecordingMsgBox.vue'
-import ImageMsgBox from '@/views/message/components/ImageMsgBox.vue'
-import AudioMsgBox from '@/views/message/components/AudioMsgBox.vue'
-import VideoMsgBox from '@/views/message/components/VideoMsgBox.vue'
-import DocumentMsgBox from '@/views/message/components/DocumentMsgBox.vue'
+import MsgBoxImage from '@/views/message/components/MsgBoxImage.vue'
+import MsgBoxAudio from '@/views/message/components/MsgBoxAudio.vue'
+import MsgBoxVideo from '@/views/message/components/MsgBoxVideo.vue'
+import MsgBoxDocument from '@/views/message/components/MsgBoxDocument.vue'
 
 const props = defineProps([
   'sessionId',
@@ -152,7 +152,7 @@ const renderVideo = (content) => {
   const videoId = content
   const url = videoData.video[videoId]?.downloadUrl
   if (url) {
-    return h(VideoMsgBox, {
+    return h(MsgBoxVideo, {
       videoId,
       url,
       fileName: videoData.video[videoId].fileName,
@@ -173,7 +173,7 @@ const renderImage = (content, isForMix = false) => {
   if (imageData.image[imgId]) {
     // 只要这里渲染，就收集该session下的所有image，用于preview-src-list
     imageData.setImageInSession(props.sessionId, imageData.image[imgId])
-    return h(ImageMsgBox, {
+    return h(MsgBoxImage, {
       sessionId: props.sessionId,
       imgId,
       isForMix,
@@ -209,7 +209,7 @@ const renderAudio = (content) => {
   const audioId = content
   const url = audioData.audio[audioId]?.downloadUrl
   if (url) {
-    return h(AudioMsgBox, {
+    return h(MsgBoxAudio, {
       url,
       fileName: audioData.audio[audioId].fileName,
       size: audioData.audio[audioId].size,
@@ -226,7 +226,7 @@ const renderDocument = (content) => {
   const documentId = content
   const url = documentData.document[documentId]?.downloadUrl
   if (url) {
-    return h(DocumentMsgBox, {
+    return h(MsgBoxDocument, {
       url,
       fileName: documentData.document[documentId].fileName,
       contentType: documentData.document[documentId].documentType,
