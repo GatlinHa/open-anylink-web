@@ -878,6 +878,8 @@ watch(
               border-top-right-radius: 0;
               user-select: text;
               white-space: pre-wrap;
+              word-break: break-word; /* 长单词或URL强制换行 */
+              overflow-wrap: break-word; /* 兼容性更好的换行 */
             }
 
             .my-message-status {

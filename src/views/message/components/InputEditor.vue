@@ -409,6 +409,9 @@ defineExpose({
       padding-left: 16px;
       font-size: 14px;
       background-color: #fff;
+      white-space: pre-wrap; /* 允许换行 */
+      word-break: break-word; /* 长单词或URL强制换行 */
+      overflow-wrap: break-word; /* 兼容性更好的换行 */
     }
   }
 }
