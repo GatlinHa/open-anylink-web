@@ -1,7 +1,7 @@
 <script setup>
 import { QuillEditor, Delta, Quill } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import { onMounted, onUnmounted, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, onBeforeUnmount, ref, watch } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { useMessageStore, useImageStore } from '@/stores'
 import { ElMessage } from 'element-plus'
@@ -19,22 +19,22 @@ const imageData = useImageStore()
 
 const editorRef = ref()
 
-const getQuill = () => {
+const quill = computed(() => {
   return editorRef.value?.getQuill()
-}
+})
 
 onMounted(async () => {
   // 给组件增加滚动条样式
   document.querySelector('.ql-editor').classList.add('my-scrollbar')
   await imageData.loadImageInfoFromContent(props.draft)
   renderContent(props.draft)
-  getQuill().on('composition-start', () => {
+  quill.value.on('composition-start', () => {
     // 当用户使用拼音输入法开始输入汉字时，这个事件就会被触发
-    getQuill().root.dataset.placeholder = ''
+    quill.value.root.dataset.placeholder = ''
   })
-  getQuill().on('composition-end', () => {
+  quill.value.on('composition-end', () => {
     // 当用户使用拼音输入法输入完成后，把值恢复成原来的值
-    getQuill().root.dataset.placeholder = getQuill().options.placeholder
+    quill.value.root.dataset.placeholder = quill.value.options.placeholder
   })
 })
 
@@ -67,10 +67,10 @@ onBeforeUnmount(async () => {
 onUnmounted(() => {
   if (editorRef.value) {
     document.querySelector('.ql-editor').classList.remove('my-scrollbar')
-    getQuill().setText('')
-    getQuill().off('composition-start')
-    getQuill().off('composition-end')
-    getQuill().destroy()
+    quill.value.setText('')
+    quill.value.off('composition-start')
+    quill.value.off('composition-end')
+    quill.value.destroy()
   }
 })
 
@@ -79,7 +79,7 @@ onUnmounted(() => {
  * @param callbacks 解析过程中需要触发的回调
  */
 const parseContent = async (callbacks) => {
-  const delta = getQuill().getContents()
+  const delta = quill.value.getContents()
   let contentFromLocal = new Array(delta.ops.length).fill('')
   let contentFromServer = new Array(delta.ops.length).fill('')
   let needUploadCount = 0 // 需要上传的图片个数
@@ -221,7 +221,7 @@ watch(
  */
 const renderContent = (content) => {
   if (!content) {
-    getQuill().setText('')
+    quill.value.setText('')
     return
   }
 
@@ -251,9 +251,9 @@ const renderContent = (content) => {
     }
   })
 
-  getQuill().setText('') // 清空编辑器内容
-  getQuill().updateContents(delta) // 使用 Delta 对象更新编辑器内容
-  getQuill().setSelection(getQuill().getLength(), 0, 'user') // 设置光标位置
+  quill.value.setText('') // 清空编辑器内容
+  quill.value.updateContents(delta) // 使用 Delta 对象更新编辑器内容
+  quill.value.setSelection(quill.value.getLength(), 0, 'user') // 设置光标位置
 }
 
 const handleEnter = async () => {
@@ -268,7 +268,7 @@ const handleEnter = async () => {
   const content = contentObj.contentFromLocal.join('').trim()
   if (!content) {
     ElMessage.warning('请勿发送空内容')
-    getQuill().setText('')
+    quill.value.setText('')
     return
   } else if (content.length > 3000) {
     ElMessage.warning('发送内容请不要超过3000个字')
@@ -319,7 +319,7 @@ const handleEnter = async () => {
     emit('sendMessage', msg)
   }
 
-  getQuill().setText('') // 编辑窗口置空
+  quill.value.setText('') // 编辑窗口置空
 }
 
 /**
@@ -359,25 +359,23 @@ const options = {
 }
 
 const getQuillSelectionIndex = () => {
-  const quill = getQuill()
-  if (!quill) return 0
+  if (!quill.value) return 0
 
-  return (quill.getSelection() || {}).index || 0
+  return (quill.value.getSelection() || {}).index || 0
 }
 
 const addEmoji = (key) => {
-  const quill = getQuill()
   let index = getQuillSelectionIndex()
-  if (index == 1 && quill.getLength() == 1 && quill.getText(0, 1) == '\n') {
-    quill.deleteText(0, 1)
+  if (index == 1 && quill.value.getLength() == 1 && quill.value.getText(0, 1) == '\n') {
+    quill.value.deleteText(0, 1)
     index = 0
   }
 
   const delta = new Delta()
   delta.retain(index)
   delta.insert({ image: emojis[key] }, { alt: key })
-  quill.updateContents(delta)
-  quill.setSelection(index + 1, 0, 'user')
+  quill.value.updateContents(delta)
+  quill.value.setSelection(index + 1, 0, 'user')
 }
 
 defineExpose({
