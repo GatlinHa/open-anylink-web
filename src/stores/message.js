@@ -3,7 +3,8 @@ import { ref, computed, watch } from 'vue'
 import {
   msgUpdateSessionService,
   msgChatSessionListService,
-  msgQueryPartitionService
+  msgQueryPartitionService,
+  msgAtService
 } from '@/api/message'
 import { ElMessage } from 'element-plus'
 import { useImageStore, useAudioStore, useVideoStore, useDocumentStore } from '@/stores'
@@ -54,6 +55,17 @@ export const useMessageStore = defineStore('anylink-message', () => {
    * }
    */
   const msgKeySortedArray = ref({})
+
+  /**
+   * @ 消息存储
+   * 格式：
+   * {
+   *   sessionId_1: [{msgId:xxx, ...}, {msgId:xxx, ...}],
+   *   sessionId_2: [{msgId:xxx, ...}, {msgId:xxx, ...}]
+   *   ...
+   * }
+   */
+  const atRecordsList = ref({})
 
   const addSession = (session) => {
     sessionList.value[session.sessionId] = session
@@ -195,6 +207,22 @@ export const useMessageStore = defineStore('anylink-message', () => {
     )
   })
 
+  /**
+   * atRecordsList消息列表中加入新的@ 消息数组
+   * @param {*} sessionId 会话id
+   * @param {*} at 新的@ 消息
+   */
+  const addAtRecords = (sessionId, at) => {
+    if (!at) {
+      return
+    }
+
+    if (!atRecordsList.value[sessionId]) {
+      atRecordsList.value[sessionId] = []
+    }
+    atRecordsList.value[sessionId].push(at)
+  }
+
   const el = document.getElementsByTagName('title')[0]
   const title = import.meta.env.VITE_TITLE
   let task = null
@@ -269,6 +297,16 @@ export const useMessageStore = defineStore('anylink-message', () => {
     }
   }
 
+  const loadAt = async () => {
+    msgAtService().then((res) => {
+      if (res.data.data) {
+        res.data.data.forEach((item) => {
+          addAtRecords(item.sessionId, item)
+        })
+      }
+    })
+  }
+
   const addPartition = (obj) => {
     partitions.value[obj.partitionId] = obj
   }
@@ -285,6 +323,9 @@ export const useMessageStore = defineStore('anylink-message', () => {
     deleteSession,
     updateSession,
     loadSessionList,
+    atRecordsList,
+    addAtRecords,
+    loadAt,
 
     msgRecordsList,
     msgKeySortedArray,

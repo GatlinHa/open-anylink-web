@@ -90,6 +90,71 @@ const selectedSessionId = computed(() => {
   return messageData.selectedSessionId || ''
 })
 
+const readAtMsgIds = ref([]) //已读的at消息的msgId
+const highlightedMsgIds = ref(new Set()) //需要高亮的msgId
+const unreadAtRecords = computed(() => {
+  let atRecords = messageData.atRecordsList[selectedSessionId.value] || []
+  if (selectedSession.value.sessionType === MsgType.GROUP_CHAT && atRecords) {
+    atRecords = atRecords
+      .filter(
+        (item) =>
+          lastReadMsgId.value > 0 &&
+          item.referMsgId > lastReadMsgId.value &&
+          !readAtMsgIds.value.includes(item.msgId)
+      )
+      .sort((a, b) => a.msgId - b.msgId)
+  }
+
+  if (atRecords.length === 1 && groupMembers.value) {
+    atRecords[0] = {
+      ...atRecords[0],
+      nickName: groupMembers.value[atRecords[0].fromId].nickName
+    }
+  }
+
+  return atRecords
+})
+
+const handleReadAt = () => {
+  const len = unreadAtRecords.value.length
+  if (len === 0) return
+
+  const readReferMsgId = unreadAtRecords.value[len - 1].referMsgId
+  const msgListRect = msgListDiv.value.getBoundingClientRect()
+  const readElement = document.querySelector(
+    `#message-item-${selectedSessionId.value}-${readReferMsgId}`
+  )
+  if (!readElement) {
+    ElMessage.success('请加载更多消息后查找')
+  } else {
+    const rect = readElement.getBoundingClientRect()
+    // 判断 readElement 是否在 msgListDiv 的视口内
+    const isInViewport = rect.top >= msgListRect.top && rect.bottom <= msgListRect.bottom
+    if (!isInViewport) {
+      nextTick(() => {
+        msgListDiv.value.scrollTo({
+          top: msgListDiv.value.scrollTop - (msgListRect.top - rect.top),
+          behavior: 'smooth'
+        })
+      })
+    }
+  }
+  highlightedMsgIds.value.add(readReferMsgId + '')
+  setTimeout(() => {
+    highlightedMsgIds.value.delete(readReferMsgId + '')
+  }, 2000)
+  readAtMsgIds.value.push(unreadAtRecords.value[len - 1].msgId)
+}
+
+const handleReadAllAt = () => {
+  const len = unreadAtRecords.value.length
+  if (len === 0) return
+
+  unreadAtRecords.value.forEach((item) => {
+    readAtMsgIds.value.push(item.msgId)
+  })
+}
+
 // 消息拉取是否结束
 const pullMsgDone = computed(() => {
   return selectedSession.value.pullMsgDone || false
@@ -185,6 +250,7 @@ const initSession = (sessionId) => {
   isShowRecorder.value = false // 麦克风输入状态重置
   inputRecorderRef.value?.cancelSend() // 取消音频发送
   imageData.clearImageInSession(sessionId) // 清除待渲染的图片队列
+  readAtMsgIds.value = []
 }
 
 /**
@@ -218,7 +284,7 @@ const msgKeysShow = computed(() => {
   return ids
 })
 
-let lastReadMsgId = 0
+const lastReadMsgId = ref(0)
 const msgExtend = computed(() => {
   const data = {}
   for (let index = 0; index < msgKeysShow.value.length; index++) {
@@ -228,7 +294,7 @@ const msgExtend = computed(() => {
       // 上一条消息的时间，相邻的时间只出一条tips
       ext['preMsgTime'] = preMsg.msgTime
       // 判断是否是打开session后的第一条未读消息
-      if (preMsg.msgId === lastReadMsgId) {
+      if (preMsg.msgId === lastReadMsgId.value) {
         ext['isFirstNew'] = true
       } else {
         ext['isFirstNew'] = false
@@ -248,6 +314,7 @@ const selectedSession = computed(() => {
 
 onMounted(async () => {
   await messageData.loadSessionList()
+  await messageData.loadAt()
   await groupData.loadGroupInfoList()
   messageData.loadPartitions() // 异步加载
 
@@ -463,7 +530,7 @@ const handleSelectedSession = async (sessionId) => {
       }
     }
 
-    lastReadMsgId = selectedSession.value.readMsgId //保存这个readMsgId,要留给MessageItem用
+    lastReadMsgId.value = selectedSession.value.readMsgId //保存这个readMsgId,要留给MessageItem用
     sendRead()
   }
 }
@@ -531,7 +598,7 @@ const handleLocalMsg = ({ content, contentType, objectId, fn }) => {
   fn(msg)
 }
 
-const handleSendMessage = (msg) => {
+const handleSendMessage = ({ msg, at }) => {
   if (isNotInGroup.value) {
     ElMessage.warning('您已离开该群或群已被解散')
     return
@@ -582,6 +649,10 @@ const handleSendMessage = (msg) => {
     if (!messageData.sessionList[msg.sessionId].dnd) {
       playMsgSend()
     }
+
+    if (at && at.length > 0) {
+      handleSendAt(at, msg.sessionId, msgId)
+    }
   }
 
   wsConnect.sendMsg(
@@ -596,6 +667,7 @@ const handleSendMessage = (msg) => {
 
   msgListReachBottom()
   locateSession(msg.sessionId)
+  handleReadAllAt()
 }
 
 const handleResendMessage = (msg) => {
@@ -605,7 +677,48 @@ const handleResendMessage = (msg) => {
     msgTime: new Date(),
     sendTime: new Date()
   })
-  handleSendMessage(msg)
+
+  const toSendAtList = []
+  msg.content.split(/(<.*?>)/).forEach((item) => {
+    if (item && item.startsWith('<') && item.endsWith('>')) {
+      const index = item.indexOf('-')
+      const account = item.slice(1, index) // 第一个字符是<，所以起点从1开始
+      if (account == 0) {
+        toSendAtList.push(account)
+      } else {
+        if (groupMembers.value[account]) {
+          toSendAtList.push(account)
+        }
+      }
+    }
+  })
+  handleSendMessage({ msg, at: toSendAtList })
+}
+
+const handleSendAt = (at, sessionId, referMsgId) => {
+  if (!at || at.length === 0) {
+    return
+  }
+
+  const contentObj = { referMsgId }
+  if (at.some((item) => item == 0)) {
+    contentObj.isAtAll = true
+  } else {
+    contentObj.isAtAll = false
+    contentObj.atList = at.filter((item) => groupMembers.value[item]) // 过滤脏数据
+  }
+
+  if (contentObj.isAtAll || (!contentObj.isAtAll && contentObj.atList.length > 0)) {
+    wsConnect.sendMsg(
+      sessionId,
+      showId.value,
+      MsgType.AT,
+      JSON.stringify(contentObj),
+      null,
+      () => {},
+      () => {}
+    )
+  }
 }
 
 const onLoadMore = async () => {
@@ -1159,6 +1272,8 @@ const onShowRecorder = () => {
                 <MessageItem
                   v-for="item in msgKeysShow"
                   :key="selectedSessionId + '-' + item"
+                  :id="'message-item-' + selectedSessionId + '-' + item"
+                  :class="{ highlighted: highlightedMsgIds.has(item) }"
                   :sessionId="selectedSessionId"
                   :msgKey="item"
                   :extend="msgExtend[item]"
@@ -1203,6 +1318,15 @@ const onShowRecorder = () => {
                 {{ newMsgTips.unreadCount > 99 ? `99+` : newMsgTips.unreadCount }}条未读消息
                 <el-icon class="el-icon--right"><ArrowUp /></el-icon>
               </el-button>
+              <transition name="fade-slide">
+                <div v-if="unreadAtRecords.length > 0" class="at-tips" @click="handleReadAt">
+                  {{
+                    unreadAtRecords.length > 1
+                      ? `${unreadAtRecords.length}条消息提到了你`
+                      : `${unreadAtRecords[0].nickName}提到了你`
+                  }}
+                </div>
+              </transition>
             </div>
             <div class="input-box bdr-t" :style="{ height: inputBoxHeight + 'px' }">
               <el-container v-if="isShowRecorder">
@@ -1447,6 +1571,15 @@ const onShowRecorder = () => {
               width: 100%;
               padding: 10px;
               overflow-y: scroll; // 用它的滚动条
+
+              .message-item {
+                transition: all 1s ease;
+              }
+
+              .highlighted {
+                background-color: #f8e3c5;
+                transition: background-color 1s ease;
+              }
             }
 
             .return-bottom {
@@ -1464,6 +1597,7 @@ const onShowRecorder = () => {
               position: absolute;
               right: 0%;
               bottom: -40px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
               transition: bottom 1s ease-in-out;
 
               &.showIt {
@@ -1475,11 +1609,54 @@ const onShowRecorder = () => {
               position: absolute;
               right: 0%;
               top: -40px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
               transition: top 1s ease-in-out;
 
               &.showIt {
                 top: -2px;
               }
+            }
+
+            .at-tips {
+              width: fit-content; /* 宽度根据内容自适应 */
+              position: absolute;
+              left: 0; /* 左侧贴紧父容器 */
+              right: 0; /* 右侧贴紧父容器 */
+              bottom: 0; /* 底部贴紧父容器 */
+              margin: 0 auto; /* 水平居中 */
+              display: flex;
+              align-items: center;
+              padding: 6px 16px 6px 16px;
+              color: #fff;
+              font-size: 14px;
+              background-color: #409eff;
+              border-radius: 20px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+              cursor: pointer;
+            }
+
+            /* 进入动画的初始状态 */
+            .fade-slide-enter-from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+
+            /* 离开动画的最终状态 */
+            .fade-slide-leave-to {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+
+            /* 动画过程 */
+            .fade-slide-enter-active,
+            .fade-slide-leave-active {
+              transition: all 1s ease;
+            }
+
+            /* 保持最终状态 */
+            .fade-slide-enter-to {
+              opacity: 1;
+              transform: translateY(0);
             }
           }
 

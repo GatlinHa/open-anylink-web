@@ -113,9 +113,11 @@ const renderMix = (content) => {
   content.split(/(\{.*?\})/).forEach((item) => {
     //匹配内容中的表情
     item.split(/(\[.*?\])/).forEach((item) => {
-      if (item) {
-        contentArray.push(item)
-      }
+      item.split(/(<.*?>)/).forEach((item) => {
+        if (item) {
+          contentArray.push(item)
+        }
+      })
     })
   })
 
@@ -124,10 +126,31 @@ const renderMix = (content) => {
       return renderImage(item.slice(1, -1), true)
     } else if (item.startsWith('[') && item.endsWith(']')) {
       return renderEmoji(item.slice(1, -1))
+    } else if (item.startsWith('<') && item.endsWith('>')) {
+      return renderAt(item.slice(1, -1))
     } else {
       return h('span', item)
     }
   })
+}
+
+const renderAt = (content) => {
+  const index = content.indexOf('-')
+  if (index !== -1) {
+    const account = content.slice(0, index)
+    const nickName = content.slice(index + 1)
+    if (messageData.sessionList[props.sessionId].sessionType === MsgType.GROUP_CHAT && nickName) {
+      const style = {
+        color: '#337ECC',
+        fontWeight: account === myAccount.value || account === '0' ? 'bold' : 'normal'
+      }
+      return h('span', { style }, `@${nickName}`)
+    } else {
+      return h('span', `<${content}>`)
+    }
+  } else {
+    return h('span', `<${content}>`)
+  }
 }
 
 const renderEmoji = (content) => {
@@ -706,7 +729,7 @@ watch(
               >
                 <el-icon
                   color="red"
-                  :title="msgStatus === msgSendStatus.FAILED ? 点击重发 : ''"
+                  :title="msgStatus === msgSendStatus.FAILED ? '点击重发' : ''"
                   @click="onResendMsg"
                   ><WarningFilled
                 /></el-icon>
@@ -760,6 +783,7 @@ watch(
 .message-item {
   width: 100%;
   margin-top: 10px;
+  border-radius: 5px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -835,8 +859,8 @@ watch(
 
   .message-container-wrapper {
     width: 100%;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    padding: 8px;
+    box-sizing: border-box;
 
     .el-container-right {
       width: 100%;

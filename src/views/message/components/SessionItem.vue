@@ -217,7 +217,26 @@ const getGroupChatMsgTips = (content) => {
 
 const showDetailContent = computed(() => {
   if (isShowDraft.value) {
-    return sessionInfo.value.draft?.replace(/\{\d+\}/g, '[图片]') // 把内容中的`{xxxxxx}`格式的图片统一转成`[图片]`
+    let formatDraft = sessionInfo.value.draft?.replace(/\{\d+\}/g, '[图片]') // 把内容中的`{xxxxxx}`格式的图片统一转成`[图片]`
+    if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
+      formatDraft = formatDraft
+        .split(/(<.*?>)/)
+        .map((item) => {
+          const sliceStr = item.slice(1, -1)
+          const index = sliceStr.indexOf('-')
+          if (index !== -1) {
+            const nickName = sliceStr.slice(index + 1)
+            if (nickName) {
+              return `@${nickName}`
+            } else {
+              return item
+            }
+          }
+          return item
+        })
+        .join(' ')
+    }
+    return formatDraft
   } else {
     if (!lastMsg.value.content) {
       return '...'
@@ -248,7 +267,7 @@ const showDetailContent = computed(() => {
     }
 
     if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
-      const content = jsonParseSafe(lastMsg.value.content)
+      let content = jsonParseSafe(lastMsg.value.content)
       switch (lastMsg.value.msgType) {
         case MsgType.SYS_GROUP_CREATE:
           return getSysGroupCreateMsgTips(content)
@@ -283,7 +302,26 @@ const showDetailContent = computed(() => {
         case MsgType.SYS_GROUP_DROP:
           return getSysGroupDrop(content)
         case MsgType.GROUP_CHAT:
-          return getGroupChatMsgTips(lastMsg.value.content.replace(/\{\d+\}/g, '[图片]'))
+          //格式化图片内容
+          content = lastMsg.value.content.replace(/\{\d+\}/g, '[图片]')
+          //格式化@内容
+          content = content
+            .split(/(<.*?>)/)
+            .map((item) => {
+              const sliceStr = item.slice(1, -1)
+              const index = sliceStr.indexOf('-')
+              if (index !== -1) {
+                const nickName = sliceStr.slice(index + 1)
+                if (nickName) {
+                  return `@${nickName}`
+                } else {
+                  return item
+                }
+              }
+              return item
+            })
+            .join(' ')
+          return getGroupChatMsgTips(content)
         default:
           return ''
       }
@@ -295,6 +333,15 @@ const showDetailContent = computed(() => {
 
 const isShowDraft = computed(() => {
   return !hasBeenSelected.value && sessionInfo.value.draft
+})
+
+const isShowAt = computed(() => {
+  const atRecords = messageData.atRecordsList[props.sessionId]
+  if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT && atRecords) {
+    return atRecords.some((item) => item.referMsgId > sessionInfo.value?.readMsgId)
+  }
+
+  return false
 })
 
 const isShowUnread = computed(() => {
@@ -464,8 +511,9 @@ defineExpose({
         </div>
         <div class="body">
           <div class="content">
+            <span v-if="isShowAt" class="at-tips">[有人提到了你]</span>
             <span v-if="isShowUnreadCount" class="unread-count"
-              >[{{ sessionInfo.unreadCount > 99 ? '99+' : sessionInfo.unreadCount }}条]</span
+              >[{{ sessionInfo.unreadCount > 99 ? '99+' : sessionInfo.unreadCount }}条未读]</span
             >
             <span v-if="isShowDraft" class="draft">[草稿]</span>
             <span v-else-if="isShowUnread" class="unread-or-read">[未读]</span>
@@ -593,6 +641,11 @@ defineExpose({
         }
 
         .draft {
+          color: red;
+          flex-shrink: 0;
+        }
+
+        .at-tips {
           color: red;
           flex-shrink: 0;
         }

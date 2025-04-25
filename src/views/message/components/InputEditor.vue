@@ -1,7 +1,7 @@
 <script setup>
 import { QuillEditor, Delta, Quill } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import { computed, onMounted, onUnmounted, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { useMessageStore, useImageStore } from '@/stores'
 import { ElMessage } from 'element-plus'
@@ -11,19 +11,84 @@ import { mtsUploadServiceForImage } from '@/api/mts'
 import { msgContentType, msgFileUploadStatus, msgSendStatus } from '@/const/msgConst'
 import { getMd5 } from '@/js/utils/file'
 import { prehandleImage } from '@/js/utils/image'
+import { MsgType } from '@/proto/msg'
+import AtList from '@/views/message/components/AtList.vue'
+
+/**
+ * 处理粘贴格式问题
+ */
+const Clipboard = Quill.import('modules/clipboard')
+class PlainClipboard extends Clipboard {
+  onPaste(range, { text }) {
+    const delta = new Delta().retain(range.index).delete(range.length).insert(text)
+    this.quill.updateContents(delta, Quill.sources.USER)
+    this.quill.setSelection(delta.length() - range.length, Quill.sources.SILENT)
+    this.quill.scrollSelectionIntoView()
+  }
+}
+Quill.register(
+  {
+    'modules/clipboard': PlainClipboard
+  },
+  true
+)
+
+/**
+ * 自定义 Blot 处理 @ 提及
+ */
+const Embed = Quill.import('blots/embed')
+class AtMention extends Embed {
+  static blotName = 'atMention'
+  static tagName = 'span'
+  static className = 'at-mention'
+
+  static create({ account, nickName }) {
+    const node = super.create()
+    node.dataset.account = account
+    node.dataset.nickName = nickName
+    node.textContent = `@${nickName}`
+    return node
+  }
+
+  static value(node) {
+    return {
+      account: node.dataset.account,
+      nickName: node.dataset.nickName
+    }
+  }
+
+  /**
+   * 重写 length 方法，让 Blot 长度为 1
+   */
+  length() {
+    return 1
+  }
+}
+Quill.register(AtMention, true)
 
 const props = defineProps(['sessionId', 'draft'])
 const emit = defineEmits(['saveLocalMsg', 'sendMessage'])
 const messageData = useMessageStore()
 const imageData = useImageStore()
-
+const inputEditorRef = ref()
 const editorRef = ref()
+const isShowAtList = ref(false)
+const atIndex = ref(0) //记录输入@符号后的光标位置
+const atKey = ref('')
+const atListOffsetX = ref(0)
+const atListOffsetY = ref(0)
+const toSendAtList = ref([])
+
+const session = computed(() => {
+  return messageData.sessionList[props.sessionId]
+})
 
 const quill = computed(() => {
   return editorRef.value?.getQuill()
 })
 
 onMounted(async () => {
+  toSendAtList.value = []
   // 给组件增加滚动条样式
   document.querySelector('.ql-editor').classList.add('my-scrollbar')
   await imageData.loadImageInfoFromContent(props.draft)
@@ -35,6 +100,98 @@ onMounted(async () => {
   quill.value.on('composition-end', () => {
     // 当用户使用拼音输入法输入完成后，把值恢复成原来的值
     quill.value.root.dataset.placeholder = quill.value.options.placeholder
+  })
+
+  // 监听文本变化检测@符号
+  quill.value.on('text-change', (delta, oldDelta, source) => {
+    if (session.value.sessionType === MsgType.GROUP_CHAT && source === 'user') {
+      const insertOps = delta.ops.filter((op) => op.insert && typeof op.insert === 'string')
+      const insertContent = insertOps.map((item) => item.insert).join('')
+      if (insertContent.length > 0) {
+        const lastChar = insertContent[insertContent.length - 1]
+        if (lastChar === '@') {
+          // 这里可以添加检测到@符号后的逻辑，例如弹出用户选择框等
+          isShowAtList.value = true
+          atKey.value = ''
+          nextTick(() => {
+            const selection = quill.value.getSelection()
+            const bounds = quill.value.getBounds(selection.index)
+            const rect = inputEditorRef.value.getBoundingClientRect()
+            atListOffsetX.value = rect.left + bounds.left
+            atListOffsetY.value = rect.top + bounds.top
+            atIndex.value = getQuillSelectionIndex()
+          })
+        } else if (insertContent && isShowAtList.value) {
+          atKey.value = atKey.value + insertContent
+        }
+      }
+
+      // 检测删除@
+      if (delta.ops.some((op) => op.delete)) {
+        // 解析删除操作的起始位置和长度
+        let deleteStart = 0
+        let deleteLength = 0
+
+        // 处理delta结构（可能包含retain+delete）
+        delta.ops.forEach((op) => {
+          if (op.retain) {
+            deleteStart = op.retain
+          }
+          if (op.delete) {
+            deleteLength = op.delete
+          }
+        })
+
+        if (deleteStart < atIndex.value) {
+          isShowAtList.value = false
+        }
+
+        let currentPos = 0
+        const deleteEnd = deleteStart + deleteLength
+
+        const getOpLength = (insert) => {
+          if (typeof insert === 'string') return insert.length
+          if (insert?.atMention) return 1
+          if (insert?.image) return 1
+          return 0
+        }
+
+        toSendAtList.value = []
+        // 遍历旧内容，计算操作内容
+        oldDelta.ops.forEach((oldOp) => {
+          if (currentPos >= deleteEnd) return
+          const opLength = getOpLength(oldOp.insert)
+          const opEnd = currentPos + opLength
+          // 判断当前操作是否与删除范围有交集
+          if (opEnd > deleteStart && currentPos < deleteEnd) {
+            // 计算交集范围
+            const start = Math.max(0, deleteStart - currentPos)
+            const end = Math.min(opLength, deleteEnd - currentPos)
+            const deleteCount = end - start
+
+            if (deleteCount > 0) {
+              // 处理被删除的部分
+              if (oldOp.insert && typeof oldOp.insert === 'string' && isShowAtList.value) {
+                const deletePart = oldOp.insert.slice(start, end)
+                if (atKey.value.endsWith(deletePart)) {
+                  // 将atKey从末尾删除deletePart
+                  atKey.value = atKey.value.slice(0, atKey.value.length - deletePart.length)
+                }
+              }
+            } else {
+              if (oldOp.insert && oldOp.insert.atMention) {
+                toSendAtList.value.push(oldOp.insert.atMention.account)
+              }
+            }
+          } else {
+            if (oldOp.insert && oldOp.insert.atMention) {
+              toSendAtList.value.push(oldOp.insert.atMention.account)
+            }
+          }
+          currentPos = opEnd
+        })
+      }
+    }
   })
 })
 
@@ -104,6 +261,13 @@ const parseContent = async (callbacks) => {
       // 文本
       contentFromLocal[index] = insert
       contentFromServer[index] = insert
+    } else if (insert && insert.atMention) {
+      // 处理用于@的自定义Blot
+      if (op.insert.atMention) {
+        const { account, nickName } = insert.atMention
+        contentFromLocal[index] = `<${account}-${nickName}>`
+        contentFromServer[index] = `<${account}-${nickName}>`
+      }
     } else if (insert && insert.image) {
       const alt = op.attributes?.alt
       if (alt && alt.startsWith('[') && alt.endsWith(']')) {
@@ -187,6 +351,7 @@ const parseContent = async (callbacks) => {
 watch(
   () => props.sessionId,
   async (newSessionId, oldSessionId) => {
+    toSendAtList.value = []
     const callbacks = {
       someOneUploadedSuccessFn: () => {},
       someUploadedFailFn: () => {},
@@ -230,9 +395,12 @@ const renderContent = (content) => {
   content.split(/(\{.*?\})/).forEach((item) => {
     //匹配内容中的表情
     item.split(/(\[.*?\])/).forEach((item) => {
-      if (item) {
-        contentArray.push(item)
-      }
+      //匹配内容中的@
+      item.split(/(<.*?>)/).forEach((item) => {
+        if (item) {
+          contentArray.push(item)
+        }
+      })
     })
   })
 
@@ -246,6 +414,21 @@ const renderContent = (content) => {
     } else if (item.startsWith('[') && item.endsWith(']')) {
       const emojiUrl = emojis[item]
       delta.insert({ image: emojiUrl }, { alt: item })
+    } else if (item.startsWith('<') && item.endsWith('>')) {
+      const content = item.slice(1, -1)
+      const index = content.indexOf('-')
+      if (index !== -1) {
+        const account = content.slice(0, index)
+        const nickName = content.slice(index + 1)
+        if (nickName) {
+          toSendAtList.value.push(account)
+          delta.insert({ atMention: { account, nickName } })
+        } else {
+          delta.insert(item)
+        }
+      } else {
+        delta.insert(item)
+      }
     } else {
       delta.insert(item)
     }
@@ -257,6 +440,10 @@ const renderContent = (content) => {
 }
 
 const handleEnter = async () => {
+  if (isShowAtList.value) {
+    return
+  }
+
   const callbacks = {
     someOneUploadedSuccessFn: () => {},
     someUploadedFailFn: () => {},
@@ -291,7 +478,7 @@ const handleEnter = async () => {
       uploadProgress: 0
     })
   } else {
-    emit('sendMessage', msg)
+    emit('sendMessage', { msg, at: toSendAtList.value })
   }
 
   // callback：每成功上传一个图片，更新一下进度
@@ -310,36 +497,19 @@ const handleEnter = async () => {
   }
 
   // callback：所有图片均上传，则发送消息
+  const atTargets = toSendAtList.value
   callbacks.allUploadedSuccessFn = () => {
     messageData.updateMsg(msg.sessionId, msg.msgId, {
       uploadStatus: msgFileUploadStatus.UPLOAD_SUCCESS,
       uploadProgress: 100
     })
     msg.content = contentObj.contentFromServer.join('').trim()
-    emit('sendMessage', msg)
+    emit('sendMessage', { msg, atTargets })
   }
 
   quill.value.setText('') // 编辑窗口置空
+  toSendAtList.value = []
 }
-
-/**
- * 处理粘贴格式问题
- */
-const Clipboard = Quill.import('modules/clipboard')
-class PlainClipboard extends Clipboard {
-  onPaste(range, { text }) {
-    const delta = new Delta().retain(range.index).delete(range.length).insert(text)
-    this.quill.updateContents(delta, Quill.sources.USER)
-    this.quill.setSelection(delta.length() - range.length, Quill.sources.SILENT)
-    this.quill.scrollSelectionIntoView()
-  }
-}
-Quill.register(
-  {
-    'modules/clipboard': PlainClipboard
-  },
-  true
-)
 
 const options = {
   debug: false,
@@ -378,19 +548,47 @@ const addEmoji = (key) => {
   quill.value.setSelection(index + 1, 0, 'user')
 }
 
+const onSelectedAtTarget = ({ account, nickName }) => {
+  quill.value.focus() // 确保 Quill 编辑器获取焦点
+  const range = quill.value.getSelection()
+  if (!range || range.index < 1) return // 防止-1越界
+
+  toSendAtList.value.push(account)
+
+  if (range.index >= atIndex.value) {
+    const delLen = range.index - atIndex.value + 1 // 删除用户输入的@符号及搜索关键字
+    quill.value.deleteText(atIndex.value - 1, delLen)
+    quill.value.insertEmbed(atIndex.value - 1, 'atMention', { account, nickName }, 'user') // 插入Blot（占据1个位置）
+    quill.value.insertText(atIndex.value, ' ', 'user') // 插入空格
+    quill.value.setSelection(atIndex.value + 1, 0, 'user') // 定位光标
+  } else {
+    quill.value.insertEmbed(range.index, 'atMention', { account, nickName }, 'user') // 插入Blot（占据1个位置）
+    quill.value.insertText(range.index + 1, ' ', 'user') // 插入空格
+    quill.value.setSelection(range.index + 1 + 1, 0, 'user') // 定位光标
+  }
+}
+
 defineExpose({
   addEmoji
 })
 </script>
 
 <template>
-  <div class="input-editor">
+  <div ref="inputEditorRef" class="input-editor">
     <QuillEditor
       class="editor"
       ref="editorRef"
       :options="options"
       content-type="text"
     ></QuillEditor>
+    <AtList
+      v-model="isShowAtList"
+      :sessionId="props.sessionId"
+      :offsetX="atListOffsetX"
+      :offsetY="atListOffsetY"
+      :atKey="atKey"
+      @selected="onSelectedAtTarget"
+    ></AtList>
   </div>
 </template>
 
@@ -417,5 +615,17 @@ defineExpose({
 img {
   margin-left: 2px;
   margin-right: 2px;
+}
+
+.at-mention {
+  display: inline-block;
+  background: #e0f7fa;
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin: 0 2px;
+  user-select: none; /* 禁止单独选中@提及中的字符 */
+  pointer-events: none; /* 防止鼠标事件干扰 */
+  cursor: default; /* 显示默认光标 */
+  vertical-align: baseline;
 }
 </style>

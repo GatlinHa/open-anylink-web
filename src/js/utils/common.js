@@ -1,3 +1,5 @@
+import { pinyin } from 'pinyin-pro'
+
 export const maskPhoneNum = (str) => {
   if (str.length < 7) {
     return '*'
@@ -238,4 +240,28 @@ export const formatFileSize = (size) => {
   } else {
     return (size / (1024 * 1024)).toFixed(2) + ' MB'
   }
+}
+
+/**
+ * 汉字转全拼（小写，无空格）
+ * @param {*} name
+ * @returns
+ */
+export const getFullPinyin = (name) => {
+  return pinyin(name, { toneType: 'none', type: 'string' }).replaceAll(' ', '').toLowerCase()
+}
+
+/**
+ * 获取拼音首字母（小写，无空格）
+ * @param {*} name
+ * @returns
+ */
+export const getInitialsPinyin = (name) => {
+  return pinyin(name, {
+    pattern: 'first',
+    toneType: 'none',
+    type: 'array'
+  })
+    .join('')
+    .toLowerCase()
 }

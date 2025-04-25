@@ -198,7 +198,7 @@ const uploadRecord = async () => {
           type: msgContentType.RECORDING,
           value: res.data.data.objectId
         })
-        emit('sendMessage', msg)
+        emit('sendMessage', { msg })
       }
     })
     .catch((error) => {

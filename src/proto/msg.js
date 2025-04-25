@@ -293,6 +293,7 @@ export const Msg = ($root.Msg = (() => {
  * @property {number} STATUS_REQ=8 STATUS_REQ value
  * @property {number} STATUS_RES=9 STATUS_RES value
  * @property {number} STATUS_SYNC=10 STATUS_SYNC value
+ * @property {number} AT=11 AT value
  * @property {number} SYS_GROUP_CREATE=21 SYS_GROUP_CREATE value
  * @property {number} SYS_GROUP_ADD_MEMBER=22 SYS_GROUP_ADD_MEMBER value
  * @property {number} SYS_GROUP_DEL_MEMBER=23 SYS_GROUP_DEL_MEMBER value
@@ -329,6 +330,7 @@ export const MsgType = ($root.MsgType = (() => {
   values[(valuesById[8] = 'STATUS_REQ')] = 8
   values[(valuesById[9] = 'STATUS_RES')] = 9
   values[(valuesById[10] = 'STATUS_SYNC')] = 10
+  values[(valuesById[11] = 'AT')] = 11
   values[(valuesById[21] = 'SYS_GROUP_CREATE')] = 21
   values[(valuesById[22] = 'SYS_GROUP_ADD_MEMBER')] = 22
   values[(valuesById[23] = 'SYS_GROUP_DEL_MEMBER')] = 23
@@ -543,6 +545,7 @@ export const Header = ($root.Header = (() => {
         case 8:
         case 9:
         case 10:
+        case 11:
         case 21:
         case 22:
         case 23:
@@ -634,6 +637,10 @@ export const Header = ($root.Header = (() => {
       case 'STATUS_SYNC':
       case 10:
         message.msgType = 10
+        break
+      case 'AT':
+      case 11:
+        message.msgType = 11
         break
       case 'SYS_GROUP_CREATE':
       case 21:
@@ -818,18 +825,18 @@ export const Body = ($root.Body = (() => {
    * | 8 | seq          |   -  |    -      |    M    |     M     |       M       |        M        |     O    |        O       |    M     |       todo        |         todo        |
    * | 9 | sessionId    |   -  |    -      |    M    |     M     |       M       |        M        |     M    |        M       |    M     |       todo        |         todo        |
    * +---+--------------+------+-----------+---------|-----------+---------------+-----------------+----------+----------------+----------+-------------------+---------------------+
-   * NO      filed      STATUS_REQ   STATUS_RES   STATUS_SYNC  SYS_GROUP_XXX
-   * +---+--------------+------------+------------+-------------+------------+
-   * | 1 | fromId       |      M     |      M     |      M      |      -     |
-   * | 2 | fromClient   |      M     |      M     |      M      |      -     |
-   * | 3 | toId         |      -     |      -     |      -      |      -     |
-   * | 4 | toClient     |      -     |      -     |      -      |      -     |
-   * | 5 | groupId      |      -     |      -     |      -      |      M     |
-   * | 6 | msgId        |      -     |      -     |      -      |      M     |
-   * | 7 | content      |      M     |      M     |      M      |      M     |
-   * | 8 | seq          |      -     |      -     |      -      |      -     |
-   * | 9 | sessionId    |      -     |      -     |      -      |      M     |
-   * +---+--------------+------------+------------+-------------+------------+
+   * NO      filed      STATUS_REQ   STATUS_RES   STATUS_SYNC  SYS_GROUP_XXX   AT(up)   AT(down)
+   * +---+--------------+------------+------------+-------------+------------+---------+---------+
+   * | 1 | fromId       |      M     |      M     |      M      |      -     |    M    |    M    |
+   * | 2 | fromClient   |      M     |      M     |      M      |      -     |    M    |    M    |
+   * | 3 | toId         |      -     |      -     |      -      |      -     |    -    |    M    |
+   * | 4 | toClient     |      -     |      -     |      -      |      -     |    -    |    M    |
+   * | 5 | groupId      |      -     |      -     |      -      |      M     |    M    |    M    |
+   * | 6 | msgId        |      -     |      -     |      -      |      M     |    -    |    M    |
+   * | 7 | content      |      M     |      M     |      M      |      M     |    M    |    M    |
+   * | 8 | seq          |      -     |      -     |      -      |      -     |    M    |    M    |
+   * | 9 | sessionId    |      -     |      -     |      -      |      M     |    M    |    M    |
+   * +---+--------------+------------+------------+-------------+------------+---------+---------+
    * @implements IBody
    * @constructor
    * @param {IBody=} [properties] Properties to set

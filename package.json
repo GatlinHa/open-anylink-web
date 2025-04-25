@@ -23,6 +23,7 @@
     "element-plus": "^2.8.0",
     "lodash": "^4.17.21",
     "pinia": "^2.1.7",
+    "pinyin-pro": "^3.26.0",
     "protobufjs": "^7.4.0",
     "uuid": "^10.0.0",
     "vue": "^3.4.29",

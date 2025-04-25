@@ -10,7 +10,8 @@ import {
   statusReqConstructor,
   statusSyncConstructor,
   groupChatConstructor,
-  groupChatReadConstructor
+  groupChatReadConstructor,
+  atConstructor
 } from './constructor'
 import {
   onReceiveStatusResMsg,
@@ -18,7 +19,8 @@ import {
   onReceiveChatReadMsg,
   onReceiveGroupChatMsg,
   onReceiveGroupChatReadMsg,
-  onReceiveGroupSystemMsg
+  onReceiveGroupSystemMsg,
+  onReceiveAtMsg
 } from '@/js/event'
 
 class WsConnect {
@@ -118,6 +120,7 @@ class WsConnect {
     [MsgType.CHAT_READ]: onReceiveChatReadMsg(),
     [MsgType.GROUP_CHAT]: onReceiveGroupChatMsg(),
     [MsgType.GROUP_CHAT_READ]: onReceiveGroupChatReadMsg(),
+    [MsgType.AT]: onReceiveAtMsg(),
     [MsgType.SYS_GROUP_CREATE]: onReceiveGroupSystemMsg(),
     [MsgType.SYS_GROUP_ADD_MEMBER]: onReceiveGroupSystemMsg(),
     [MsgType.SYS_GROUP_DEL_MEMBER]: onReceiveGroupSystemMsg(),
@@ -149,7 +152,8 @@ class WsConnect {
     [MsgType.GROUP_CHAT]: groupChatConstructor,
     [MsgType.GROUP_CHAT_READ]: groupChatReadConstructor,
     [MsgType.STATUS_REQ]: statusReqConstructor,
-    [MsgType.STATUS_SYNC]: statusSyncConstructor
+    [MsgType.STATUS_SYNC]: statusSyncConstructor,
+    [MsgType.AT]: atConstructor
   }
 
   /**
@@ -337,7 +341,7 @@ class WsConnect {
    */
   sendMsg(sessionId, remoteId, msgType, content, seq, before, after) {
     const sequence = seq || uuidv4()
-    const data = this.dataConstructor[msgType](sessionId, remoteId, content, sequence)
+    const data = this.dataConstructor[msgType]({ sessionId, remoteId, content, sequence })
     before(data)
     this.msgIdRefillCallback[sequence] = after
     this.sendAgent(data)

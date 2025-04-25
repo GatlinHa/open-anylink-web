@@ -12,9 +12,25 @@ const avatarSize = computed(() => {
       return 50
     case 'small':
       return 30
+    case 'tiny':
+      return 24
     case 'default':
     default:
       return 40
+  }
+})
+
+const avatarFontSize = computed(() => {
+  switch (props.size) {
+    case 'large':
+      return 20
+    case 'small':
+      return 16
+    case 'tiny':
+      return 14
+    case 'default':
+    default:
+      return 18
   }
 })
 
@@ -87,7 +103,7 @@ watch(
     <span
       class="first-char-box"
       v-else-if="firstChar"
-      :style="{ backgroundColor: avatarColor, color: fontColor }"
+      :style="{ backgroundColor: avatarColor, color: fontColor, fontSize: avatarFontSize + 'px' }"
     >
       {{ firstChar }}
     </span>
@@ -112,7 +128,6 @@ watch(
   position: relative;
 
   .first-char-box {
-    font-size: 18px;
     width: 100%;
     height: 100%;
     border-radius: 50%;

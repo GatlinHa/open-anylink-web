@@ -12,6 +12,10 @@ export const msgChatPullMsgService = (obj) => {
   return request.get('/chat/pullMsg', { params: obj })
 }
 
+export const msgAtService = () => {
+  return request.get('/chat/queryAt')
+}
+
 export const msgChatCreateSessionService = (obj) => {
   return request.post('/chat/createSession', obj)
 }

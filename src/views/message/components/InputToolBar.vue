@@ -105,7 +105,7 @@ const onSelectedFile = async (file) => {
           uploadProgress: 100
         })
         msg.content = JSON.stringify({ type: contentType, value: res.data.data.objectId })
-        emit('sendMessage', msg)
+        emit('sendMessage', { msg })
       }
     })
     .catch((error) => {

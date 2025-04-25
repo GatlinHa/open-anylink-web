@@ -16,7 +16,7 @@ export const useGroupStore = defineStore('anylink-group', () => {
   const groupMembersList = ref({})
 
   /**
-   * 获取有效的成员数组，意思是刨除inStatu不等于0的
+   * 获取有效的成员数组，意思是刨除inStatus不等于0的
    * @param {*} groupId
    */
   const getValidGroupMembers = (groupId) => {
