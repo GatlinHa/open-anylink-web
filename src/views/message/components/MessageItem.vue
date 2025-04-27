@@ -21,6 +21,7 @@ import MsgBoxImage from '@/views/message/components/MsgBoxImage.vue'
 import MsgBoxAudio from '@/views/message/components/MsgBoxAudio.vue'
 import MsgBoxVideo from '@/views/message/components/MsgBoxVideo.vue'
 import MsgBoxDocument from '@/views/message/components/MsgBoxDocument.vue'
+import MenuMsgItem from '@/views/message/components/MenuMsgItem.vue'
 
 const props = defineProps([
   'sessionId',
@@ -668,6 +669,10 @@ const onResendMsg = () => {
   }
 }
 
+const onSelectMenuMsgItem = (label) => {
+  console.log(label)
+}
+
 /**
  * 只要内容发生变化，重新渲染
  */
@@ -738,7 +743,9 @@ watch(
                 <div v-if="myMsgIsRead" class="remote_read"></div>
                 <div v-else class="remote_unread"></div>
               </div>
-              <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
+              <MenuMsgItem :msg="msg" @selectMenu="onSelectMenuMsgItem">
+                <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
+              </MenuMsgItem>
             </el-main>
           </el-container>
         </el-main>
@@ -770,7 +777,9 @@ watch(
               <span>{{ msgTime }}</span>
             </el-header>
             <el-main class="message-content">
-              <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
+              <MenuMsgItem :msg="msg" @selectMenu="onSelectMenuMsgItem">
+                <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
+              </MenuMsgItem>
             </el-main>
           </el-container>
         </el-main>

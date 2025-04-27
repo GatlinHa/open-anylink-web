@@ -10,7 +10,7 @@ import {
 } from '@element-plus/icons-vue'
 import AtIcon from '@/assets/svg/at.svg'
 import adminIcon from '@/assets/svg/administrator.svg'
-import DeleteIcon from '@/assets/svg/delete.svg'
+import DeleteIcon from '@/assets/svg/deleteuser.svg'
 import TransferIcon from '@/assets/svg/transfer.svg'
 import { useUserStore, useGroupStore, useMenuStore } from '@/stores'
 
