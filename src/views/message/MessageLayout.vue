@@ -1069,7 +1069,7 @@ const showMenuAddOpr = (e) => {
 const onSelectMsgMainMenu = (label) => {
   switch (label) {
     case 'clearScreen':
-      console.log('清屏')
+      capacity.value = 0
       break
     default:
       break
