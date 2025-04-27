@@ -1,5 +1,9 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { useMenuStore } from '@/stores'
+
+const menuData = useMenuStore()
+const menuName = 'MenuMsgMain' // 菜单唯一标识
 
 const emit = defineEmits(['selectMenu'])
 
@@ -32,10 +36,21 @@ onUnmounted(() => {
   document.removeEventListener('contextmenu', closeMenu)
 })
 
+// 监听菜单状态变化
+watch(
+  () => menuData.activeMenu,
+  (newVal) => {
+    if (newVal !== menuName && isShowMenu.value) {
+      closeMenu()
+    }
+  }
+)
+
 const handleShowMenu = (e) => {
   e.preventDefault() //阻止浏览器默认行为
   e.stopPropagation() // 阻止冒泡
   isShowMenu.value = true
+  menuData.setActiveMenu(menuName)
   nextTick(() => {
     //如果发现菜单超出window.innerWidth屏幕宽度，x要修正一下，往左边弹出菜单
     if (e.clientX + menuRef.value.clientWidth > window.innerWidth) {

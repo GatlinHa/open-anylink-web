@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick, markRaw } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, markRaw, watch } from 'vue'
 import {
   ChatDotRound,
   Tickets,
@@ -12,13 +12,15 @@ import AtIcon from '@/assets/svg/at.svg'
 import adminIcon from '@/assets/svg/administrator.svg'
 import DeleteIcon from '@/assets/svg/delete.svg'
 import TransferIcon from '@/assets/svg/transfer.svg'
-import { useUserStore, useGroupStore } from '@/stores'
+import { useUserStore, useGroupStore, useMenuStore } from '@/stores'
 
 const props = defineProps(['groupId', 'account'])
 const emit = defineEmits(['selectMenu'])
 
 const userData = useUserStore()
 const groupData = useGroupStore()
+const menuData = useMenuStore()
+const menuName = 'MenuMember' // 菜单唯一标识
 
 const myAccount = computed(() => userData.user.account)
 
@@ -178,10 +180,21 @@ onUnmounted(() => {
   document.removeEventListener('contextmenu', closeMenu)
 })
 
+// 监听菜单状态变化
+watch(
+  () => menuData.activeMenu,
+  (newVal) => {
+    if (newVal !== menuName && isShowMenu.value) {
+      closeMenu()
+    }
+  }
+)
+
 const handleShowMenu = (e) => {
   e.preventDefault() //阻止浏览器默认行为
   e.stopPropagation() // 阻止冒泡
   isShowMenu.value = true
+  menuData.setActiveMenu(menuName)
 
   nextTick(() => {
     //如果发现菜单超出window.innerWidth屏幕宽度，x要修正一下，往左边弹出菜单

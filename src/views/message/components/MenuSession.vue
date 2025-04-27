@@ -1,12 +1,14 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { Top, Bottom, MuteNotification, Bell, CircleClose, Edit } from '@element-plus/icons-vue'
-import { useMessageStore } from '@/stores'
+import { useMessageStore, useMenuStore } from '@/stores'
 
 const props = defineProps(['sessionId'])
 const emit = defineEmits(['selectMenu', 'closeMenu'])
 
 const messageData = useMessageStore()
+const menuData = useMenuStore()
+const menuName = 'MenuSession' // 菜单唯一标识
 
 const top = computed(() => {
   if (props.sessionId) {
@@ -69,12 +71,23 @@ onUnmounted(() => {
   document.removeEventListener('contextmenu', closeMenu)
 })
 
+// 监听菜单状态变化
+watch(
+  () => menuData.activeMenu,
+  (newVal) => {
+    if (newVal !== menuName && isShowMenu.value) {
+      closeMenu()
+    }
+  }
+)
+
 const handleShowMenu = (e) => {
   isShowMenu.value = props.sessionId && true
   if (!isShowMenu.value) {
     return
   }
 
+  menuData.setActiveMenu(menuName)
   e.preventDefault() //阻止浏览器默认行为
   e.stopPropagation() // 阻止冒泡
   x.value = e.clientX

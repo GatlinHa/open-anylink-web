@@ -1,8 +1,12 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ChatRound, Microphone, VideoCamera } from '@element-plus/icons-vue'
+import { useMenuStore } from '@/stores'
 
 const emit = defineEmits(['selectMenu'])
+
+const menuData = useMenuStore()
+const menuName = 'MenuAddOpr' // 菜单唯一标识
 
 const menu = computed(() => {
   return [
@@ -42,10 +46,21 @@ onUnmounted(() => {
   document.removeEventListener('contextmenu', closeMenu)
 })
 
+// 监听菜单状态变化
+watch(
+  () => menuData.activeMenu,
+  (newVal) => {
+    if (newVal !== menuName && isShowMenu.value) {
+      closeMenu()
+    }
+  }
+)
+
 const handleShowMenu = (e) => {
   e.preventDefault() //阻止浏览器默认行为
   e.stopPropagation() // 阻止冒泡
   isShowMenu.value = true
+  menuData.setActiveMenu(menuName)
   x.value = e.clientX
   y.value = e.clientY
 }
