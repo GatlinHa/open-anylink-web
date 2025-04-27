@@ -4,6 +4,7 @@ import { Search, Close } from '@element-plus/icons-vue'
 import HashNoData from '@/components/common/HasNoData.vue'
 import { groupSearchGroupInfoService } from '@/api/group'
 import GroupItem from '../item/GroupItem.vue'
+import { smartMatch } from '@/js/utils/common'
 
 /**
  * disabledOptions: 排除项的群ID，比如已经选过了某些群，那么这么群组应该在待选项里被禁用
@@ -43,10 +44,7 @@ const optionKeys = computed(() => {
     const data = []
     Object.keys(optionsAll.value).forEach((key) => {
       const item = optionsAll.value[key]
-      if (
-        item.groupId === searchKey.value ||
-        item.groupName.toLowerCase().includes(searchKey.value.toLowerCase())
-      ) {
+      if (item.groupId === searchKey.value || smartMatch(item.groupName, searchKey.value)) {
         data.push(key)
       }
     })

@@ -11,7 +11,7 @@ import {
   useUserCardStore,
   useGroupCardStore
 } from '@/stores'
-import { combineId } from '@/js/utils/common'
+import { combineId, smartMatch } from '@/js/utils/common'
 import { userQueryService } from '@/api/user'
 import { ElLoading, ElMessage } from 'element-plus'
 import { el_loading_options, PARTITION_TYPE } from '@/const/commonConst'
@@ -112,12 +112,10 @@ const showData = computed(() => {
   Object.values(initData.value).forEach((item) => {
     // 1.放群名称和群ID，或群备注的匹配结果
     if (
-      item.groupName.toLowerCase().includes(searchKey.value.toLowerCase()) ||
+      smartMatch(item.groupName, searchKey.value) ||
       item.groupId === searchKey.value ||
       (props.tab === 'mark' &&
-        messageData.sessionList[item.groupId].mark
-          .toLowerCase()
-          .includes(searchKey.value.toLowerCase()))
+        smartMatch(messageData.sessionList[item.groupId].mark, searchKey.value))
     ) {
       item['sortMark'] = '1' // 让群名称和群ID的匹配结果放在前面, 因为群成员的匹配结果会滞后出现,如果不排序在出现的时候页面数据刷新变化很大
       data.push(item)
@@ -155,7 +153,7 @@ const searchResultTips = computed(() => {
   let nickNameMatchCnt = {} // 对同一个群的搜索结果个数计数
   searchData.value.forEach((item) => {
     const regex = new RegExp(searchKey.value, 'gi')
-    if (item.nickName.toLowerCase().includes(searchKey.value.toLowerCase())) {
+    if (smartMatch(item.nickName, searchKey.value)) {
       if (item.groupId in nickNameMatchCnt) {
         nickNameMatchCnt[item.groupId] = nickNameMatchCnt[item.groupId] + 1
       } else {

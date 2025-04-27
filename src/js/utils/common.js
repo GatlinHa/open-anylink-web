@@ -243,11 +243,29 @@ export const formatFileSize = (size) => {
 }
 
 /**
+ * 多功能匹配：忽略大小写，字符匹配，拼音匹配，拼音缩写匹配
+ * @param {*} content 匹配内容
+ * @param {*} key 关键字
+ * @returns
+ */
+export const smartMatch = (content, key) => {
+  const lowerKey = key.toLowerCase()
+  const lowerContent = content.toLowerCase()
+  const pinyinFull = getFullPinyin(content)
+  const pinyinInitials = getInitialsPinyin(content)
+  return (
+    lowerContent.includes(lowerKey) ||
+    pinyinFull.includes(lowerKey) ||
+    pinyinInitials.includes(lowerKey)
+  )
+}
+
+/**
  * 汉字转全拼（小写，无空格）
  * @param {*} name
  * @returns
  */
-export const getFullPinyin = (name) => {
+const getFullPinyin = (name) => {
   return pinyin(name, { toneType: 'none', type: 'string' }).replaceAll(' ', '').toLowerCase()
 }
 
@@ -256,7 +274,7 @@ export const getFullPinyin = (name) => {
  * @param {*} name
  * @returns
  */
-export const getInitialsPinyin = (name) => {
+const getInitialsPinyin = (name) => {
   return pinyin(name, {
     pattern: 'first',
     toneType: 'none',

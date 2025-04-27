@@ -4,7 +4,7 @@ import { useUserStore, useMessageStore, useGroupStore } from '@/stores'
 import { MsgType } from '@/proto/msg'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import groupIcon from '@/assets/svg/group.svg'
-import { getFullPinyin, getInitialsPinyin } from '@/js/utils/common'
+import { smartMatch } from '@/js/utils/common'
 
 const props = defineProps(['modelValue', 'sessionId', 'offsetX', 'offsetY', 'atKey'])
 const emit = defineEmits(['update:modelValue', 'selected'])
@@ -46,17 +46,7 @@ const atList = computed(() => {
     list.unshift({ account: 0, avatarThumb: null, nickName: '所有人' })
   }
 
-  return list.filter((item) => {
-    const searchKey = props.atKey.toLowerCase()
-    const nickNameLower = item.nickName.toLowerCase()
-    const pinyinFull = getFullPinyin(item.nickName)
-    const pinyinInitials = getInitialsPinyin(item.nickName)
-    return (
-      nickNameLower.includes(searchKey) ||
-      pinyinFull.includes(searchKey) ||
-      pinyinInitials.includes(searchKey)
-    )
-  })
+  return list.filter((item) => smartMatch(item.nickName, props.atKey))
 })
 
 onMounted(() => {

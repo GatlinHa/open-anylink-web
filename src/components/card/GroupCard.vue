@@ -9,7 +9,7 @@ import GroupAvatarIcon from '@/components/common/GroupAvatarIcon.vue'
 import AddButton from '@/components/common/AddButton.vue'
 import DeleteButton from '@/components/common/DeleteButton.vue'
 import EditAvatar from '@/components/common/EditAvatar.vue'
-import { combineId } from '@/js/utils/common'
+import { combineId, smartMatch } from '@/js/utils/common'
 import { userQueryService } from '@/api/user'
 import {
   useGroupStore,
@@ -161,7 +161,7 @@ const validMembersSorted = computed(() => {
       data.push(item)
     } else {
       if (
-        item.nickName.toLowerCase().includes(memberSearchKey.value.toLowerCase()) ||
+        smartMatch(item.nickName, memberSearchKey.value) ||
         item.account === memberSearchKey.value
       ) {
         data.push(item)

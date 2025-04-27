@@ -4,6 +4,7 @@ import { Search, Close } from '@element-plus/icons-vue'
 import ContactItem from '@/components/item/ContactItem.vue'
 import HashNoData from '@/components/common/HasNoData.vue'
 import { userQueryService, userQueryByNickService } from '@/api/user'
+import { smartMatch } from '@/js/utils/common'
 
 /**
  * disabledOptions: 排除项的账号数组，比如已经选过了某些用户，那么这么用户应该在待选项里被禁用
@@ -43,10 +44,7 @@ const optionKeys = computed(() => {
     const data = []
     Object.keys(optionsAll.value).forEach((key) => {
       const item = optionsAll.value[key]
-      if (
-        item.account === searchKey.value ||
-        item.nickName.toLowerCase().includes(searchKey.value.toLowerCase())
-      ) {
+      if (item.account === searchKey.value || smartMatch(item.nickName, searchKey.value)) {
         data.push(key)
       }
     })

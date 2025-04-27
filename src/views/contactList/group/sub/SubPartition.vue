@@ -15,7 +15,7 @@ import HashNoData from '@/components/common/HasNoData.vue'
 import PartitionOprMenu from '@/views/contactList/group/components/PartitionOprMenu.vue'
 import EditDialog from '@/components/common/EditDialog.vue'
 import SelectGroupDialog from '@/components/common/SelectGroupDialog.vue'
-import { highLightedText } from '@/js/utils/common'
+import { highLightedText, smartMatch } from '@/js/utils/common'
 import { MsgType } from '@/proto/msg'
 import { groupInfoService } from '@/api/group'
 
@@ -77,7 +77,7 @@ const partitionsBySearch = computed(() => {
   } else {
     const data = {}
     Object.values(partitions.value).forEach((item) => {
-      if (item.partitionName.toLowerCase().includes(partitionSearchKey.value.toLowerCase())) {
+      if (smartMatch(item.partitionName, partitionSearchKey.value)) {
         data[item.partitionId] = item
       }
     })

@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
+import { smartMatch } from '@/js/utils/common'
 
 const props = defineProps(['modelValue', 'options', 'disabledOptionIds'])
 const emit = defineEmits(['update:modelValue', 'showUserCard', 'confirm'])
@@ -16,10 +17,7 @@ const showOptions = computed(() => {
   } else {
     const data = []
     props.options.forEach((item) => {
-      if (
-        item.account === searchKey.value ||
-        item.nickName.toLowerCase().includes(searchKey.value.toLowerCase())
-      ) {
+      if (item.account === searchKey.value || smartMatch(item.nickName, searchKey.value)) {
         data.push(item)
       }
     })

@@ -11,7 +11,7 @@ import {
   groupOwnerTransferService
 } from '@/api/group'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
-import { combineId } from '@/js/utils/common'
+import { combineId, smartMatch } from '@/js/utils/common'
 import { userQueryService } from '@/api/user'
 import MemberMenu from '@/views/message/components/MemberMenu.vue'
 import { MsgType } from '@/proto/msg'
@@ -50,7 +50,7 @@ const validMembersSorted = computed(() => {
       data.push(item)
     } else {
       if (
-        item.nickName.toLowerCase().includes(props.memberSearchKey.toLowerCase()) ||
+        smartMatch(item.nickName, props.memberSearchKey) ||
         item.account === props.memberSearchKey
       ) {
         data.push(item)

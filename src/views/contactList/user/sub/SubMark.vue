@@ -8,6 +8,7 @@ import { el_loading_options } from '@/const/commonConst'
 import { Search } from '@element-plus/icons-vue'
 import HashNoData from '@/components/common/HasNoData.vue'
 import { MsgType } from '@/proto/msg'
+import { smartMatch } from '@/js/utils/common'
 
 const messageData = useMessageStore()
 const userCardData = useUserCardStore()
@@ -30,9 +31,9 @@ const markData = computed(() => {
           data.push(item)
         } else {
           if (
-            item.objectInfo.nickName.toLowerCase().includes(markSearchKey.value.toLowerCase()) ||
+            smartMatch(item.objectInfo.nickName, markSearchKey.value) ||
             item.objectInfo.account === markSearchKey.value ||
-            item.mark.toLowerCase().includes(markSearchKey.value.toLowerCase())
+            smartMatch(item.mark, markSearchKey.value)
           ) {
             data.push(item)
           }

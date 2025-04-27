@@ -18,7 +18,7 @@ import { useMessageStore, useUserStore, useUserCardStore } from '@/stores'
 import { ElLoading } from 'element-plus'
 import { el_loading_options } from '@/const/commonConst'
 import SelectUserDialog from '@/components/common/SelectUserDialog.vue'
-import { combineId, highLightedText } from '@/js/utils/common'
+import { combineId, highLightedText, smartMatch } from '@/js/utils/common'
 import { MsgType } from '@/proto/msg'
 
 const messageData = useMessageStore()
@@ -73,7 +73,7 @@ const detailData = computed(() => {
           data.push(item)
         } else {
           if (
-            item.objectInfo.nickName.toLowerCase().includes(userSearchKey.value.toLowerCase()) ||
+            smartMatch(item.objectInfo.nickName, userSearchKey.value) ||
             item.objectInfo.account === userSearchKey.value
           )
             data.push(item)
@@ -100,7 +100,7 @@ const partitionsBySearch = computed(() => {
   } else {
     const data = {}
     Object.values(partitions.value).forEach((item) => {
-      if (item.partitionName.toLowerCase().includes(partitionSearchKey.value.toLowerCase())) {
+      if (smartMatch(item.partitionName, partitionSearchKey.value)) {
         data[item.partitionId] = item
       }
     })
