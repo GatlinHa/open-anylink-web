@@ -42,11 +42,11 @@ import { userQueryService } from '@/api/user'
 import { ElLoading, ElMessage } from 'element-plus'
 import { el_loading_options } from '@/const/commonConst'
 import { combineId, sessionIdConvert } from '@/js/utils/common'
-import SessionMenu from '@/views/message/components/SessionMenu.vue'
+import MenuSession from '@/views/message/components/MenuSession.vue'
 import router from '@/router'
 import { BEGIN_MSG_ID, msgContentType, msgSendStatus } from '@/const/msgConst'
 import EditDialog from '@/components/common/EditDialog.vue'
-import AddOprMenu from '@/views/message/components/AddOprMenu.vue'
+import MenuAddOpr from '@/views/message/components/MenuAddOpr.vue'
 import MessageGroupRightSide from '@/views/message/components/MessageGroupRightSide.vue'
 import HashNoData from '@/components/common/HasNoData.vue'
 import InputRecorder from '@/views/message/components/InputRecorder.vue'
@@ -1061,7 +1061,7 @@ const onSelectOprMenu = (label) => {
   }
 }
 
-const showAddOprMenu = (e) => {
+const showMenuAddOpr = (e) => {
   addOprMenuRef.value.handleSessionMenu(e)
 }
 
@@ -1149,12 +1149,12 @@ const onShowRecorder = () => {
             @showGroupCard="onShowGroupCard"
             @openSession="onOpenSession"
           ></SearchBox>
-          <AddOprMenu ref="addOprMenuRef" @selectMenu="onSelectOprMenu">
-            <AddButton :size="30" @click="showAddOprMenu($event)"></AddButton>
-          </AddOprMenu>
+          <MenuAddOpr ref="addOprMenuRef" @selectMenu="onSelectOprMenu">
+            <AddButton :size="30" @click="showMenuAddOpr($event)"></AddButton>
+          </MenuAddOpr>
         </div>
 
-        <SessionMenu
+        <MenuSession
           :sessionId="showMenuSessionId"
           @selectMenu="onSelectMenu"
           @closeMenu="onCloseSessionMenu"
@@ -1182,7 +1182,7 @@ const onShowRecorder = () => {
               style="height: 100%"
             ></HashNoData>
           </div>
-        </SessionMenu>
+        </MenuSession>
       </div>
 
       <DragLine

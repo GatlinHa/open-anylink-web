@@ -16,7 +16,7 @@ import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/co
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import { emojis } from '@/js/utils/emojis'
 import { msgContentType, msgSendStatus } from '@/const/msgConst'
-import RecordingMsgBox from '@/views/message/components/RecordingMsgBox.vue'
+import MsgBoxRecording from '@/views/message/components/MsgBoxRecording.vue'
 import MsgBoxImage from '@/views/message/components/MsgBoxImage.vue'
 import MsgBoxAudio from '@/views/message/components/MsgBoxAudio.vue'
 import MsgBoxVideo from '@/views/message/components/MsgBoxVideo.vue'
@@ -216,7 +216,7 @@ const renderRecording = (content) => {
   const url = audioData.audio[audioId]?.downloadUrl
   const duration = audioData.audio[audioId]?.duration
   if (url) {
-    return h(RecordingMsgBox, {
+    return h(MsgBoxRecording, {
       audioUrl: url,
       duration: duration,
       onLoad: () => {
