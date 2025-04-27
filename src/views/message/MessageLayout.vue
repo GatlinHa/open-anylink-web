@@ -47,6 +47,7 @@ import router from '@/router'
 import { BEGIN_MSG_ID, msgContentType, msgSendStatus } from '@/const/msgConst'
 import EditDialog from '@/components/common/EditDialog.vue'
 import MenuAddOpr from '@/views/message/components/MenuAddOpr.vue'
+import MenuMsgMain from '@/views/message/components/MenuMsgMain.vue'
 import MessageGroupRightSide from '@/views/message/components/MessageGroupRightSide.vue'
 import HashNoData from '@/components/common/HasNoData.vue'
 import InputRecorder from '@/views/message/components/InputRecorder.vue'
@@ -1062,7 +1063,17 @@ const onSelectOprMenu = (label) => {
 }
 
 const showMenuAddOpr = (e) => {
-  addOprMenuRef.value.handleSessionMenu(e)
+  addOprMenuRef.value.handleShowMenu(e)
+}
+
+const onSelectMsgMainMenu = (label) => {
+  switch (label) {
+    case 'clearScreen':
+      console.log('清屏')
+      break
+    default:
+      break
+  }
 }
 
 /**
@@ -1269,27 +1280,29 @@ const onShowRecorder = () => {
                 ref="msgListDiv"
                 @wheel="handleMsgListWheel"
               >
-                <MessageItem
-                  v-for="item in msgKeysShow"
-                  :key="selectedSessionId + '-' + item"
-                  :id="'message-item-' + selectedSessionId + '-' + item"
-                  :class="{ highlighted: highlightedMsgIds.has(item) }"
-                  :sessionId="selectedSessionId"
-                  :msgKey="item"
-                  :extend="msgExtend[item]"
-                  :obj="getMsgSenderObj(item)"
-                  :readMsgId="selectedSession.readMsgId"
-                  :remoteRead="calibratedRemoteRead"
-                  :firstMsgId="firstMsgId"
-                  :lastMsgId="lastMsgId"
-                  :hasNoMoreMsg="hasNoMoreMsg"
-                  :isLoadMoreLoading="selectedSessionCache[selectedSessionId]?.isLoadMoreLoading"
-                  @loadMore="onLoadMore"
-                  @showUserCard="onShowUserCard"
-                  @showGroupCard="onShowGroupCard"
-                  @resendMsg="handleResendMessage"
-                  @loadFinished="updateScroll"
-                ></MessageItem>
+                <MenuMsgMain @selectMenu="onSelectMsgMainMenu">
+                  <MessageItem
+                    v-for="item in msgKeysShow"
+                    :key="selectedSessionId + '-' + item"
+                    :id="'message-item-' + selectedSessionId + '-' + item"
+                    :class="{ highlighted: highlightedMsgIds.has(item) }"
+                    :sessionId="selectedSessionId"
+                    :msgKey="item"
+                    :extend="msgExtend[item]"
+                    :obj="getMsgSenderObj(item)"
+                    :readMsgId="selectedSession.readMsgId"
+                    :remoteRead="calibratedRemoteRead"
+                    :firstMsgId="firstMsgId"
+                    :lastMsgId="lastMsgId"
+                    :hasNoMoreMsg="hasNoMoreMsg"
+                    :isLoadMoreLoading="selectedSessionCache[selectedSessionId]?.isLoadMoreLoading"
+                    @loadMore="onLoadMore"
+                    @showUserCard="onShowUserCard"
+                    @showGroupCard="onShowGroupCard"
+                    @resendMsg="handleResendMessage"
+                    @loadFinished="updateScroll"
+                  ></MessageItem>
+                </MenuMsgMain>
               </div>
               <el-button
                 type="primary"

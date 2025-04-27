@@ -1,25 +1,13 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import { CirclePlus, Delete, Edit } from '@element-plus/icons-vue'
 
 const emit = defineEmits(['selectMenu'])
 
 const menu = computed(() => {
   return [
     {
-      label: 'addSession',
-      desc: '添加群组',
-      icon: CirclePlus
-    },
-    {
-      label: 'updateName',
-      desc: '更改名称',
-      icon: Edit
-    },
-    {
-      label: 'delete',
-      desc: '删除分组',
-      icon: Delete
+      label: 'clearScreen',
+      desc: '清屏'
     }
   ]
 })
@@ -48,11 +36,15 @@ const handleShowMenu = (e) => {
   e.preventDefault() //阻止浏览器默认行为
   e.stopPropagation() // 阻止冒泡
   isShowMenu.value = true
-  x.value = e.clientX
-  y.value = e.clientY
-
-  // 如果发现菜单超出window.innerHeight屏幕高度，y要修正一下，往上面弹出菜单
   nextTick(() => {
+    //如果发现菜单超出window.innerWidth屏幕宽度，x要修正一下，往左边弹出菜单
+    if (e.clientX + menuRef.value.clientWidth > window.innerWidth) {
+      x.value = e.clientX - menuRef.value.clientWidth
+    } else {
+      x.value = e.clientX
+    }
+
+    // 如果发现菜单超出window.innerHeight屏幕高度，y要修正一下，往上面弹出菜单
     if (e.clientY + menuRef.value.clientHeight > window.innerHeight) {
       y.value = e.clientY - menuRef.value.clientHeight
     } else {
@@ -72,14 +64,10 @@ const closeMenu = () => {
 const handleClick = (item) => {
   emit('selectMenu', item.label)
 }
-
-defineExpose({
-  handleShowMenu
-})
 </script>
 
 <template>
-  <div class="partition-opr-menu" ref="containerRef">
+  <div class="context-menu-container" ref="containerRef">
     <!-- 在定义的插槽范围内都能打开菜单，超出了就不行 -->
     <slot></slot>
     <Teleport to="body">
@@ -106,7 +94,7 @@ defineExpose({
   padding: 5px;
   border-radius: 6px;
   background-color: #fff;
-  position: fixed;
+  position: absolute;
   box-shadow: 2px 2px 20px gray;
 
   .menu-item {

@@ -198,7 +198,7 @@ const onCustomContextMenu = (partitionId) => {
 
 const showOperationMenu = (e, partitionId) => {
   showOprMenuPartitionId.value = partitionId
-  oprMenuRef.value.handleSessionMenu(e)
+  oprMenuRef.value.handleShowMenu(e)
 }
 
 const onShowAddSessionByButton = (partitionId) => {

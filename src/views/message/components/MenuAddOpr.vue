@@ -42,7 +42,7 @@ onUnmounted(() => {
   document.removeEventListener('contextmenu', closeMenu)
 })
 
-const handleSessionMenu = (e) => {
+const handleShowMenu = (e) => {
   e.preventDefault() //阻止浏览器默认行为
   e.stopPropagation() // 阻止冒泡
   isShowMenu.value = true
@@ -63,7 +63,7 @@ const handleClick = (item) => {
 }
 
 defineExpose({
-  handleSessionMenu
+  handleShowMenu
 })
 </script>
 

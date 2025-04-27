@@ -165,20 +165,20 @@ const x = ref(0)
 const y = ref(0)
 
 onMounted(() => {
-  containerRef.value?.addEventListener('contextmenu', handleSessionMenu)
+  containerRef.value?.addEventListener('contextmenu', handleShowMenu)
   document.addEventListener('keydown', handleEscEvent)
   document.addEventListener('click', closeMenu) //在其他地方的click事件要能关闭菜单
   document.addEventListener('contextmenu', closeMenu) //在其他地方的菜单事件也要能关闭菜单
 })
 
 onUnmounted(() => {
-  containerRef.value?.removeEventListener('contextmenu', handleSessionMenu)
+  containerRef.value?.removeEventListener('contextmenu', handleShowMenu)
   document.removeEventListener('keydown', handleEscEvent)
   document.removeEventListener('click', closeMenu)
   document.removeEventListener('contextmenu', closeMenu)
 })
 
-const handleSessionMenu = (e) => {
+const handleShowMenu = (e) => {
   e.preventDefault() //阻止浏览器默认行为
   e.stopPropagation() // 阻止冒泡
   isShowMenu.value = true
