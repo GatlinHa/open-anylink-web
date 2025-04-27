@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
-import { Search, ArrowLeft, ArrowRight, Edit, Check } from '@element-plus/icons-vue'
+import { Search, ArrowLeft, ArrowRight, Edit } from '@element-plus/icons-vue'
 import { el_loading_options, PARTITION_TYPE } from '@/const/commonConst'
 import GroupItem from '@/components/item/GroupItem.vue'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
@@ -977,7 +977,11 @@ const onChangePartition = () => {
           <div
             style="width: 240px; display: flex; align-items: center; justify-content: space-between"
           >
-            <el-select v-model="newPartitionId" placeholder="请选择分组" style="width: 200px">
+            <el-select
+              v-model="newPartitionId"
+              placeholder="请选择分组"
+              @change="onChangePartition()"
+            >
               <el-option
                 v-for="item in Object.values(partitions)"
                 :key="item.partitionId"
@@ -985,14 +989,6 @@ const onChangePartition = () => {
                 :value="item.partitionId"
               />
             </el-select>
-            <el-button
-              type="success"
-              :icon="Check"
-              size="small"
-              title="确认"
-              circle
-              @click="onChangePartition()"
-            ></el-button>
           </div>
         </div>
       </div>
