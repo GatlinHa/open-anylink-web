@@ -4,10 +4,12 @@ import { formatFileSize } from '@/js/utils/common'
 import DocumentIcon from '@/assets/svg/document.svg'
 import ArchiveIcon from '@/assets/svg/archive.svg'
 import FileTemplateIcon from '@/assets/svg/filetemplate.svg'
+import AudioFileIcon from '@/assets/svg/audiofile.svg'
+import VideoFileIcon from '@/assets/svg/videofile.svg'
 import { CircleCheckFilled, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
-const props = defineProps(['url', 'fileName', 'contentType', 'size'])
+const props = defineProps(['url', 'contentType', 'fileName', 'fileSize', 'use'])
 const emits = defineEmits(['load'])
 
 const iconMap = {
@@ -28,7 +30,10 @@ const iconMap = {
   'application/x-7z-compressed': ArchiveIcon,
   'application/x-tar': ArchiveIcon,
   'application/gzip': ArchiveIcon,
-  'application/x-bzip2': ArchiveIcon
+  'application/x-bzip2': ArchiveIcon,
+  4: AudioFileIcon,
+  6: VideoFileIcon,
+  7: ArchiveIcon
 }
 
 const iconComponent = computed(() => {
@@ -36,7 +41,15 @@ const iconComponent = computed(() => {
 })
 
 const formatSize = computed(() => {
-  return formatFileSize(props.size)
+  return formatFileSize(props.fileSize)
+})
+
+const mainStyle = computed(() => {
+  if (props.use && props.use === 'agree') {
+    return { width: 'auto', maxWidth: '240px' }
+  } else {
+    return { width: '140px' }
+  }
 })
 
 const isDownloading = ref(false)
@@ -101,13 +114,13 @@ const onDownload = async () => {
       <span class="extension">{{ iconComponent }}</span>
     </div>
     <component v-else :is="iconComponent" />
-    <div class="main">
+    <div class="main" :style="mainStyle">
       <span class="file-name text-ellipsis" :title="props.fileName || '未知'">
         {{ props.fileName || '未知' }}
       </span>
       <div class="footer">
         <div class="size" :title="formatSize">{{ formatSize }}</div>
-        <div class="download">
+        <div v-if="props.url" class="download">
           <span
             v-if="!isDownloading && !isDownloadComplete && !isDownloadError"
             @click="onDownload"
@@ -173,7 +186,6 @@ const onDownload = async () => {
   }
 
   .main {
-    width: 140px;
     display: flex;
     flex-direction: column;
     justify-content: space-around;

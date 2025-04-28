@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { useMessageStore, useImageStore } from '@/stores'
 import { ElMessage } from 'element-plus'
 import { emojis } from '@/js/utils/emojis'
-import { base64ToFile } from '@/js/utils/common'
+import { base64ToFile, jsonParseSafe } from '@/js/utils/common'
 import { mtsUploadServiceForImage } from '@/api/mts'
 import { msgContentType, msgFileUploadStatus, msgSendStatus } from '@/const/msgConst'
 import { getMd5 } from '@/js/utils/file'
@@ -20,10 +20,7 @@ import AtList from '@/views/message/components/AtList.vue'
 const Clipboard = Quill.import('modules/clipboard')
 class PlainClipboard extends Clipboard {
   onPaste(range, { text }) {
-    const delta = new Delta().retain(range.index).delete(range.length).insert(text)
-    this.quill.updateContents(delta, Quill.sources.USER)
-    this.quill.setSelection(delta.length() - range.length, Quill.sources.SILENT)
-    this.quill.scrollSelectionIntoView()
+    renderContent(text)
   }
 }
 Quill.register(
@@ -390,53 +387,62 @@ const renderContent = (content) => {
     return
   }
 
-  let contentArray = []
-  //匹配内容中的图片
-  content.split(/(\{.*?\})/).forEach((item) => {
-    //匹配内容中的表情
-    item.split(/(\[.*?\])/).forEach((item) => {
-      //匹配内容中的@
-      item.split(/(<.*?>)/).forEach((item) => {
-        if (item) {
-          contentArray.push(item)
-        }
+  const jsonContent = jsonParseSafe(content)
+  if (jsonContent && jsonContent['type'] && jsonContent['value']) {
+    // TODO 暂时直接渲染成文本
+    const range = quill.value.getSelection()
+    const delta = new Delta().retain(range.index).delete(range.length).insert(content)
+    quill.value.updateContents(delta, Quill.sources.USER)
+    quill.value.setSelection(delta.length() - range.length, Quill.sources.USER)
+  } else {
+    let contentArray = []
+    //匹配内容中的图片
+    content.split(/(\{.*?\})/).forEach((item) => {
+      //匹配内容中的表情
+      item.split(/(\[.*?\])/).forEach((item) => {
+        //匹配内容中的@
+        item.split(/(<.*?>)/).forEach((item) => {
+          if (item) {
+            contentArray.push(item)
+          }
+        })
       })
     })
-  })
 
-  // 创建一个新的 Delta 对象
-  const delta = new Delta()
-  contentArray.map((item) => {
-    if (item.startsWith('{') && item.endsWith('}')) {
-      const imageId = item.slice(1, -1)
-      const imageUrl = imageData.image[imageId].originUrl
-      delta.insert({ image: imageUrl }, { alt: item })
-    } else if (item.startsWith('[') && item.endsWith(']')) {
-      const emojiUrl = emojis[item]
-      delta.insert({ image: emojiUrl }, { alt: item })
-    } else if (item.startsWith('<') && item.endsWith('>')) {
-      const content = item.slice(1, -1)
-      const index = content.indexOf('-')
-      if (index !== -1) {
-        const account = content.slice(0, index)
-        const nickName = content.slice(index + 1)
-        if (nickName) {
-          toSendAtList.value.push(account)
-          delta.insert({ atMention: { account, nickName } })
+    // 创建一个新的 Delta 对象
+    const delta = new Delta()
+    contentArray.map((item) => {
+      if (item.startsWith('{') && item.endsWith('}')) {
+        const imageId = item.slice(1, -1)
+        const imageUrl = imageData.image[imageId].originUrl
+        delta.insert({ image: imageUrl }, { alt: item })
+      } else if (item.startsWith('[') && item.endsWith(']')) {
+        const emojiUrl = emojis[item]
+        delta.insert({ image: emojiUrl }, { alt: item })
+      } else if (item.startsWith('<') && item.endsWith('>')) {
+        const content = item.slice(1, -1)
+        const index = content.indexOf('-')
+        if (index !== -1) {
+          const account = content.slice(0, index)
+          const nickName = content.slice(index + 1)
+          if (nickName) {
+            toSendAtList.value.push(account)
+            delta.insert({ atMention: { account, nickName } })
+          } else {
+            delta.insert(item)
+          }
         } else {
           delta.insert(item)
         }
       } else {
         delta.insert(item)
       }
-    } else {
-      delta.insert(item)
-    }
-  })
+    })
 
-  quill.value.setText('') // 清空编辑器内容
-  quill.value.updateContents(delta) // 使用 Delta 对象更新编辑器内容
-  quill.value.setSelection(quill.value.getLength(), 0, 'user') // 设置光标位置
+    quill.value.setText('') // 清空编辑器内容
+    quill.value.updateContents(delta) // 使用 Delta 对象更新编辑器内容
+    quill.value.setSelection(quill.value.getLength(), 0, 'user') // 设置光标位置
+  }
 }
 
 const handleEnter = async () => {

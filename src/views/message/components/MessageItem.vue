@@ -22,6 +22,7 @@ import MsgBoxAudio from '@/views/message/components/MsgBoxAudio.vue'
 import MsgBoxVideo from '@/views/message/components/MsgBoxVideo.vue'
 import MsgBoxDocument from '@/views/message/components/MsgBoxDocument.vue'
 import MenuMsgItem from '@/views/message/components/MenuMsgItem.vue'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps([
   'sessionId',
@@ -253,8 +254,8 @@ const renderDocument = (content) => {
     return h(MsgBoxDocument, {
       url,
       fileName: documentData.document[documentId].fileName,
+      fileSize: documentData.document[documentId].size,
       contentType: documentData.document[documentId].documentType,
-      size: documentData.document[documentId].size,
       onLoad: () => {
         emit('loadFinished')
       }
@@ -669,8 +670,20 @@ const onResendMsg = () => {
   }
 }
 
-const onSelectMenuMsgItem = (label) => {
+const onSelectMenuMsgItem = async (label) => {
   console.log(label)
+  switch (label) {
+    case 'copy':
+      try {
+        await navigator.clipboard.writeText(msg.value.content)
+        ElMessage.success('已复制到剪贴板')
+      } catch (error) {
+        ElMessage.error('复制出错')
+      }
+      break
+    default:
+      break
+  }
 }
 
 /**

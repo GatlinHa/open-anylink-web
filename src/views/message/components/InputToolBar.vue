@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Clock, Microphone } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import EmojiIcon from '@/assets/svg/emoji.svg'
@@ -7,7 +7,7 @@ import FileIcon from '@/assets/svg/file.svg'
 import ImageIcon from '@/assets/svg/image.svg'
 import CodeIcon from '@/assets/svg/code.svg'
 import VoteIcon from '@/assets/svg/vote.svg'
-import EmojiBox from './EmojiBox.vue'
+import EmojiBox from '@/views/message/components/EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
 import { mtsUploadService, mtsUploadServiceForImage } from '@/api/mts'
 import {
@@ -22,6 +22,7 @@ import { msgContentType, msgFileUploadStatus, msgSendStatus } from '@/const/msgC
 import { prehandleImage } from '@/js/utils/image'
 import { prehandleVideo } from '@/js/utils/video'
 import { getMd5 } from '@/js/utils/file'
+import AgreeBeforeSend from '@/views/message/components/AgreeBeforeSend.vue'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
 const emit = defineEmits(['sendEmoji', 'showRecorder', 'sendMessage', 'saveLocalMsg'])
@@ -32,18 +33,36 @@ const audioData = useAudioStore()
 const videoData = useVideoStore()
 const documentData = useDocumentStore()
 const isShowEmojiBox = ref(false)
+const showAgreeDialog = ref(false)
+
+const session = computed(() => {
+  return messageData.sessionList[props.sessionId]
+})
+
+const remoteName = computed(() => {
+  if (session.value.sessionType === MsgType.CHAT) {
+    return session.value.objectInfo.nickName
+  } else if (session.value.sessionType === MsgType.GROUP_CHAT) {
+    return session.value.objectInfo.groupName
+  } else {
+    return ''
+  }
+})
+
+let selectedFile
+let contentType
+let md5
+let prehandleImageObj
+let prehandleVideoObj
+let localSrc
 
 const onSelectedFile = async (file) => {
   if (!file) {
     return
   }
 
-  let contentType = msgContentType.DOCUMENT
-  let md5
-  let prehandleImageObj
-  let prehandleVideoObj
-  let msg = {}
-
+  selectedFile = file
+  localSrc = URL.createObjectURL(selectedFile.raw)
   try {
     md5 = await getMd5(file.raw)
     if (file.raw.type.startsWith('image/')) {
@@ -54,31 +73,42 @@ const onSelectedFile = async (file) => {
     } else if (file.raw.type.startsWith('video/')) {
       contentType = msgContentType.VIDEO
       prehandleVideoObj = await prehandleVideo(file.raw)
+    } else {
+      contentType = msgContentType.DOCUMENT
     }
 
-    setLocalData(contentType, file, prehandleImageObj, prehandleVideoObj)
-
-    emit('saveLocalMsg', {
-      contentType: contentType,
-      objectId: file.uid,
-      fn: (result) => {
-        msg = result
-      }
-    })
+    showAgreeDialog.value = true
   } catch (error) {
     ElMessage.error(error.message)
+    URL.revokeObjectURL(localSrc)
     return
   }
+}
 
+const onConfirmSendFile = () => {
+  // 写本地数据
+  setLocalData()
+
+  // 写本地消息
+  let msg = {}
+  emit('saveLocalMsg', {
+    contentType: contentType,
+    objectId: selectedFile.uid,
+    fn: (result) => {
+      msg = result
+    }
+  })
+
+  // 上传文件
   let requestApi = mtsUploadService
   const requestBody = {
     storeType: 1,
     md5,
-    fileName: file.name,
-    fileRawType: file.raw.type,
-    size: file.raw.size
+    fileName: selectedFile.name,
+    fileRawType: selectedFile.raw.type,
+    size: selectedFile.raw.size
   }
-  const files = { originFile: file.raw }
+  const files = { originFile: selectedFile.raw }
 
   if (contentType === msgContentType.IMAGE) {
     requestBody.originWidth = prehandleImageObj.originWidth
@@ -105,7 +135,7 @@ const onSelectedFile = async (file) => {
           uploadProgress: 100
         })
         msg.content = JSON.stringify({ type: contentType, value: res.data.data.objectId })
-        emit('sendMessage', { msg })
+        emit('sendMessage', { msg }) // 上传完成后发网络消息
       }
     })
     .catch((error) => {
@@ -123,19 +153,16 @@ const onSelectedFile = async (file) => {
 
 /**
  * 发送的时候设置本地缓存（非服务端数据），用于立即渲染
- * @param contentType
- * @param file
  */
-const setLocalData = (contentType, file, prehandleImageObj, prehandleVideoObj) => {
-  const localSrc = URL.createObjectURL(file.raw)
+const setLocalData = () => {
   switch (contentType) {
     case msgContentType.IMAGE:
       imageData.setImage({
-        objectId: file.uid,
+        objectId: selectedFile.uid,
         originUrl: localSrc,
         thumbUrl: localSrc, // 本地缓存缩略图用的是原图
-        fileName: file.name,
-        size: file.raw.size,
+        fileName: selectedFile.name,
+        size: selectedFile.raw.size,
         thumbWidth: prehandleImageObj.originWidth,
         thumbHeight: prehandleImageObj.originHeight,
         createdTime: new Date()
@@ -143,18 +170,18 @@ const setLocalData = (contentType, file, prehandleImageObj, prehandleVideoObj) =
       break
     case msgContentType.AUDIO:
       audioData.setAudio({
-        objectId: file.uid,
+        objectId: selectedFile.uid,
         downloadUrl: localSrc,
-        fileName: file.name,
-        size: file.raw.size
+        fileName: selectedFile.name,
+        size: selectedFile.raw.size
       })
       break
     case msgContentType.VIDEO:
       videoData.setVideo({
-        objectId: file.uid,
+        objectId: selectedFile.uid,
         downloadUrl: localSrc,
-        fileName: file.name,
-        size: file.raw.size,
+        fileName: selectedFile.name,
+        size: selectedFile.raw.size,
         width: prehandleVideoObj.width,
         height: prehandleVideoObj.height
       })
@@ -162,21 +189,20 @@ const setLocalData = (contentType, file, prehandleImageObj, prehandleVideoObj) =
     case msgContentType.DOCUMENT:
     default:
       documentData.setDocument({
-        objectId: file.uid,
-        documentType: file.raw.type,
+        objectId: selectedFile.uid,
+        documentType: selectedFile.raw.type,
         downloadUrl: localSrc,
-        fileName: file.name,
-        size: file.raw.size
+        fileName: selectedFile.name,
+        size: selectedFile.raw.size
       })
   }
 }
 
 /**
  * 服务端响应数据回来后，设置store缓存
- * @param contentType
- * @param file
+ * @param data
  */
-const setStoreData = (contentType, data) => {
+const setStoreData = (data) => {
   switch (contentType) {
     case msgContentType.IMAGE:
       imageData.setImage(data)
@@ -282,6 +308,15 @@ defineExpose({
     @close="isShowEmojiBox = false"
     @sendEmoji="onSendEmoji"
   ></EmojiBox>
+  <AgreeBeforeSend
+    v-model:isShow="showAgreeDialog"
+    :target="remoteName"
+    :contentType="contentType"
+    :fileName="selectedFile?.name"
+    :fileSize="selectedFile?.raw.size"
+    :src="localSrc"
+    @confirm="onConfirmSendFile"
+  ></AgreeBeforeSend>
 </template>
 
 <style lang="scss" scoped>
