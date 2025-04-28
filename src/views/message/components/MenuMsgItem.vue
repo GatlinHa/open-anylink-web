@@ -11,6 +11,7 @@ import { jsonParseSafe } from '@/js/utils/common'
 import { msgContentType } from '@/const/msgConst'
 
 const props = defineProps(['msg'])
+const emit = defineEmits(['selectMenu'])
 
 const menuData = useMenuStore()
 const menuName = computed(() => {
@@ -30,8 +31,6 @@ const contentType = computed(() => {
     return type
   }
 })
-
-const emit = defineEmits(['selectMenu'])
 
 const menu = computed(() => {
   const o = [
