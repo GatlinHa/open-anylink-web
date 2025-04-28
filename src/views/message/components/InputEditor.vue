@@ -3,7 +3,13 @@ import { QuillEditor, Delta, Quill } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { computed, onMounted, onUnmounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
-import { useMessageStore, useImageStore } from '@/stores'
+import {
+  useMessageStore,
+  useImageStore,
+  useAudioStore,
+  useDocumentStore,
+  useVideoStore
+} from '@/stores'
 import { ElMessage } from 'element-plus'
 import { emojis } from '@/js/utils/emojis'
 import { base64ToFile, jsonParseSafe } from '@/js/utils/common'
@@ -13,6 +19,7 @@ import { getMd5 } from '@/js/utils/file'
 import { prehandleImage } from '@/js/utils/image'
 import { MsgType } from '@/proto/msg'
 import AtList from '@/views/message/components/AtList.vue'
+import AgreeBeforeSend from '@/views/message/components/AgreeBeforeSend.vue'
 
 /**
  * 处理粘贴格式问题
@@ -67,6 +74,9 @@ const props = defineProps(['sessionId', 'draft'])
 const emit = defineEmits(['saveLocalMsg', 'sendMessage'])
 const messageData = useMessageStore()
 const imageData = useImageStore()
+const audioData = useAudioStore()
+const documentData = useDocumentStore()
+const videoData = useVideoStore()
 const inputEditorRef = ref()
 const editorRef = ref()
 const isShowAtList = ref(false)
@@ -75,9 +85,20 @@ const atKey = ref('')
 const atListOffsetX = ref(0)
 const atListOffsetY = ref(0)
 const toSendAtList = ref([])
+const showAgreeDialog = ref(false)
 
 const session = computed(() => {
   return messageData.sessionList[props.sessionId]
+})
+
+const remoteName = computed(() => {
+  if (session.value.sessionType === MsgType.CHAT) {
+    return session.value.objectInfo.nickName
+  } else if (session.value.sessionType === MsgType.GROUP_CHAT) {
+    return session.value.objectInfo.groupName
+  } else {
+    return ''
+  }
 })
 
 const quill = computed(() => {
@@ -377,6 +398,12 @@ watch(
   { deep: true }
 )
 
+let pasteContent
+let pasteContentType
+let pasteFileName
+let pasteFileSize
+let pasteUrl
+
 /**
  * 把输入框的字符串内容渲染成富媒体内容
  * @param content 字符串内容
@@ -386,14 +413,33 @@ const renderContent = (content) => {
     quill.value.setText('')
     return
   }
-
+  pasteContent = content
   const jsonContent = jsonParseSafe(content)
   if (jsonContent && jsonContent['type'] && jsonContent['value']) {
-    // TODO 暂时直接渲染成文本
-    const range = quill.value.getSelection()
-    const delta = new Delta().retain(range.index).delete(range.length).insert(content)
-    quill.value.updateContents(delta, Quill.sources.USER)
-    quill.value.setSelection(delta.length() - range.length, Quill.sources.USER)
+    pasteContentType = jsonContent['type']
+    const fileId = jsonContent['value']
+    switch (pasteContentType) {
+      case msgContentType.IMAGE:
+        pasteFileName = imageData.image[fileId]?.fileName
+        pasteFileSize = imageData.image[fileId]?.size
+        pasteUrl = imageData.image[fileId]?.thumbUrl
+        break
+      case msgContentType.AUDIO:
+        pasteFileName = audioData.audio[fileId]?.fileName
+        pasteFileSize = audioData.audio[fileId]?.size
+        break
+      case msgContentType.VIDEO:
+        pasteFileName = videoData.video[fileId]?.fileName
+        pasteFileSize = videoData.video[fileId]?.size
+        break
+      case msgContentType.DOCUMENT:
+        pasteFileName = documentData.document[fileId]?.fileName
+        pasteFileSize = documentData.document[fileId]?.size
+        break
+      default:
+        break
+    }
+    showAgreeDialog.value = true
   } else {
     let contentArray = []
     //匹配内容中的图片
@@ -456,7 +502,9 @@ const handleEnter = async () => {
     allUploadedSuccessFn: () => {}
   }
 
-  const contentObj = await parseContent(callbacks)
+  const contentObj = pasteContent
+    ? { contentFromLocal: [pasteContent], contentFromServer: [pasteContent] }
+    : await parseContent(callbacks)
 
   const content = contentObj.contentFromLocal.join('').trim()
   if (!content) {
@@ -513,6 +561,7 @@ const handleEnter = async () => {
     emit('sendMessage', { msg, atTargets })
   }
 
+  pasteContent = ''
   quill.value.setText('') // 编辑窗口置空
   toSendAtList.value = []
 }
@@ -595,6 +644,15 @@ defineExpose({
       :atKey="atKey"
       @selected="onSelectedAtTarget"
     ></AtList>
+    <AgreeBeforeSend
+      v-model:isShow="showAgreeDialog"
+      :target="remoteName"
+      :contentType="pasteContentType"
+      :fileName="pasteFileName"
+      :fileSize="pasteFileSize"
+      :src="pasteUrl"
+      @confirm="handleEnter"
+    ></AgreeBeforeSend>
   </div>
 </template>
 

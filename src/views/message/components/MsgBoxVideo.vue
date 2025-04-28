@@ -5,7 +5,7 @@ import 'xgplayer/dist/index.min.css'
 import { formatFileSize } from '@/js/utils/common'
 import VideoloadfailedIcon from '@/assets/svg/videoloadfailed.svg'
 
-const props = defineProps(['videoId', 'url', 'fileName', 'size', 'width', 'height'])
+const props = defineProps(['msgId', 'videoId', 'url', 'fileName', 'size', 'width', 'height'])
 const emits = defineEmits(['load'])
 
 const isLoaded = ref(0) // 0未加载，1加载成功，2加载失败
@@ -38,7 +38,7 @@ const renderHeight = computed(() => {
 
 onMounted(() => {
   const player = new Player({
-    id: `msg-xgplayer-${props.videoId}`,
+    id: `msg-xgplayer-${props.msgId}-${props.videoId}`,
     url: props.url,
     fluid: true,
     autoplay: false,
@@ -78,7 +78,11 @@ onMounted(() => {
     :class="{ loading: isLoaded === 0 }"
     :style="{ width: `${renderWidth}px`, height: `${renderHeight}px` }"
   >
-    <div v-show="isLoaded === 1" ref="videoWrapperRef" :id="`msg-xgplayer-${props.videoId}`"></div>
+    <div
+      v-show="isLoaded === 1"
+      ref="videoWrapperRef"
+      :id="`msg-xgplayer-${props.msgId}-${props.videoId}`"
+    ></div>
     <div v-show="isLoaded === 2" class="error">
       <VideoloadfailedIcon style="width: 48px; height: 48px; fill: #fff" />
       <span style="color: #fff">视频加载失败</span>

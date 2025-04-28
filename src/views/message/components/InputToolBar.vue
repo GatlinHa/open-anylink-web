@@ -129,7 +129,7 @@ const onConfirmSendFile = () => {
   requestApi(requestBody, files)
     .then((res) => {
       if (res.data.code === 0) {
-        setStoreData(contentType, res.data.data)
+        setStoreData(res.data.data)
         messageData.updateMsg(msg.sessionId, msg.msgId, {
           uploadStatus: msgFileUploadStatus.UPLOAD_SUCCESS,
           uploadProgress: 100

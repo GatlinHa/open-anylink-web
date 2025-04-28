@@ -1,9 +1,14 @@
 <script setup>
 import { msgContentType } from '@/const/msgConst'
 import MsgBoxDocument from '@/views/message/components/MsgBoxDocument.vue'
+import { watch, onUnmounted } from 'vue'
 
 const props = defineProps(['isShow', 'target', 'contentType', 'fileName', 'fileSize', 'src'])
 const emit = defineEmits(['update:isShow', 'confirm'])
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyPress)
+})
 
 const handleConfirm = () => {
   emit('confirm')
@@ -13,6 +18,24 @@ const handleConfirm = () => {
 const handleClose = () => {
   emit('update:isShow', false)
 }
+
+const handleKeyPress = (event) => {
+  if (event.key === 'Enter' && props.isShow) {
+    handleConfirm()
+    event.preventDefault()
+  }
+}
+
+watch(
+  () => props.isShow,
+  (newVal) => {
+    if (newVal) {
+      document.addEventListener('keydown', handleKeyPress)
+    } else {
+      document.removeEventListener('keydown', handleKeyPress)
+    }
+  }
+)
 </script>
 
 <template>

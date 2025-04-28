@@ -178,6 +178,7 @@ const renderVideo = (content) => {
   const url = videoData.video[videoId]?.downloadUrl
   if (url) {
     return h(MsgBoxVideo, {
+      msgId: msg.value.msgId,
       videoId,
       url,
       fileName: videoData.video[videoId].fileName,
