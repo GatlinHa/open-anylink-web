@@ -7,6 +7,8 @@ import CopyIcon from '@/assets/svg/copy.svg'
 import MultiselectIcon from '@/assets/svg/multiselect.svg'
 import RevokeIcon from '@/assets/svg/revoke.svg'
 import { useMenuStore } from '@/stores'
+import { jsonParseSafe } from '@/js/utils/common'
+import { msgContentType } from '@/const/msgConst'
 
 const props = defineProps(['msg'])
 
@@ -15,15 +17,24 @@ const menuName = computed(() => {
   return 'MenuMsgItem-' + props.msg.msgId
 })
 
+const contentType = computed(() => {
+  const contentJson = jsonParseSafe(props.msg.content)
+  if (!contentJson) {
+    return msgContentType.MIX
+  }
+
+  const type = contentJson['type']
+  if (!type) {
+    return msgContentType.MIX
+  } else {
+    return type
+  }
+})
+
 const emit = defineEmits(['selectMenu'])
 
 const menu = computed(() => {
-  return [
-    {
-      label: 'copy',
-      desc: '复制',
-      icon: markRaw(CopyIcon)
-    },
+  const o = [
     {
       label: 'forward',
       desc: '转发',
@@ -50,6 +61,15 @@ const menu = computed(() => {
       icon: markRaw(DeletemsgIcon)
     }
   ]
+
+  if (contentType.value !== msgContentType.RECORDING) {
+    o.unshift({
+      label: 'copy',
+      desc: '复制',
+      icon: markRaw(CopyIcon)
+    })
+  }
+  return o
 })
 
 const containerRef = ref()
