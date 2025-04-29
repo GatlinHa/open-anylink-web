@@ -16,6 +16,10 @@ export const msgChatRevokeMsgService = (obj) => {
   return request.post('/chat/revokeMsg', obj)
 }
 
+export const msgChatDeleteMsgService = (obj) => {
+  return request.post('/chat/deleteMsg', obj)
+}
+
 export const msgAtService = () => {
   return request.get('/chat/queryAt')
 }

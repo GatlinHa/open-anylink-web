@@ -177,7 +177,7 @@ export const useMessageStore = defineStore('anylink-message', () => {
    */
   const removeMsgRecord = (sessionId, msgKey) => {
     if (msgRecordsList.value[sessionId] && msgKey in msgRecordsList.value[sessionId]) {
-      delete msgRecordsList.value[sessionId][msgKey]
+      msgRecordsList.value[sessionId][msgKey].delete = true
     }
   }
 

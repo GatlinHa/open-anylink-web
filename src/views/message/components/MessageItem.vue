@@ -23,7 +23,7 @@ import MsgBoxVideo from '@/views/message/components/MsgBoxVideo.vue'
 import MsgBoxDocument from '@/views/message/components/MsgBoxDocument.vue'
 import MenuMsgItem from '@/views/message/components/MenuMsgItem.vue'
 import { ElMessage } from 'element-plus'
-import { msgChatRevokeMsgService } from '@/api/message'
+import { msgChatDeleteMsgService, msgChatRevokeMsgService } from '@/api/message'
 
 const props = defineProps([
   'sessionId',
@@ -631,6 +631,10 @@ const isRevoke = computed(() => {
   return msg.value.revoke
 })
 
+const isDelete = computed(() => {
+  return msg.value.delete
+})
+
 const isReedit = computed(() => {
   const contentJson = jsonParseSafe(msg.value.content)
   if (!contentJson) {
@@ -712,19 +716,35 @@ const onSelectMenuMsgItem = async (label) => {
     case 'revoke':
       msgChatRevokeMsgService({
         sessionId: props.sessionId,
-        revokeMsgId: msg.value.msgId, // 服务器上删除用msg.value.msgId
+        revokeMsgId: msg.value.msgId, // 服务器上撤销用msg.value.msgId
         isGroupChat: isGroupChatMsgType.value,
         remoteId: messageData.sessionList[props.sessionId].remoteId
       })
         .then((res) => {
           if (res.data.code === 0) {
-            // 本地删除用props.msgKey，因为key有可能是发送消息时产生的本地UUID
+            // 本地撤销用props.msgKey，因为key有可能是发送消息时产生的本地UUID
             messageData.revokeMsgRcord(props.sessionId, props.msgKey)
             isReeditTimeOut.value = false
             setTimeout(() => {
               isReeditTimeOut.value = true
             }, MSG_REEDIT_TIME_LIMIT)
             ElMessage.success('消息已撤回')
+          }
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+      break
+    case 'delete':
+      msgChatDeleteMsgService({
+        sessionId: props.sessionId,
+        deleteMsgId: msg.value.msgId // 服务器上删除用msg.value.msgId
+      })
+        .then((res) => {
+          if (res.data.code === 0) {
+            // 本地删除用props.msgKey，因为key有可能是发送消息时产生的本地UUID
+            messageData.removeMsgRecord(props.sessionId, props.msgKey)
+            ElMessage.success('消息已删除')
           }
         })
         .catch((error) => {
@@ -778,7 +798,7 @@ watch(
       v-html="systemMsgContent"
       @click="onClickSystemMsg"
     ></div>
-    <div v-else-if="!isSystemMsg && isRevoke" class="revoke-wrapper">
+    <div v-else-if="!isSystemMsg && isRevoke" class="revoke-delete">
       <div v-if="isSelf">
         <span>你撤回了一条消息</span>
         <span
@@ -793,6 +813,9 @@ watch(
         <div v-if="isChatMsgType">对方撤回了一条消息</div>
         <div v-else>{{ `“${objectInfo.nickName}”撤回了一条消息` }}</div>
       </div>
+    </div>
+    <div v-else-if="!isSystemMsg && isDelete" class="revoke-delete">
+      <span>消息已删除</span>
     </div>
     <div v-else class="message-container-wrapper">
       <el-container class="el-container-right" v-if="isSelf">
@@ -949,7 +972,7 @@ watch(
     user-select: text;
   }
 
-  .revoke-wrapper {
+  .revoke-delete {
     padding: 2px 4px 2px 4px;
     margin-top: 10px;
     margin-bottom: 10px;
