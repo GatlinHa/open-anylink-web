@@ -295,6 +295,7 @@ export const Msg = ($root.Msg = (() => {
  * @property {number} STATUS_SYNC=10 STATUS_SYNC value
  * @property {number} AT=11 AT value
  * @property {number} REVOKE=12 REVOKE value
+ * @property {number} DELETE=13 DELETE value
  * @property {number} SYS_GROUP_CREATE=21 SYS_GROUP_CREATE value
  * @property {number} SYS_GROUP_ADD_MEMBER=22 SYS_GROUP_ADD_MEMBER value
  * @property {number} SYS_GROUP_DEL_MEMBER=23 SYS_GROUP_DEL_MEMBER value
@@ -333,6 +334,7 @@ export const MsgType = ($root.MsgType = (() => {
   values[(valuesById[10] = 'STATUS_SYNC')] = 10
   values[(valuesById[11] = 'AT')] = 11
   values[(valuesById[12] = 'REVOKE')] = 12
+  values[(valuesById[13] = 'DELETE')] = 13
   values[(valuesById[21] = 'SYS_GROUP_CREATE')] = 21
   values[(valuesById[22] = 'SYS_GROUP_ADD_MEMBER')] = 22
   values[(valuesById[23] = 'SYS_GROUP_DEL_MEMBER')] = 23
@@ -549,6 +551,7 @@ export const Header = ($root.Header = (() => {
         case 10:
         case 11:
         case 12:
+        case 13:
         case 21:
         case 22:
         case 23:
@@ -648,6 +651,10 @@ export const Header = ($root.Header = (() => {
       case 'REVOKE':
       case 12:
         message.msgType = 12
+        break
+      case 'DELETE':
+      case 13:
+        message.msgType = 13
         break
       case 'SYS_GROUP_CREATE':
       case 21:
@@ -832,18 +839,18 @@ export const Body = ($root.Body = (() => {
    * | 8 | seq          |   -  |    -      |    M    |     M     |       M       |        M        |     O    |        O       |    M     |       todo        |         todo        |
    * | 9 | sessionId    |   -  |    -      |    M    |     M     |       M       |        M        |     M    |        M       |    M     |       todo        |         todo        |
    * +---+--------------+------+-----------+---------|-----------+---------------+-----------------+----------+----------------+----------+-------------------+---------------------+
-   * NO      filed      STATUS_REQ   STATUS_RES   STATUS_SYNC  SYS_GROUP_XXX   AT(up)   AT(down)  REVOKE
-   * +---+--------------+------------+------------+-------------+------------+---------+---------+-----------+
-   * | 1 | fromId       |      M     |      M     |      M      |      -     |    M    |    M    |     M     |
-   * | 2 | fromClient   |      M     |      M     |      M      |      -     |    M    |    M    |     -     |
-   * | 3 | toId         |      -     |      -     |      -      |      -     |    -    |    M    |     o     |
-   * | 4 | toClient     |      -     |      -     |      -      |      -     |    -    |    M    |     -     |
-   * | 5 | groupId      |      -     |      -     |      -      |      M     |    M    |    M    |     o     |
-   * | 6 | msgId        |      -     |      -     |      -      |      M     |    -    |    M    |     M     |
-   * | 7 | content      |      M     |      M     |      M      |      M     |    M    |    M    |     M     |
-   * | 8 | seq          |      -     |      -     |      -      |      -     |    M    |    M    |     -     |
-   * | 9 | sessionId    |      -     |      -     |      -      |      M     |    M    |    M    |     M     |
-   * +---+--------------+------------+------------+-------------+------------+---------+---------+-----------+
+   * NO      filed      STATUS_REQ   STATUS_RES   STATUS_SYNC  SYS_GROUP_XXX   AT(up)   AT(down)    REVOKE     DELETE
+   * +---+--------------+------------+------------+-------------+------------+---------+---------+-----------+-----------+
+   * | 1 | fromId       |      M     |      M     |      M      |      -     |    M    |    M    |     M     |     M     |
+   * | 2 | fromClient   |      M     |      M     |      M      |      -     |    M    |    M    |     -     |     -     |
+   * | 3 | toId         |      -     |      -     |      -      |      -     |    -    |    M    |     o     |     M     |
+   * | 4 | toClient     |      -     |      -     |      -      |      -     |    -    |    M    |     -     |     M     |
+   * | 5 | groupId      |      -     |      -     |      -      |      M     |    M    |    M    |     o     |     -     |
+   * | 6 | msgId        |      -     |      -     |      -      |      M     |    -    |    M    |     M     |     M     |
+   * | 7 | content      |      M     |      M     |      M      |      M     |    M    |    M    |     M     |     -     |
+   * | 8 | seq          |      -     |      -     |      -      |      -     |    M    |    M    |     -     |     -     |
+   * | 9 | sessionId    |      -     |      -     |      -      |      M     |    M    |    M    |     M     |     M     |
+   * +---+--------------+------------+------------+-------------+------------+---------+---------+-----------+-----------+
    * @implements IBody
    * @constructor
    * @param {IBody=} [properties] Properties to set

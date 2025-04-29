@@ -21,7 +21,8 @@ import {
   onReceiveGroupChatReadMsg,
   onReceiveGroupSystemMsg,
   onReceiveAtMsg,
-  onReceiveRevokeMsg
+  onReceiveRevokeMsg,
+  onReceiveDeleteMsg
 } from '@/js/event'
 
 class WsConnect {
@@ -123,6 +124,7 @@ class WsConnect {
     [MsgType.GROUP_CHAT_READ]: onReceiveGroupChatReadMsg(),
     [MsgType.AT]: onReceiveAtMsg(),
     [MsgType.REVOKE]: onReceiveRevokeMsg(),
+    [MsgType.DELETE]: onReceiveDeleteMsg(),
     [MsgType.SYS_GROUP_CREATE]: onReceiveGroupSystemMsg(),
     [MsgType.SYS_GROUP_ADD_MEMBER]: onReceiveGroupSystemMsg(),
     [MsgType.SYS_GROUP_DEL_MEMBER]: onReceiveGroupSystemMsg(),
