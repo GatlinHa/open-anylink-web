@@ -1296,6 +1296,7 @@ const onShowRecorder = () => {
                     :lastMsgId="lastMsgId"
                     :hasNoMoreMsg="hasNoMoreMsg"
                     :isLoadMoreLoading="selectedSessionCache[selectedSessionId]?.isLoadMoreLoading"
+                    :inputEditorRef="inputEditorRef"
                     @loadMore="onLoadMore"
                     @showUserCard="onShowUserCard"
                     @showGroupCard="onShowGroupCard"

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, h, createApp, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, h, createApp, watch, nextTick } from 'vue'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
 import {
@@ -15,7 +15,7 @@ import {
 import { messageSysShowTime, showTimeFormat, jsonParseSafe } from '@/js/utils/common'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import { emojis } from '@/js/utils/emojis'
-import { msgContentType, msgSendStatus } from '@/const/msgConst'
+import { MSG_REEDIT_TIME_LIMIT, msgContentType, msgSendStatus } from '@/const/msgConst'
 import MsgBoxRecording from '@/views/message/components/MsgBoxRecording.vue'
 import MsgBoxImage from '@/views/message/components/MsgBoxImage.vue'
 import MsgBoxAudio from '@/views/message/components/MsgBoxAudio.vue'
@@ -23,6 +23,7 @@ import MsgBoxVideo from '@/views/message/components/MsgBoxVideo.vue'
 import MsgBoxDocument from '@/views/message/components/MsgBoxDocument.vue'
 import MenuMsgItem from '@/views/message/components/MenuMsgItem.vue'
 import { ElMessage } from 'element-plus'
+import { msgChatRevokeMsgService } from '@/api/message'
 
 const props = defineProps([
   'sessionId',
@@ -34,7 +35,8 @@ const props = defineProps([
   'firstMsgId',
   'lastMsgId',
   'hasNoMoreMsg',
-  'isLoadMoreLoading'
+  'isLoadMoreLoading',
+  'inputEditorRef'
 ])
 const emit = defineEmits(['loadMore', 'showUserCard', 'showGroupCard', 'resendMsg', 'loadFinished'])
 
@@ -100,7 +102,7 @@ const renderComponent = (content) => {
     case msgContentType.DOCUMENT:
       return renderDocument(value)
     default:
-      return h('div', [])
+      return h('span', content)
   }
 }
 
@@ -625,6 +627,32 @@ const sysShowTime = computed(() => {
   return messageSysShowTime(new Date(msg.value.msgTime))
 })
 
+const isRevoke = computed(() => {
+  return msg.value.revoke
+})
+
+const isReedit = computed(() => {
+  const contentJson = jsonParseSafe(msg.value.content)
+  if (!contentJson) {
+    return true
+  }
+
+  const type = contentJson['type']
+  if (
+    type === msgContentType.IMAGE ||
+    type === msgContentType.RECORDING ||
+    type === msgContentType.AUDIO ||
+    type === msgContentType.VIDEO ||
+    type === msgContentType.DOCUMENT
+  ) {
+    return false
+  } else {
+    return true
+  }
+})
+
+const isReeditTimeOut = ref(true)
+
 // 判断是否是连续的会话，与上个会话时间差小于5分钟
 const isContinuousSession = computed(() => {
   if (!props.extend.preMsgTime) {
@@ -672,7 +700,6 @@ const onResendMsg = () => {
 }
 
 const onSelectMenuMsgItem = async (label) => {
-  console.log(label)
   switch (label) {
     case 'copy':
       try {
@@ -682,9 +709,35 @@ const onSelectMenuMsgItem = async (label) => {
         ElMessage.error('复制出错')
       }
       break
+    case 'revoke':
+      msgChatRevokeMsgService({
+        sessionId: props.sessionId,
+        revokeMsgId: msg.value.msgId, // 服务器上删除用msg.value.msgId
+        isGroupChat: isGroupChatMsgType.value,
+        remoteId: messageData.sessionList[props.sessionId].remoteId
+      })
+        .then((res) => {
+          if (res.data.code === 0) {
+            // 本地删除用props.msgKey，因为key有可能是发送消息时产生的本地UUID
+            messageData.revokeMsgRcord(props.sessionId, props.msgKey)
+            isReeditTimeOut.value = false
+            setTimeout(() => {
+              isReeditTimeOut.value = true
+            }, MSG_REEDIT_TIME_LIMIT)
+            ElMessage.success('消息已撤回')
+          }
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+      break
     default:
       break
   }
+}
+
+const handleReedit = () => {
+  props.inputEditorRef.reeditFromRevoke(msg.value.content)
 }
 
 /**
@@ -725,6 +778,22 @@ watch(
       v-html="systemMsgContent"
       @click="onClickSystemMsg"
     ></div>
+    <div v-else-if="!isSystemMsg && isRevoke" class="revoke-wrapper">
+      <div v-if="isSelf">
+        <span>你撤回了一条消息</span>
+        <span
+          v-if="isReedit && !isReeditTimeOut"
+          style="margin-left: 2px; color: #409eff; cursor: pointer"
+          @click="handleReedit"
+        >
+          重新编辑
+        </span>
+      </div>
+      <div v-else>
+        <div v-if="isChatMsgType">对方撤回了一条消息</div>
+        <div v-else>{{ `“${objectInfo.nickName}”撤回了一条消息` }}</div>
+      </div>
+    </div>
     <div v-else class="message-container-wrapper">
       <el-container class="el-container-right" v-if="isSelf">
         <el-main class="el-main-right">
@@ -878,6 +947,16 @@ watch(
     font-size: 14px;
     color: gray;
     user-select: text;
+  }
+
+  .revoke-wrapper {
+    padding: 2px 4px 2px 4px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    color: gray;
+    background-color: #fff;
   }
 
   .message-container-wrapper {

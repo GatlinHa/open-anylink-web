@@ -6,16 +6,23 @@ import DeletemsgIcon from '@/assets/svg/deletemsg.svg'
 import CopyIcon from '@/assets/svg/copy.svg'
 import MultiselectIcon from '@/assets/svg/multiselect.svg'
 import RevokeIcon from '@/assets/svg/revoke.svg'
-import { useMenuStore } from '@/stores'
+import { useUserStore, useMenuStore } from '@/stores'
 import { jsonParseSafe } from '@/js/utils/common'
-import { msgContentType } from '@/const/msgConst'
+import { MSG_REVOKE_TIME_LIMIT, msgContentType } from '@/const/msgConst'
 
 const props = defineProps(['msg'])
 const emit = defineEmits(['selectMenu'])
 
+const userData = useUserStore()
 const menuData = useMenuStore()
+const openMenuTime = ref(null)
+
 const menuName = computed(() => {
   return 'MenuMsgItem-' + props.msg.msgId
+})
+
+const myAccount = computed(() => {
+  return userData.user.account
 })
 
 const contentType = computed(() => {
@@ -37,38 +44,51 @@ const menu = computed(() => {
     {
       label: 'forward',
       desc: '转发',
-      icon: markRaw(ForwardIcon)
+      icon: markRaw(ForwardIcon),
+      index: 1
     },
     {
       label: 'multiSelect',
       desc: '多选',
-      icon: markRaw(MultiselectIcon)
+      icon: markRaw(MultiselectIcon),
+      index: 2
     },
     {
       label: 'quote',
       desc: '引用',
-      icon: markRaw(QuoteIcon)
-    },
-    {
-      label: 'revoke',
-      desc: '撤回',
-      icon: markRaw(RevokeIcon)
+      icon: markRaw(QuoteIcon),
+      index: 3
     },
     {
       label: 'delete',
       desc: '删除',
-      icon: markRaw(DeletemsgIcon)
+      icon: markRaw(DeletemsgIcon),
+      index: 5
     }
   ]
 
   if (contentType.value !== msgContentType.RECORDING) {
-    o.unshift({
+    o.push({
       label: 'copy',
       desc: '复制',
-      icon: markRaw(CopyIcon)
+      icon: markRaw(CopyIcon),
+      index: 0
     })
   }
-  return o
+
+  if (
+    myAccount.value === props.msg.fromId &&
+    openMenuTime.value - new Date(props.msg.msgTime) < MSG_REVOKE_TIME_LIMIT
+  ) {
+    o.push({
+      label: 'revoke',
+      desc: '撤回',
+      icon: markRaw(RevokeIcon),
+      index: 4
+    })
+  }
+
+  return o.sort((a, b) => a.index - b.index)
 })
 
 const containerRef = ref()
@@ -106,6 +126,7 @@ const handleShowMenu = (e) => {
   e.stopPropagation() // 阻止冒泡
   isShowMenu.value = true
   menuData.setActiveMenu(menuName.value)
+  openMenuTime.value = new Date()
   nextTick(() => {
     //如果发现菜单超出window.innerWidth屏幕宽度，x要修正一下，往左边弹出菜单
     if (e.clientX + menuRef.value.clientWidth > window.innerWidth) {
@@ -129,6 +150,7 @@ const handleEscEvent = (event) => {
 
 const closeMenu = () => {
   isShowMenu.value = false
+  openMenuTime.value = null
 }
 
 const handleClick = (item) => {

@@ -41,3 +41,13 @@ export const msgFileUploadStatus = {
   UPLOAD_SUCCESS: 2, // 上传成功
   UPLOAD_FAILED: 3 // 上传失败
 }
+
+/**
+ * 消息撤回时间限制 10分钟
+ */
+export const MSG_REVOKE_TIME_LIMIT = 10 * 60 * 1000
+
+/**
+ * 消息撤回后能重新编辑的时间限制 2分钟
+ */
+export const MSG_REEDIT_TIME_LIMIT = 2 * 60 * 1000

@@ -181,6 +181,12 @@ export const useMessageStore = defineStore('anylink-message', () => {
     }
   }
 
+  const revokeMsgRcord = (sessionId, msgKey) => {
+    if (msgRecordsList.value[sessionId] && msgKey in msgRecordsList.value[sessionId]) {
+      msgRecordsList.value[sessionId][msgKey].revoke = true
+    }
+  }
+
   const getMsg = (sessionId, msgKey) => {
     if (!msgRecordsList.value[sessionId] || !msgRecordsList.value[sessionId][msgKey]) {
       return ref({})
@@ -333,6 +339,7 @@ export const useMessageStore = defineStore('anylink-message', () => {
     updateMsgKeySort,
     addMsgRecords,
     removeMsgRecord,
+    revokeMsgRcord,
     getMsg,
     updateMsg,
 

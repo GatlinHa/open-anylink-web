@@ -27,7 +27,7 @@ import AgreeBeforeSend from '@/views/message/components/AgreeBeforeSend.vue'
 const Clipboard = Quill.import('modules/clipboard')
 class PlainClipboard extends Clipboard {
   onPaste(range, { text }) {
-    renderContent(text)
+    handlePaste(range, text)
   }
 }
 Quill.register(
@@ -110,7 +110,7 @@ onMounted(async () => {
   // 给组件增加滚动条样式
   document.querySelector('.ql-editor').classList.add('my-scrollbar')
   await imageData.loadImageInfoFromContent(props.draft)
-  renderContent(props.draft)
+  renderContent(props.draft) // 渲染草稿
   quill.value.on('composition-start', () => {
     // 当用户使用拼音输入法开始输入汉字时，这个事件就会被触发
     quill.value.root.dataset.placeholder = ''
@@ -122,7 +122,7 @@ onMounted(async () => {
 
   // 监听文本变化检测@符号
   quill.value.on('text-change', (delta, oldDelta, source) => {
-    if (session.value.sessionType === MsgType.GROUP_CHAT && source === 'user') {
+    if (session.value.sessionType === MsgType.GROUP_CHAT && source === Quill.sources.USER) {
       const insertOps = delta.ops.filter((op) => op.insert && typeof op.insert === 'string')
       const insertContent = insertOps.map((item) => item.insert).join('')
       if (insertContent.length > 0) {
@@ -393,16 +393,76 @@ watch(
 
     fn(contentObj.contentFromLocal.join('').trim())
 
-    renderContent(messageData.sessionList[newSessionId].draft || '')
+    renderContent(messageData.sessionList[newSessionId].draft || '') // 切换session时渲染新session的草稿
   },
   { deep: true }
 )
 
-let pasteContent
-let pasteContentType
-let pasteFileName
-let pasteFileSize
-let pasteUrl
+// 实现消息复制的效果，步骤如下
+// 1. 拷贝原消息中的content内容
+// 2. 粘贴时自动调用renderContent渲染内容
+// 3. 渲染时保存复制内容
+// 4. 发送时使用保存的复制内容
+const pasteObj = {
+  content: null,
+  contentType: null,
+  fileName: null,
+  fileSize: null,
+  url: null
+}
+
+const clearPasteObj = () => {
+  pasteObj.content = null
+  pasteObj.contentType = null
+  pasteObj.fileName = null
+  pasteObj.fileSize = null
+  pasteObj.url = null
+}
+
+const handlePaste = (range, content) => {
+  if (!content) {
+    return
+  }
+
+  const jsonContent = jsonParseSafe(content)
+  if (jsonContent && jsonContent['type'] && jsonContent['value']) {
+    clearPasteObj()
+    pasteObj.content = content
+    pasteObj.contentType = jsonContent['type']
+    const fileId = jsonContent['value']
+    switch (pasteObj.contentType) {
+      case msgContentType.IMAGE:
+        pasteObj.fileName = imageData.image[fileId]?.fileName
+        pasteObj.fileSize = imageData.image[fileId]?.size
+        pasteObj.url = imageData.image[fileId]?.thumbUrl
+        break
+      case msgContentType.AUDIO:
+        pasteObj.fileName = audioData.audio[fileId]?.fileName
+        pasteObj.fileSize = audioData.audio[fileId]?.size
+        break
+      case msgContentType.VIDEO:
+        pasteObj.fileName = videoData.video[fileId]?.fileName
+        pasteObj.fileSize = videoData.video[fileId]?.size
+        break
+      case msgContentType.DOCUMENT:
+        pasteObj.fileName = documentData.document[fileId]?.fileName
+        pasteObj.fileSize = documentData.document[fileId]?.size
+        break
+      default:
+        break
+    }
+
+    // 文件确实存在才发送
+    if (pasteObj.fileName) {
+      showAgreeDialog.value = true
+      return
+    }
+  }
+
+  const delta = new Delta().retain(range.index).delete(range.length).insert(content)
+  quill.value.updateContents(delta, Quill.sources.USER)
+  quill.value.setSelection(delta.length() - range.length, Quill.sources.USER)
+}
 
 /**
  * 把输入框的字符串内容渲染成富媒体内容
@@ -413,82 +473,62 @@ const renderContent = (content) => {
     quill.value.setText('')
     return
   }
-  pasteContent = content
-  const jsonContent = jsonParseSafe(content)
-  if (jsonContent && jsonContent['type'] && jsonContent['value']) {
-    pasteContentType = jsonContent['type']
-    const fileId = jsonContent['value']
-    switch (pasteContentType) {
-      case msgContentType.IMAGE:
-        pasteFileName = imageData.image[fileId]?.fileName
-        pasteFileSize = imageData.image[fileId]?.size
-        pasteUrl = imageData.image[fileId]?.thumbUrl
-        break
-      case msgContentType.AUDIO:
-        pasteFileName = audioData.audio[fileId]?.fileName
-        pasteFileSize = audioData.audio[fileId]?.size
-        break
-      case msgContentType.VIDEO:
-        pasteFileName = videoData.video[fileId]?.fileName
-        pasteFileSize = videoData.video[fileId]?.size
-        break
-      case msgContentType.DOCUMENT:
-        pasteFileName = documentData.document[fileId]?.fileName
-        pasteFileSize = documentData.document[fileId]?.size
-        break
-      default:
-        break
-    }
-    showAgreeDialog.value = true
-  } else {
-    let contentArray = []
-    //匹配内容中的图片
-    content.split(/(\{.*?\})/).forEach((item) => {
-      //匹配内容中的表情
-      item.split(/(\[.*?\])/).forEach((item) => {
-        //匹配内容中的@
-        item.split(/(<.*?>)/).forEach((item) => {
-          if (item) {
-            contentArray.push(item)
-          }
-        })
+
+  let contentArray = []
+  //匹配内容中的图片
+  content.split(/(\{.*?\})/).forEach((item) => {
+    //匹配内容中的表情
+    item.split(/(\[.*?\])/).forEach((item) => {
+      //匹配内容中的@
+      item.split(/(<.*?>)/).forEach((item) => {
+        if (item) {
+          contentArray.push(item)
+        }
       })
     })
+  })
 
-    // 创建一个新的 Delta 对象
-    const delta = new Delta()
-    contentArray.map((item) => {
-      if (item.startsWith('{') && item.endsWith('}')) {
-        const imageId = item.slice(1, -1)
-        const imageUrl = imageData.image[imageId].originUrl
+  // 创建一个新的 Delta 对象
+  const delta = new Delta()
+  contentArray.map((item) => {
+    if (item.startsWith('{') && item.endsWith('}')) {
+      const imageId = item.slice(1, -1)
+      const imageUrl = imageData.image[imageId]?.originUrl
+      if (imageUrl) {
         delta.insert({ image: imageUrl }, { alt: item })
-      } else if (item.startsWith('[') && item.endsWith(']')) {
-        const emojiUrl = emojis[item]
+      } else {
+        delta.insert(item)
+      }
+    } else if (item.startsWith('[') && item.endsWith(']')) {
+      const emojiUrl = emojis[item]
+      if (emojiUrl) {
         delta.insert({ image: emojiUrl }, { alt: item })
-      } else if (item.startsWith('<') && item.endsWith('>')) {
-        const content = item.slice(1, -1)
-        const index = content.indexOf('-')
-        if (index !== -1) {
-          const account = content.slice(0, index)
-          const nickName = content.slice(index + 1)
-          if (nickName) {
-            toSendAtList.value.push(account)
-            delta.insert({ atMention: { account, nickName } })
-          } else {
-            delta.insert(item)
-          }
+      } else {
+        delta.insert(item)
+      }
+    } else if (item.startsWith('<') && item.endsWith('>')) {
+      const content = item.slice(1, -1)
+      const index = content.indexOf('-')
+      if (index !== -1) {
+        const account = content.slice(0, index)
+        const nickName = content.slice(index + 1)
+        if (nickName) {
+          toSendAtList.value.push(account)
+          delta.insert({ atMention: { account, nickName } })
         } else {
           delta.insert(item)
         }
       } else {
         delta.insert(item)
       }
-    })
+    } else {
+      delta.insert(item)
+    }
+  })
 
-    quill.value.setText('') // 清空编辑器内容
-    quill.value.updateContents(delta) // 使用 Delta 对象更新编辑器内容
-    quill.value.setSelection(quill.value.getLength(), 0, 'user') // 设置光标位置
-  }
+  quill.value.setText('') // 清空编辑器内容
+  quill.value.updateContents(delta) // 使用 Delta 对象更新编辑器内容
+  quill.value.setSelection(quill.value.getLength(), 0, Quill.sources.USER) // 设置光标位置
 }
 
 const handleEnter = async () => {
@@ -502,8 +542,8 @@ const handleEnter = async () => {
     allUploadedSuccessFn: () => {}
   }
 
-  const contentObj = pasteContent
-    ? { contentFromLocal: [pasteContent], contentFromServer: [pasteContent] }
+  const contentObj = pasteObj.content
+    ? { contentFromLocal: [pasteObj.content], contentFromServer: [pasteObj.content] }
     : await parseContent(callbacks)
 
   const content = contentObj.contentFromLocal.join('').trim()
@@ -561,9 +601,10 @@ const handleEnter = async () => {
     emit('sendMessage', { msg, atTargets })
   }
 
-  pasteContent = ''
-  quill.value.setText('') // 编辑窗口置空
+  clearPasteObj()
   toSendAtList.value = []
+  quill.value.setText('') // 编辑窗口置空
+  quill.value.setSelection(0, 0, Quill.sources.USER) // 设置光标位置
 }
 
 const options = {
@@ -600,7 +641,7 @@ const addEmoji = (key) => {
   delta.retain(index)
   delta.insert({ image: emojis[key] }, { alt: key })
   quill.value.updateContents(delta)
-  quill.value.setSelection(index + 1, 0, 'user')
+  quill.value.setSelection(index + 1, 0, Quill.sources.USER)
 }
 
 const onSelectedAtTarget = ({ account, nickName }) => {
@@ -613,18 +654,30 @@ const onSelectedAtTarget = ({ account, nickName }) => {
   if (range.index >= atIndex.value) {
     const delLen = range.index - atIndex.value + 1 // 删除用户输入的@符号及搜索关键字
     quill.value.deleteText(atIndex.value - 1, delLen)
-    quill.value.insertEmbed(atIndex.value - 1, 'atMention', { account, nickName }, 'user') // 插入Blot（占据1个位置）
-    quill.value.insertText(atIndex.value, ' ', 'user') // 插入空格
-    quill.value.setSelection(atIndex.value + 1, 0, 'user') // 定位光标
+    quill.value.insertEmbed(
+      atIndex.value - 1,
+      'atMention',
+      { account, nickName },
+      Quill.sources.USER
+    ) // 插入Blot（占据1个位置）
+    quill.value.insertText(atIndex.value, ' ', Quill.sources.USER) // 插入空格
+    quill.value.setSelection(atIndex.value + 1, 0, Quill.sources.USER) // 定位光标
   } else {
-    quill.value.insertEmbed(range.index, 'atMention', { account, nickName }, 'user') // 插入Blot（占据1个位置）
-    quill.value.insertText(range.index + 1, ' ', 'user') // 插入空格
-    quill.value.setSelection(range.index + 1 + 1, 0, 'user') // 定位光标
+    quill.value.insertEmbed(range.index, 'atMention', { account, nickName }, Quill.sources.USER) // 插入Blot（占据1个位置）
+    quill.value.insertText(range.index + 1, ' ', Quill.sources.USER) // 插入空格
+    quill.value.setSelection(range.index + 1 + 1, 0, Quill.sources.USER) // 定位光标
   }
 }
 
+const reeditFromRevoke = (content) => {
+  quill.value.setText('') // 清空编辑器内容
+  quill.value.setSelection(0, 0, Quill.sources.SILENT) // 设置光标位置
+  renderContent(content)
+}
+
 defineExpose({
-  addEmoji
+  addEmoji,
+  reeditFromRevoke
 })
 </script>
 
@@ -647,10 +700,10 @@ defineExpose({
     <AgreeBeforeSend
       v-model:isShow="showAgreeDialog"
       :target="remoteName"
-      :contentType="pasteContentType"
-      :fileName="pasteFileName"
-      :fileSize="pasteFileSize"
-      :src="pasteUrl"
+      :contentType="pasteObj.contentType"
+      :fileName="pasteObj.fileName"
+      :fileSize="pasteObj.fileSize"
+      :src="pasteObj.url"
       @confirm="handleEnter"
     ></AgreeBeforeSend>
   </div>
