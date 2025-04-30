@@ -320,7 +320,7 @@ const parseContent = async (callbacks) => {
           thumbFile: prehandleImageObj.thumbFile
         }
         const requestBody = {
-          storeType: 0,
+          storeType: 1,
           md5,
           fileName: file.name,
           fileRawType: file.type,

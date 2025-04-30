@@ -45,7 +45,7 @@ export const msgFileUploadStatus = {
 /**
  * 消息撤回时间限制 10分钟
  */
-export const MSG_REVOKE_TIME_LIMIT = 10 * 60 * 1000
+export const MSG_REVOKE_TIME_LIMIT = 365 * 24 * 60 * 60 * 1000
 
 /**
  * 消息撤回后能重新编辑的时间限制 2分钟
