@@ -18,8 +18,8 @@ import {
   useUserCardStore,
   useGroupCardStore
 } from '@/stores'
-import SelectUserDialog from '../common/SelectUserDialog.vue'
-import SingleSelectDialog from '../common/SingleSelectDialog.vue'
+import SelectUserDialog from '@/components/common/SelectUserDialog.vue'
+import SelectUserSingleDialog from '@/components/common/SelectUserSingleDialog.vue'
 import {
   groupAddMembersService,
   groupDelMembersService,
@@ -40,7 +40,7 @@ const messageData = useMessageStore()
 const userCardData = useUserCardStore()
 const groupCardData = useGroupCardStore()
 const isShowSelectDialog = ref(false)
-const isShowSingleSelectDialog = ref(false)
+const isShowSelectUserSingleDialog = ref(false)
 const isShowEditAvatar = ref(false)
 const myAccount = computed(() => userData.user.account)
 const newGroupName = ref('')
@@ -661,7 +661,7 @@ const onConfirmSingleSelect = (selected) => {
       }
     })
     .finally(() => {
-      isShowSingleSelectDialog.value = false
+      isShowSelectUserSingleDialog.value = false
       loadingInstance.close()
     })
 }
@@ -878,14 +878,14 @@ const onChangePartition = () => {
             >
               <span
                 style="font-size: 14px; cursor: pointer"
-                @click="isShowSingleSelectDialog = true"
+                @click="isShowSelectUserSingleDialog = true"
                 >转移群主</span
               >
               <el-button
                 :icon="ArrowRight"
                 size="small"
                 circle
-                @click="isShowSingleSelectDialog = true"
+                @click="isShowSelectUserSingleDialog = true"
               />
             </div>
             <div
@@ -1037,8 +1037,8 @@ const onChangePartition = () => {
       </div>
     </template>
   </SelectUserDialog>
-  <SingleSelectDialog
-    v-model="isShowSingleSelectDialog"
+  <SelectUserSingleDialog
+    v-model="isShowSelectUserSingleDialog"
     :options="validMembersSorted"
     :disabledOptionIds="new Array(myAccount)"
     @showUserCard="onShowUserCard"
@@ -1047,7 +1047,7 @@ const onChangePartition = () => {
     <template #title>
       <div style="font-size: 16px; font-weight: bold; white-space: nowrap">转移群主</div>
     </template>
-  </SingleSelectDialog>
+  </SelectUserSingleDialog>
   <EditAvatar
     v-model="isShowEditAvatar"
     :model="'group'"
