@@ -116,18 +116,14 @@ const unreadAtRecords = computed(() => {
   return atRecords
 })
 
-const handleReadAt = () => {
-  const len = unreadAtRecords.value.length
-  if (len === 0) return
-
-  const readReferMsgId = unreadAtRecords.value[len - 1].referMsgId
-  const msgListRect = msgListDiv.value.getBoundingClientRect()
+const handleShowHighlight = (msgId) => {
   const readElement = document.querySelector(
-    `#message-item-${selectedSessionId.value}-${readReferMsgId}`
+    `#message-item-${sessionIdConvert(selectedSessionId.value)}-${msgId}`
   )
   if (!readElement) {
     ElMessage.success('请加载更多消息后查找')
   } else {
+    const msgListRect = msgListDiv.value.getBoundingClientRect()
     const rect = readElement.getBoundingClientRect()
     // 判断 readElement 是否在 msgListDiv 的视口内
     const isInViewport = rect.top >= msgListRect.top && rect.bottom <= msgListRect.bottom
@@ -139,11 +135,19 @@ const handleReadAt = () => {
         })
       })
     }
+    highlightedMsgIds.value.add(msgId + '')
+    setTimeout(() => {
+      highlightedMsgIds.value.delete(msgId + '')
+    }, 2000)
   }
-  highlightedMsgIds.value.add(readReferMsgId + '')
-  setTimeout(() => {
-    highlightedMsgIds.value.delete(readReferMsgId + '')
-  }, 2000)
+}
+
+const handleReadAt = () => {
+  const len = unreadAtRecords.value.length
+  if (len === 0) return
+
+  const readReferMsgId = unreadAtRecords.value[len - 1].referMsgId
+  handleShowHighlight(readReferMsgId)
   readAtMsgIds.value.push(unreadAtRecords.value[len - 1].msgId)
 }
 
@@ -1284,7 +1288,7 @@ const onShowRecorder = () => {
                   <MessageItem
                     v-for="item in msgKeysShow"
                     :key="selectedSessionId + '-' + item"
-                    :id="'message-item-' + selectedSessionId + '-' + item"
+                    :id="'message-item-' + sessionIdConvert(selectedSessionId) + '-' + item"
                     :class="{ highlighted: highlightedMsgIds.has(item) }"
                     :sessionId="selectedSessionId"
                     :msgKey="item"
@@ -1302,6 +1306,7 @@ const onShowRecorder = () => {
                     @showGroupCard="onShowGroupCard"
                     @resendMsg="handleResendMessage"
                     @loadFinished="updateScroll"
+                    @showHighlight="handleShowHighlight"
                   ></MessageItem>
                 </MenuMsgMain>
               </div>

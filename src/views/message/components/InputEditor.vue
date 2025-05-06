@@ -12,7 +12,7 @@ import {
 } from '@/stores'
 import { ElMessage } from 'element-plus'
 import { emojis } from '@/js/utils/emojis'
-import { base64ToFile, jsonParseSafe } from '@/js/utils/common'
+import { base64ToFile, jsonParseSafe, showTimeFormat } from '@/js/utils/common'
 import { mtsUploadServiceForImage } from '@/api/mts'
 import { msgContentType, msgFileUploadStatus, msgSendStatus } from '@/const/msgConst'
 import { getMd5 } from '@/js/utils/file'
@@ -69,6 +69,104 @@ class AtMention extends Embed {
   }
 }
 Quill.register(AtMention, true)
+
+class QuoteBlock extends Embed {
+  static blotName = 'quoteBlock'
+  static tagName = 'div'
+  static className = 'quote-block'
+
+  constructor(scroll, node) {
+    super(scroll, node)
+    this.closeBtn = node.querySelector('.quote-close-btn')
+    this.handleCloseClick = this.handleCloseClick.bind(this)
+    this.closeBtn.addEventListener('click', this.handleCloseClick)
+  }
+
+  handleCloseClick(e) {
+    e.stopPropagation()
+    const index = this.offset() // 当前Blot的位置
+    quill.value.deleteText(index, 2) // 删除操作
+  }
+
+  remove() {
+    // 解绑事件监听器
+    if (this.closeBtn) {
+      this.closeBtn.removeEventListener('click', this.handleCloseClick)
+    }
+    super.remove()
+  }
+
+  static create({ account, nickName, msgId, content, msgTime }) {
+    const node = super.create()
+    node.dataset.account = account
+    node.dataset.nickName = nickName
+    node.dataset.msgId = msgId
+    node.dataset.msgTime = showTimeFormat(msgTime)
+    node.dataset.content = content
+      .split(/(「\{.*?\}」)/)
+      .filter((item) => !(item.startsWith('「{') && item.endsWith('}」'))) // 引用的引用不予展示
+      .join('')
+
+    const defaultContent = node.dataset.content
+      .replace(/<(?:.*?)-(.*?)>/g, '@$1')
+      .replace(/\{\d+\}/g, '[图片]')
+    const contentJson = jsonParseSafe(defaultContent)
+    let showContent = defaultContent
+    if (contentJson) {
+      const type = contentJson['type']
+      const objectId = contentJson['value']
+      switch (type) {
+        case msgContentType.RECORDING:
+          showContent = '[语音]'
+          break
+        case msgContentType.AUDIO:
+          showContent = `[音频] ${audioData.audio[objectId].fileName}`
+          break
+        case msgContentType.IMAGE:
+          showContent = `[图片] ${imageData.image[objectId].fileName}`
+          break
+        case msgContentType.VIDEO:
+          showContent = `[视频] ${videoData.video[objectId].fileName}`
+          break
+        case msgContentType.DOCUMENT:
+          showContent = `[文档] ${documentData.document[objectId].fileName}`
+          break
+        default:
+          break
+      }
+    }
+
+    node.innerHTML = `
+      <div class="quote-wrapper">
+        <div class="quote-sender">
+          <span class="quote-nickName">${node.dataset.nickName}  </span>
+          <span class="quote-msgTime">${node.dataset.msgTime}：</span>
+        </div>
+        <span class="quote-content">${showContent}</span>
+        <button type="button" class="quote-close-btn">
+          <span >&times;</span>
+        </button>
+      </div>
+    `
+    return node
+  }
+
+  static value(node) {
+    return {
+      account: node.dataset.account,
+      nickName: node.dataset.nickName,
+      msgId: node.dataset.msgId,
+      content: node.dataset.content,
+      msgTime: node.dataset.msgTime
+    }
+  }
+
+  length() {
+    return 1
+  }
+}
+
+Quill.register(QuoteBlock, true)
 
 const props = defineProps(['sessionId', 'draft'])
 const emit = defineEmits(['saveLocalMsg', 'sendMessage'])
@@ -211,6 +309,9 @@ onMounted(async () => {
       }
     }
   })
+
+  document.addEventListener('click', handleClick)
+  document.addEventListener('keydown', handleKeydown)
 })
 
 onBeforeUnmount(async () => {
@@ -247,7 +348,34 @@ onUnmounted(() => {
     quill.value.off('composition-end')
     quill.value.destroy()
   }
+
+  document.removeEventListener('click', handleClick)
+  document.removeEventListener('keydown', handleKeydown)
 })
+
+const handleClick = () => {
+  cursorProtectForQuote()
+}
+
+const handleKeydown = (e) => {
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'Home') {
+    cursorProtectForQuote()
+  }
+}
+
+/**
+ * 光标守卫，防止光标移动到quote引用消息之前
+ */
+const cursorProtectForQuote = () => {
+  if (quill.value.hasFocus()) {
+    if (quill.value.scroll.descendants(QuoteBlock).length > 0) {
+      const range = quill.value.getSelection()
+      if (range.index < 3) {
+        quill.value.setSelection(3, 0, Quill.sources.USER)
+      }
+    }
+  }
+}
 
 /**
  * 解析输入框内容
@@ -281,11 +409,20 @@ const parseContent = async (callbacks) => {
       contentFromServer[index] = insert
     } else if (insert && insert.atMention) {
       // 处理用于@的自定义Blot
-      if (op.insert.atMention) {
-        const { account, nickName } = insert.atMention
-        contentFromLocal[index] = `<${account}-${nickName}>`
-        contentFromServer[index] = `<${account}-${nickName}>`
-      }
+      const { account, nickName } = insert.atMention
+      contentFromLocal[index] = `<${account}-${nickName}>`
+      contentFromServer[index] = `<${account}-${nickName}>`
+    } else if (insert && insert.quoteBlock) {
+      // 处理用于引用的自定义Blot
+      const quoteContent = JSON.stringify({
+        account: insert.quoteBlock.account,
+        nickName: insert.quoteBlock.nickName,
+        msgId: insert.quoteBlock.msgId,
+        content: insert.quoteBlock.content,
+        msgTime: insert.quoteBlock.msgTime
+      })
+      contentFromLocal[index] = `「${quoteContent}」`
+      contentFromServer[index] = `「${quoteContent}」`
     } else if (insert && insert.image) {
       const alt = op.attributes?.alt
       if (alt && alt.startsWith('[') && alt.endsWith(']')) {
@@ -475,17 +612,25 @@ const renderContent = (content) => {
   }
 
   let contentArray = []
-  //匹配内容中的图片
-  content.split(/(\{.*?\})/).forEach((item) => {
-    //匹配内容中的表情
-    item.split(/(\[.*?\])/).forEach((item) => {
-      //匹配内容中的@
-      item.split(/(<.*?>)/).forEach((item) => {
-        if (item) {
-          contentArray.push(item)
-        }
+  // 先匹配quote引用内容
+  content.split(/(「\{.*?\}」)/).forEach((item) => {
+    if (item.startsWith('「{') && item.endsWith('}」')) {
+      // quote引用内容直接添加如数组
+      contentArray.push(item)
+    } else {
+      //匹配内容中的图片
+      item.split(/(\{\d+\})/).forEach((item) => {
+        //匹配内容中的表情
+        item.split(/(\[.*?\])/).forEach((item) => {
+          //匹配内容中的@
+          item.split(/(<.*?>)/).forEach((item) => {
+            if (item) {
+              contentArray.push(item)
+            }
+          })
+        })
       })
-    })
+    }
   })
 
   // 创建一个新的 Delta 对象
@@ -521,6 +666,41 @@ const renderContent = (content) => {
       } else {
         delta.insert(item)
       }
+    } else if (item.startsWith('「{') && item.endsWith('}」')) {
+      const quoteContent = item.slice(1, -1)
+      const { account, nickName, msgId, content, msgTime } = jsonParseSafe(quoteContent)
+      let showContent = content || ''
+      if (content) {
+        const defaultContent = content
+          .replace(/<(?:.*?)-(.*?)>/g, '@$1')
+          .replace(/\{\d+\}/g, '[图片]')
+        showContent = defaultContent
+        const contentJson = jsonParseSafe(defaultContent)
+        if (contentJson) {
+          const type = contentJson['type']
+          const objectId = contentJson['value']
+          switch (type) {
+            case msgContentType.RECORDING:
+              showContent = '[语音]'
+              break
+            case msgContentType.AUDIO:
+              showContent = `[音频] ${audioData.audio[objectId].fileName}`
+              break
+            case msgContentType.IMAGE:
+              showContent = `[图片] ${imageData.image[objectId].fileName}`
+              break
+            case msgContentType.VIDEO:
+              showContent = `[视频] ${videoData.video[objectId].fileName}`
+              break
+            case msgContentType.DOCUMENT:
+              showContent = `[文档] ${documentData.document[objectId].fileName}`
+              break
+            default:
+              break
+          }
+        }
+      }
+      delta.insert({ quoteBlock: { account, nickName, msgId, content: showContent, msgTime } })
     } else {
       delta.insert(item)
     }
@@ -675,9 +855,39 @@ const reeditFromRevoke = (content) => {
   renderContent(content)
 }
 
+const insertQuote = ({ account, nickName, msgId, content, msgTime }) => {
+  // 1. 保存原始选择范围
+  quill.value.focus() // 先使 Quill 编辑器获取焦点，否则无法获取Selection
+  const originalRange = quill.value.getSelection()
+  const len = !originalRange ? 0 : originalRange.length
+  let newIndex = !originalRange ? 0 : originalRange.index
+
+  // 2. 删除所有旧的引用块及其后的换行符
+  const quoteBlots = quill.value.scroll.descendants(QuoteBlock)
+  quoteBlots.forEach((blot) => {
+    const index = quill.value.getIndex(blot)
+    quill.value.deleteText(index, 2, Quill.sources.SILENT) // 删除块和换行符
+    newIndex = newIndex - 2
+  })
+
+  // 3. 插入新引用块到开头
+  quill.value.insertEmbed(
+    0,
+    'quoteBlock',
+    { account, nickName, msgId, content, msgTime },
+    Quill.sources.USER
+  )
+  quill.value.insertText(1, '\n', Quill.sources.SILENT)
+  newIndex = newIndex + 2
+
+  // 4. 恢复原始光标位置（如果有）
+  quill.value.setSelection(newIndex, len, Quill.sources.USER)
+}
+
 defineExpose({
   addEmoji,
-  reeditFromRevoke
+  reeditFromRevoke,
+  insertQuote
 })
 </script>
 
@@ -744,5 +954,85 @@ img {
   pointer-events: none; /* 防止鼠标事件干扰 */
   cursor: default; /* 显示默认光标 */
   vertical-align: baseline;
+}
+
+.quote-block {
+  max-width: 480px;
+  width: fit-content; /* 宽高根据内容自适应，需要display: flex配合*/
+  height: fit-content; /* 宽高根据内容自适应，需要display: flex配合*/
+  display: flex;
+  position: relative;
+  background-color: #f5f5f5;
+  padding: 8px;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  user-select: none;
+
+  span[contenteditable='false'] {
+    width: 100%;
+    display: flex;
+    height: fit-content; /* 高度根据内容自适应，需要display: flex配合 */
+  }
+}
+
+.quote-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: baseline; /* 基线对齐 */
+  margin-bottom: 4px;
+  gap: 4px;
+}
+
+.quote-sender {
+  padding-right: 40px;
+  display: flex;
+  color: gray;
+}
+
+.quote-content {
+  width: 100%;
+  color: #666;
+  white-space: nowrap; //防止文本自动换行，确保在一行内显示，这样当文本超出宽度时才会触发省略号
+  overflow: hidden; //当文本超出元素范围时，隐藏超出的部分。
+  text-overflow: ellipsis; //在文本溢出并且overflow属性设置为hidden时，显示省略号。
+}
+
+/* 重置按钮默认样式 */
+.quote-close-btn {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+/* 交互优化 */
+.quote-close-btn:hover {
+  color: #666;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.quote-close-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* 关闭符号样式 */
+.quote-close-btn > span {
+  font-size: 18px;
+  line-height: 1;
+  margin-top: -1px; /* 视觉居中调整 */
 }
 </style>

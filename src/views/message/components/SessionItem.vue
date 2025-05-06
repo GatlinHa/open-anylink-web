@@ -217,7 +217,9 @@ const getGroupChatMsgTips = (content) => {
 
 const showDetailContent = computed(() => {
   if (isShowDraft.value) {
-    let formatDraft = sessionInfo.value.draft?.replace(/\{\d+\}/g, '[图片]') // 把内容中的`{xxxxxx}`格式的图片统一转成`[图片]`
+    let formatDraft = sessionInfo.value.draft
+      ?.replace(/\{\d+\}/g, '[图片]') // 把内容中的`{xxxxxx}`格式的图片统一转成`[图片]`
+      .replace(/(「\{.*?\}」)/, '[引用]') // 把内容中的`「xxxxxx」`格式的图片统一转成`[图片]`
     if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
       formatDraft = formatDraft
         .split(/(<.*?>)/)
@@ -303,7 +305,9 @@ const showDetailContent = computed(() => {
           return getSysGroupDrop(content)
         case MsgType.GROUP_CHAT:
           //格式化图片内容
-          content = lastMsg.value.content.replace(/\{\d+\}/g, '[图片]')
+          content = lastMsg.value.content
+            .replace(/\{\d+\}/g, '[图片]')
+            .replace(/(「\{.*?\}」)/, '[引用]')
           //格式化@内容
           content = content
             .split(/(<.*?>)/)
@@ -326,7 +330,7 @@ const showDetailContent = computed(() => {
           return ''
       }
     } else {
-      return lastMsg.value.content.replace(/\{\d+\}/g, '[图片]')
+      return lastMsg.value.content.replace(/\{\d+\}/g, '[图片]').replace(/(「\{.*?\}」)/, '[引用]')
     }
   }
 })

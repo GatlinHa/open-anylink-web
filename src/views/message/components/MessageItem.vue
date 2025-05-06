@@ -38,7 +38,14 @@ const props = defineProps([
   'isLoadMoreLoading',
   'inputEditorRef'
 ])
-const emit = defineEmits(['loadMore', 'showUserCard', 'showGroupCard', 'resendMsg', 'loadFinished'])
+const emit = defineEmits([
+  'loadMore',
+  'showUserCard',
+  'showGroupCard',
+  'resendMsg',
+  'loadFinished',
+  'showHighlight'
+])
 
 const userData = useUserStore()
 const messageData = useMessageStore()
@@ -113,16 +120,25 @@ const renderText = (content) => {
 const renderMix = (content) => {
   if (!content) return h('div', [])
   let contentArray = []
-  //匹配内容中的图片
-  content.split(/(\{.*?\})/).forEach((item) => {
-    //匹配内容中的表情
-    item.split(/(\[.*?\])/).forEach((item) => {
-      item.split(/(<.*?>)/).forEach((item) => {
-        if (item) {
-          contentArray.push(item)
-        }
+
+  // 1. 先匹配quote引用内容
+  content.split(/(「\{.*?\}」)/).forEach((item) => {
+    if (item.startsWith('「{') && item.endsWith('}」')) {
+      // quote引用内容直接添加如数组
+      contentArray.push(item)
+    } else {
+      //2. 匹配内容中的图片
+      item.split(/(\{\d+\})/).forEach((item) => {
+        //3. 匹配内容中的表情
+        item.split(/(\[.*?\])/).forEach((item) => {
+          item.split(/(<.*?>)/).forEach((item) => {
+            if (item) {
+              contentArray.push(item)
+            }
+          })
+        })
       })
-    })
+    }
   })
 
   return contentArray.map((item) => {
@@ -132,10 +148,70 @@ const renderMix = (content) => {
       return renderEmoji(item.slice(1, -1))
     } else if (item.startsWith('<') && item.endsWith('>')) {
       return renderAt(item.slice(1, -1))
+    } else if (item.startsWith('「{') && item.endsWith('}」')) {
+      return renderQuote(item.slice(1, -1))
     } else {
-      return h('span', item)
+      return h('span', item.trim())
     }
   })
+}
+
+const renderQuote = (quoteContent) => {
+  const { msgId, nickName, content, msgTime } = jsonParseSafe(quoteContent)
+  let showContent = content || ''
+  if (content) {
+    const defaultContent = content.replace(/<(?:.*?)-(.*?)>/g, '@$1').replace(/\{\d+\}/g, '[图片]')
+    showContent = defaultContent
+    const contentJson = jsonParseSafe(defaultContent)
+    if (contentJson) {
+      const type = contentJson['type']
+      const objectId = contentJson['value']
+      switch (type) {
+        case msgContentType.RECORDING:
+          showContent = '[语音]'
+          break
+        case msgContentType.AUDIO:
+          showContent = `[音频] ${audioData.audio[objectId].fileName}`
+          break
+        case msgContentType.IMAGE:
+          showContent = `[图片] ${imageData.image[objectId].fileName}`
+          break
+        case msgContentType.VIDEO:
+          showContent = `[视频] ${videoData.video[objectId].fileName}`
+          break
+        case msgContentType.DOCUMENT:
+          showContent = `[文档] ${documentData.document[objectId].fileName}`
+          break
+        default:
+          break
+      }
+    }
+  }
+
+  return h(
+    // 和InputEditor.vue中的结构保持一致，使用相同class可以复用样式
+    'div',
+    {
+      class: 'quote-block',
+      style: { cursor: 'pointer' },
+      onClick: () => {
+        emit('showHighlight', msgId)
+      }
+    },
+    h(
+      'div',
+      {
+        class: 'quote-wrapper'
+      },
+      [
+        h('div', { class: 'quote-sender' }, [
+          h('span', { class: 'quote-nickName' }, nickName + '  '),
+          h('span', { class: 'quote-msgTime' }, msgTime + '：')
+        ]),
+        h('span', { class: 'quote-content' }, showContent)
+      ]
+    )
+  )
 }
 
 const renderAt = (content) => {
@@ -314,6 +390,20 @@ const iAmAdmin = computed(() => {
     return members[myAccount.value]?.role > 0
   } else {
     return false
+  }
+})
+
+const nickNameFromMsg = computed(() => {
+  if (isGroupChatMsgType.value) {
+    const groupId = messageData.sessionList[props.sessionId]?.remoteId
+    const members = groupData.groupMembersList[groupId]
+    if (members) {
+      return members[msg.value.fromId].nickName
+    } else {
+      return ''
+    }
+  } else {
+    return objectInfoFromMsg.value.nickName
   }
 })
 
@@ -597,7 +687,7 @@ const isSelf = computed(() => {
   return userData.user.account === msg.value.fromId
 })
 
-const objectInfo = computed(() => {
+const objectInfoFromMsg = computed(() => {
   if (msg.value.msgType === MsgType.GROUP_CHAT) {
     const groupId = messageData.sessionList[props.sessionId]?.remoteId
     const members = groupData.groupMembersList[groupId]
@@ -612,15 +702,15 @@ const objectInfo = computed(() => {
 })
 
 const account = computed(() => {
-  return objectInfo.value.account
+  return objectInfoFromMsg.value.account
 })
 
 const nickName = computed(() => {
-  return objectInfo.value.nickName
+  return objectInfoFromMsg.value.nickName
 })
 
 const avatarThumb = computed(() => {
-  return objectInfo.value.avatarThumb
+  return objectInfoFromMsg.value.avatarThumb
 })
 
 const sysShowTime = computed(() => {
@@ -751,6 +841,15 @@ const onSelectMenuMsgItem = async (label) => {
           console.error(error)
         })
       break
+    case 'quote':
+      props.inputEditorRef.insertQuote({
+        account: msg.value.fromId,
+        nickName: nickNameFromMsg.value,
+        msgId: msg.value.msgId, // 引用要用msg.value.msgId
+        content: msg.value.content,
+        msgTime: msg.value.msgTime
+      })
+      break
     default:
       break
   }
@@ -811,7 +910,7 @@ watch(
       </div>
       <div v-else>
         <div v-if="isChatMsgType">对方撤回了一条消息</div>
-        <div v-else>{{ `“${objectInfo.nickName}”撤回了一条消息` }}</div>
+        <div v-else>{{ `“${objectInfoFromMsg.nickName}”撤回了一条消息` }}</div>
       </div>
     </div>
     <div v-else-if="!isSystemMsg && isDelete" class="revoke-delete">
@@ -955,6 +1054,7 @@ watch(
     border-radius: 2px;
     padding-left: 5px;
     padding-right: 5px;
+    margin-top: 10px;
     font-size: 12px;
     background-color: #c8c9cc;
     color: white;

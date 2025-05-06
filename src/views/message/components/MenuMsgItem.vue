@@ -8,7 +8,7 @@ import MultiselectIcon from '@/assets/svg/multiselect.svg'
 import RevokeIcon from '@/assets/svg/revoke.svg'
 import { useUserStore, useMenuStore } from '@/stores'
 import { jsonParseSafe } from '@/js/utils/common'
-import { MSG_REVOKE_TIME_LIMIT, msgContentType } from '@/const/msgConst'
+import { MSG_REVOKE_TIME_LIMIT, msgContentType, msgSendStatus } from '@/const/msgConst'
 
 const props = defineProps(['msg'])
 const emit = defineEmits(['selectMenu'])
@@ -39,26 +39,12 @@ const contentType = computed(() => {
   }
 })
 
+const msgStatus = computed(() => {
+  return props.msg.status || msgSendStatus.OK
+})
+
 const menu = computed(() => {
   const o = [
-    {
-      label: 'forward',
-      desc: '转发',
-      icon: markRaw(ForwardIcon),
-      index: 1
-    },
-    {
-      label: 'multiSelect',
-      desc: '多选',
-      icon: markRaw(MultiselectIcon),
-      index: 2
-    },
-    {
-      label: 'quote',
-      desc: '引用',
-      icon: markRaw(QuoteIcon),
-      index: 3
-    },
     {
       label: 'delete',
       desc: '删除',
@@ -76,8 +62,30 @@ const menu = computed(() => {
     })
   }
 
+  if (msgStatus.value === msgSendStatus.OK) {
+    o.push({
+      label: 'forward',
+      desc: '转发',
+      icon: markRaw(ForwardIcon),
+      index: 1
+    })
+    o.push({
+      label: 'multiSelect',
+      desc: '多选',
+      icon: markRaw(MultiselectIcon),
+      index: 2
+    })
+    o.push({
+      label: 'quote',
+      desc: '引用',
+      icon: markRaw(QuoteIcon),
+      index: 3
+    })
+  }
+
   if (
     myAccount.value === props.msg.fromId &&
+    msgStatus.value === msgSendStatus.OK &&
     openMenuTime.value - new Date(props.msg.msgTime) < MSG_REVOKE_TIME_LIMIT
   ) {
     o.push({
