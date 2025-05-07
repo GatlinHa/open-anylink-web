@@ -236,7 +236,7 @@ const showDetailContent = computed(() => {
           }
           return item
         })
-        .join(' ')
+        .join('')
     }
     return formatDraft
   } else {
@@ -324,7 +324,7 @@ const showDetailContent = computed(() => {
               }
               return item
             })
-            .join(' ')
+            .join('')
           return getGroupChatMsgTips(content)
         default:
           return ''

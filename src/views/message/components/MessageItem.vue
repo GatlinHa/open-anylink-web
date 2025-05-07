@@ -44,7 +44,8 @@ const emit = defineEmits([
   'showGroupCard',
   'resendMsg',
   'loadFinished',
-  'showHighlight'
+  'showHighlight',
+  'forwardMsg'
 ])
 
 const userData = useUserStore()
@@ -224,7 +225,7 @@ const renderAt = (content) => {
         color: '#337ECC',
         fontWeight: account === myAccount.value || account === '0' ? 'bold' : 'normal'
       }
-      return h('span', { style }, `@${nickName}`)
+      return h('span', { style }, `@${nickName} `)
     } else {
       return h('span', `<${content}>`)
     }
@@ -849,6 +850,9 @@ const onSelectMenuMsgItem = async (label) => {
         content: msg.value.content,
         msgTime: msg.value.msgTime
       })
+      break
+    case 'forward':
+      emit('forwardMsg', props.msgKey)
       break
     default:
       break

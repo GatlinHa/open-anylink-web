@@ -64,12 +64,6 @@ const menu = computed(() => {
 
   if (msgStatus.value === msgSendStatus.OK) {
     o.push({
-      label: 'forward',
-      desc: '转发',
-      icon: markRaw(ForwardIcon),
-      index: 1
-    })
-    o.push({
       label: 'multiSelect',
       desc: '多选',
       icon: markRaw(MultiselectIcon),
@@ -80,6 +74,15 @@ const menu = computed(() => {
       desc: '引用',
       icon: markRaw(QuoteIcon),
       index: 3
+    })
+  }
+
+  if (msgStatus.value === msgSendStatus.OK && contentType.value !== msgContentType.RECORDING) {
+    o.push({
+      label: 'forward',
+      desc: '转发',
+      icon: markRaw(ForwardIcon),
+      index: 1
     })
   }
 

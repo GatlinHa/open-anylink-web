@@ -17,6 +17,8 @@ const avatarSize = computed(() => {
       return 50
     case 'small':
       return 30
+    case 'tiny':
+      return 24
     case 'default':
     default:
       return 40
@@ -31,6 +33,8 @@ const svgSize = computed(() => {
       return 30
     case 'small':
       return 18
+    case 'tiny':
+      return 16
     case 'default':
     default:
       return 24

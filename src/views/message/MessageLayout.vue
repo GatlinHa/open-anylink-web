@@ -19,6 +19,7 @@ import InputEditor from '@/views/message/components/InputEditor.vue'
 import MessageItem from '@/views/message/components/MessageItem.vue'
 import SessionTag from '@/views/message/components/SessionTag.vue'
 import SelectUserDialog from '@/components/common/SelectUserDialog.vue'
+import SelectSessionDialog from '@/components/common/SelectSessionDialog.vue'
 import {
   useUserStore,
   useSettingStore,
@@ -522,7 +523,7 @@ const handleSelectedSession = async (sessionId) => {
     // 如果是群组，要加载成员列表（显示消息需要account，nickName，avatar信息）
     if (selectedSession.value.sessionType === MsgType.GROUP_CHAT) {
       // 没有members数据才需要加载成员列表，加载过了就不重复加载了
-      if (!groupMembers.value) {
+      if (!groupMembers.value && !isNotInGroup.value) {
         const res = await groupInfoService({ groupId: selectedSession.value.remoteId })
         groupData.setGroupInfo({
           groupId: selectedSession.value.remoteId,
@@ -568,6 +569,92 @@ const sendRead = () => {
       unreadCount: 0
     })
   }
+}
+
+/**
+ * 处理发送转发的消息
+ */
+const handleSendForwardMsg = async ({ session, content }) => {
+  if (session.sessionType === MsgType.GROUP_CHAT && session.leave) {
+    ElMessage.warning('您已离开该群或群已被解散')
+    return
+  }
+
+  if (session.sessionType === MsgType.GROUP_CHAT) {
+    if (!groupData.groupMembersList[session.remoteId]) {
+      const res = await groupInfoService({ groupId: session.remoteId })
+      groupData.setGroupInfo({
+        groupId: session.remoteId,
+        groupInfo: res.data.data.groupInfo || {}
+      })
+      groupData.setGroupMembers({
+        groupId: session.remoteId,
+        members: res.data.data.members || {}
+      })
+    }
+
+    const meInGroup = groupData.groupMembersList[session.remoteId][myAccount.value]
+    if (
+      meInGroup.mutedMode === 1 ||
+      (groupData.groupInfoList[session.remoteId].allMuted && meInGroup.mutedMode !== 2)
+    ) {
+      ElMessage.warning('您已被禁言，请联系管理员')
+      return
+    }
+  }
+
+  const seq = uuidv4()
+  const msg = {
+    msgId: seq,
+    seq: seq,
+    sessionId: session.sessionId,
+    fromId: myAccount.value,
+    remoteId: session.remoteId,
+    msgType: session.sessionType,
+    content: content,
+    status: msgSendStatus.PENDING,
+    msgTime: new Date(),
+    sendTime: new Date()
+  }
+  messageData.addMsgRecords(msg.sessionId, [msg])
+  messageData.updateMsgKeySort(msg.sessionId)
+
+  if (selectedSessionId.value === msg.sessionId) {
+    capacity.value++
+    msgListReachBottom()
+  }
+
+  const resendInterval = 2000 //2秒
+  const before = (data) => {
+    setTimeout(() => {
+      if (msg.status === msgSendStatus.PENDING) {
+        wsConnect.sendAgent(data)
+        setTimeout(() => {
+          if (msg.status === msgSendStatus.PENDING) {
+            wsConnect.sendAgent(data)
+            setTimeout(() => {
+              if (msg.status === msgSendStatus.PENDING) {
+                wsConnect.sendAgent(data)
+                setTimeout(() => {
+                  if (msg.status === msgSendStatus.PENDING) {
+                    messageData.updateMsg(msg.sessionId, msg.msgId, {
+                      status: msgSendStatus.FAILED
+                    })
+                    ElMessage.error('消息发送失败')
+                  }
+                }, resendInterval)
+              }
+            }, resendInterval)
+          }
+        }, resendInterval)
+      }
+    }, resendInterval)
+  }
+
+  const after = (msgId) => {
+    messageData.updateMsg(msg.sessionId, msg.msgId, { msgId, status: msgSendStatus.OK })
+  }
+  wsConnect.sendMsg(msg.sessionId, msg.remoteId, msg.msgType, msg.content, msg.seq, before, after)
 }
 
 /**
@@ -834,7 +921,7 @@ const onShowUserCard = ({ sessionId, account }) => {
           })
         }
 
-        if (messageData.sessionList[sessionId].sessionType === MsgType.GROUP_CHAT) {
+        if (sessionId && messageData.sessionList[sessionId].sessionType === MsgType.GROUP_CHAT) {
           const groupId = selectedSession.value.remoteId
           groupData.setOneOfGroupMembers({
             groupId: groupId,
@@ -1063,6 +1150,65 @@ const onSelectOprMenu = (label) => {
       break
     default:
       break
+  }
+}
+
+const isShowForwardMsgDialog = ref(false)
+let forwardMsg = {} // 待转发的消息
+const sessionListSortedKey = computed(() => {
+  return sessionListSorted.value
+    .filter((item) => {
+      return !(item.sessionType === MsgType.GROUP_CHAT && item.leave)
+    })
+    .map((item) => item.sessionId)
+})
+
+const showForwardMsgDialog = (msgId) => {
+  forwardMsg = messageData.getMsg(selectedSessionId.value, msgId)
+  isShowForwardMsgDialog.value = true
+}
+
+const handleConfirmForwardMsg = async (sessions) => {
+  const loadingInstance = ElLoading.service(el_loading_options)
+  try {
+    for (const item of sessions) {
+      const sessionId = item.sessionId
+      const remoteId = item.remoteId
+      // 如果没有session，先创建session
+      if (!messageData.sessionList[sessionId]) {
+        const res = await msgChatCreateSessionService({
+          sessionId: sessionId,
+          remoteId: remoteId,
+          sessionType: item.sessionType
+        })
+        messageData.addSession(res.data.data.session)
+      }
+
+      await handleSendForwardMsg({
+        session: item,
+        content: forwardMsg.content
+          .split(/(<.*?>)/)
+          .map((item) => {
+            const sliceStr = item.slice(1, -1)
+            const index = sliceStr.indexOf('-')
+            if (index !== -1) {
+              const nickName = sliceStr.slice(index + 1)
+              if (nickName) {
+                return `@${nickName}`
+              } else {
+                return item
+              }
+            }
+            return item
+          })
+          .join('')
+      })
+    }
+  } catch (error) {
+    console.error('forward msg error: ', error)
+  } finally {
+    loadingInstance.close()
+    isShowForwardMsgDialog.value = false
   }
 }
 
@@ -1307,6 +1453,7 @@ const onShowRecorder = () => {
                     @resendMsg="handleResendMessage"
                     @loadFinished="updateScroll"
                     @showHighlight="handleShowHighlight"
+                    @forwardMsg="showForwardMsgDialog"
                   ></MessageItem>
                 </MenuMsgMain>
               </div>
@@ -1432,6 +1579,17 @@ const onShowRecorder = () => {
       <div style="font-size: 16px; font-weight: bold; white-space: nowrap">创建群组</div>
     </template>
   </SelectUserDialog>
+  <SelectSessionDialog
+    v-model:isShow="isShowForwardMsgDialog"
+    :sessionListSortedKey="sessionListSortedKey"
+    @showUserCard="onShowUserCard"
+    @showGroupCard="onShowGroupCard"
+    @confirm="handleConfirmForwardMsg"
+  >
+    <template #title>
+      <div style="font-size: 16px; font-weight: bold; white-space: nowrap">转发消息</div>
+    </template>
+  </SelectSessionDialog>
 </template>
 
 <style lang="scss" scoped>
