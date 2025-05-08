@@ -861,7 +861,8 @@ const onSelectMenuMsgItem = async (label) => {
         })
       break
     case 'quote':
-      props.inputEditorRef.insertQuote({
+      // 非输入框模式无法引用
+      props.inputEditorRef?.insertQuote({
         account: msg.value.fromId,
         nickName: nickNameFromMsg.value,
         msgId: msg.value.msgId, // 引用要用msg.value.msgId
@@ -881,7 +882,8 @@ const onSelectMenuMsgItem = async (label) => {
 }
 
 const handleReedit = () => {
-  props.inputEditorRef.reeditFromRevoke(msg.value.content)
+  // 非输入框模式无法重新编辑
+  props.inputEditorRef?.reeditFromRevoke(msg.value.content)
 }
 
 /**
