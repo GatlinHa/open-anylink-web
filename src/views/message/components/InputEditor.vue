@@ -973,6 +973,10 @@ img {
     display: flex;
     height: fit-content; /* 高度根据内容自适应，需要display: flex配合 */
   }
+
+  &:hover {
+    background-color: #fff;
+  }
 }
 
 .quote-wrapper {
