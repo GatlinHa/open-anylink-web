@@ -1952,7 +1952,7 @@ const onShowRecorder = () => {
                 z-index: 1000;
               }
 
-              .message-item {
+              .message-item-wrapper {
                 transition: all 1s ease;
               }
 
