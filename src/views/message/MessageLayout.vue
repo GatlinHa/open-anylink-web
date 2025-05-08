@@ -850,7 +850,7 @@ const updateScroll = () => {
 const msgListReachBottom = (behavior = 'instant') => {
   const scrollToBottom = () => {
     setTimeout(() => {
-      msgListDiv.value.scrollTo({
+      msgListDiv.value?.scrollTo({
         top: msgListDiv.value.scrollHeight,
         behavior: behavior
       })
