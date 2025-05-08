@@ -4,6 +4,7 @@ import ForwardIcon from '@/assets/svg/forward.svg'
 import ForwardoboIcon from '@/assets/svg/forwardobo.svg'
 import DeletemsgIcon from '@/assets/svg/deletemsg.svg'
 import CancleIcon from '@/assets/svg/cancle.svg'
+import { ElMessageBox } from 'element-plus'
 
 const props = defineProps(['selectedCount'])
 const emit = defineEmits(['exit', 'forwardTogether', 'forwardOneByOne', 'batchDelete'])
@@ -27,6 +28,18 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
 })
+
+const handleBatchDelete = () => {
+  if (props.selectedCount > 0) {
+    ElMessageBox.confirm(`确定删除选中的消息记录吗？`, '温馨提示', {
+      type: 'warning',
+      confirmButtonText: '确认',
+      cancelButtonText: '取消'
+    }).then(() => {
+      emit('batchDelete')
+    })
+  }
+}
 </script>
 
 <template>
@@ -46,7 +59,7 @@ onUnmounted(() => {
         <span>逐条转发</span>
       </div>
       <div class="function-item">
-        <div class="fun-icon">
+        <div class="fun-icon" @click="handleBatchDelete">
           <DeletemsgIcon></DeletemsgIcon>
         </div>
         <span>批量删除</span>

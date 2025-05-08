@@ -33,7 +33,8 @@ import backgroupImage from '@/assets/svg/messagebx_bg.svg'
 import {
   msgChatPullMsgService,
   msgChatCreateSessionService,
-  msgChatQuerySessionService
+  msgChatQuerySessionService,
+  msgChatDeleteMsgService
 } from '@/api/message'
 import { groupInfoService, groupCreateService } from '@/api/group'
 import { MsgType } from '@/proto/msg'
@@ -1182,9 +1183,24 @@ const handleCancleMultiSelect = () => {
 //   }
 // }
 
-// const handleDeleteMessages = async () => {
-//   // 实现批量删除逻辑
-// }
+const handleBatchDeleteMsg = () => {
+  msgChatDeleteMsgService({
+    sessionId: selectedSessionId.value,
+    deleteMsgIds: [...multiSelectedMsgIds.value]
+  })
+    .then((res) => {
+      if (res.data.code === 0) {
+        multiSelectedMsgIds.value.forEach((item) => {
+          messageData.removeMsgRecord(selectedSessionId.value, item)
+        })
+        handleCancleMultiSelect()
+        ElMessage.success('消息已删除')
+      }
+    })
+    .catch((error) => {
+      console.error(error)
+    })
+}
 
 // const handleForwardSelected = () => {
 //   // 实现批量转发逻辑
@@ -1651,6 +1667,7 @@ const onShowRecorder = () => {
                   ref="inputMultiSelectRef"
                   :selectedCount="multiSelectedMsgIds.size"
                   @exit="handleCancleMultiSelect"
+                  @batchDelete="handleBatchDeleteMsg"
                 ></InputMultiSelect>
               </el-container>
               <el-container v-else-if="isShowRecorder">

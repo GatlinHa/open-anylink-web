@@ -856,7 +856,7 @@ const onSelectMenuMsgItem = async (label) => {
     case 'delete':
       msgChatDeleteMsgService({
         sessionId: props.sessionId,
-        deleteMsgId: msg.value.msgId // 服务器上删除用msg.value.msgId
+        deleteMsgIds: [msg.value.msgId] // 服务器上删除用msg.value.msgId
       })
         .then((res) => {
           if (res.data.code === 0) {

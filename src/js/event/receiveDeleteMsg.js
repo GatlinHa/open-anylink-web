@@ -4,7 +4,10 @@ export const onReceiveDeleteMsg = () => {
   return (msg) => {
     const messageData = useMessageStore()
     const sessionId = msg.body.sessionId
-    const deleteMsgId = msg.body.content
-    messageData.removeMsgRecord(sessionId, deleteMsgId)
+    const deleteMsgIds = msg.body.content
+
+    deleteMsgIds.split(',').forEach((item) => {
+      messageData.removeMsgRecord(sessionId, item)
+    })
   }
 }
