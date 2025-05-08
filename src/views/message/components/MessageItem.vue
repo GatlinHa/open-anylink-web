@@ -666,6 +666,11 @@ const isGroupChatMsgType = computed(() => {
   return msg.value.msgType === MsgType.GROUP_CHAT
 })
 
+const isNotInGroup = computed(() => {
+  const session = messageData.sessionList[props.sessionId]
+  return session.sessionType === MsgType.GROUP_CHAT && session.leave
+})
+
 const loadMoreTips = computed(() => {
   return props.isLoadMoreLoading ? '' : '查看更多消息'
 })
@@ -823,26 +828,30 @@ const onSelectMenuMsgItem = async (label) => {
       }
       break
     case 'revoke':
-      msgChatRevokeMsgService({
-        sessionId: props.sessionId,
-        revokeMsgId: msg.value.msgId, // 服务器上撤销用msg.value.msgId
-        isGroupChat: isGroupChatMsgType.value,
-        remoteId: messageData.sessionList[props.sessionId].remoteId
-      })
-        .then((res) => {
-          if (res.data.code === 0) {
-            // 本地撤销用props.msgKey，因为key有可能是发送消息时产生的本地UUID
-            messageData.revokeMsgRcord(props.sessionId, props.msgKey)
-            isReeditTimeOut.value = false
-            setTimeout(() => {
-              isReeditTimeOut.value = true
-            }, MSG_REEDIT_TIME_LIMIT)
-            ElMessage.success('消息已撤回')
-          }
+      if (!isNotInGroup.value) {
+        msgChatRevokeMsgService({
+          sessionId: props.sessionId,
+          revokeMsgId: msg.value.msgId, // 服务器上撤销用msg.value.msgId
+          isGroupChat: isGroupChatMsgType.value,
+          remoteId: messageData.sessionList[props.sessionId].remoteId
         })
-        .catch((error) => {
-          console.error(error)
-        })
+          .then((res) => {
+            if (res.data.code === 0) {
+              // 本地撤销用props.msgKey，因为key有可能是发送消息时产生的本地UUID
+              messageData.revokeMsgRcord(props.sessionId, props.msgKey)
+              isReeditTimeOut.value = false
+              setTimeout(() => {
+                isReeditTimeOut.value = true
+              }, MSG_REEDIT_TIME_LIMIT)
+              ElMessage.success('消息已撤回')
+            }
+          })
+          .catch((error) => {
+            console.error(error)
+          })
+      } else {
+        ElMessage.warning('您已离开该群或群已被解散')
+      }
       break
     case 'delete':
       msgChatDeleteMsgService({
