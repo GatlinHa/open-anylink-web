@@ -910,7 +910,12 @@ watch(
 )
 
 const multiSelectOptionDisabled = computed(() => {
-  return contentType.value === msgContentType.RECORDING || isSystemMsg.value || isRevoke.value
+  return (
+    contentType.value === msgContentType.RECORDING ||
+    isSystemMsg.value ||
+    isRevoke.value ||
+    isDelete.value
+  )
 })
 
 const handleItemClick = () => {
