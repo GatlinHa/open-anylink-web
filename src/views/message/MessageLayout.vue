@@ -1380,11 +1380,15 @@ const handleConfirmForwardMsg = async (sessions) => {
   } catch (error) {
     console.error('forward msg error: ', error)
   } finally {
-    isShowForwardMsgDialog.value = false
-    showForwardMsgDialogTitle.value = ''
-    handleCancleMultiSelect()
+    handleCloseForwardMsg()
     loadingInstance.close()
   }
+}
+
+const handleCloseForwardMsg = () => {
+  isShowForwardMsgDialog.value = false
+  showForwardMsgDialogTitle.value = ''
+  handleCancleMultiSelect()
 }
 
 const showMenuAddOpr = (e) => {
@@ -1774,6 +1778,7 @@ const onShowRecorder = () => {
     @showUserCard="onShowUserCard"
     @showGroupCard="onShowGroupCard"
     @confirm="handleConfirmForwardMsg"
+    @close="handleCloseForwardMsg"
   >
     <template #title>
       <div style="font-size: 16px; font-weight: bold; white-space: nowrap">

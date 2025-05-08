@@ -10,7 +10,7 @@ import { MsgType } from '@/proto/msg'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps(['isShow', 'sessionListSortedKey'])
-const emit = defineEmits(['update:isShow', 'showUserCard', 'showGroupCard', 'confirm'])
+const emit = defineEmits(['update:isShow', 'showUserCard', 'showGroupCard', 'confirm', 'close'])
 
 const userData = useUserStore()
 const messageData = useMessageStore()
@@ -120,13 +120,15 @@ const onOpen = () => {
 }
 
 const onClose = () => {
-  emit('update:isShow', false)
   selected.value = []
   optionsFromServer.value = {}
+  emit('update:isShow', false)
+  emit('close')
 }
 
 const onCancle = () => {
   emit('update:isShow', false)
+  emit('close')
 }
 
 const onClearSelected = () => {
