@@ -1322,6 +1322,15 @@ const handleGlobalMouseUp = (e) => {
       if (disabled !== 'true' && !multiSelectedMsgIds.value.has(msgId)) {
         multiSelectedMsgIds.value.add(msgId)
       }
+
+      const cancelClick = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        // 移除监听，确保只生效一次
+        msgListDiv.value.removeEventListener('click', cancelClick, true)
+      }
+      // 在捕获阶段拦截点击事件
+      msgListDiv.value.addEventListener('click', cancelClick, true)
     }
   })
 }
@@ -1970,7 +1979,7 @@ const onShowRecorder = () => {
               }
 
               .message-item-wrapper {
-                transition: all 1s ease;
+                transition: background-color 1s ease;
               }
 
               .highlighted {
