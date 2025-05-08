@@ -52,6 +52,7 @@ import MenuMsgMain from '@/views/message/components/MenuMsgMain.vue'
 import MessageGroupRightSide from '@/views/message/components/MessageGroupRightSide.vue'
 import HashNoData from '@/components/common/HasNoData.vue'
 import InputRecorder from '@/views/message/components/InputRecorder.vue'
+import InputMultiSelect from '@/views/message/components/InputMultiSelect.vue'
 import { playMsgSend } from '@/js/utils/audio'
 
 const userData = useUserStore()
@@ -255,6 +256,7 @@ const initSession = (sessionId) => {
   }
   isShowRecorder.value = false // 麦克风输入状态重置
   inputRecorderRef.value?.cancelSend() // 取消音频发送
+  inputMultiSelectRef.value?.cancel() // 取消多选模式
   imageData.clearImageInSession(sessionId) // 清除待渲染的图片队列
   readAtMsgIds.value = []
 }
@@ -1153,6 +1155,153 @@ const onSelectOprMenu = (label) => {
   }
 }
 
+const inputMultiSelectRef = ref(null)
+const isMultiSelect = ref(false)
+const multiSelectedMsgIds = ref(new Set())
+const handleMsgItemSelect = (msgKey, selected) => {
+  if (!isMultiSelect.value) {
+    isMultiSelect.value = true
+  }
+
+  if (selected) {
+    multiSelectedMsgIds.value.add(msgKey)
+  } else {
+    multiSelectedMsgIds.value.delete(msgKey)
+  }
+}
+
+const handleCancleMultiSelect = () => {
+  isMultiSelect.value = false
+  multiSelectedMsgIds.value.clear()
+}
+
+// const toggleMultiSelect = () => {
+//   isMultiSelect.value = !isMultiSelect.value
+//   if (!isMultiSelect.value) {
+//     multiSelectedMsgIds.value.clear()
+//   }
+// }
+
+// const handleDeleteMessages = async () => {
+//   // 实现批量删除逻辑
+// }
+
+// const handleForwardSelected = () => {
+//   // 实现批量转发逻辑
+// }
+
+// 选区相关状态
+const selection = ref({
+  isSelecting: false,
+  startX: 0,
+  startY: 0,
+  currentX: 0,
+  currentY: 0
+})
+
+// 计算选区样式
+const selectionStyle = computed(() => {
+  if (!selection.value.isSelecting) return { display: 'none' }
+
+  const left = Math.min(selection.value.startX, selection.value.currentX)
+  const top = Math.min(selection.value.startY, selection.value.currentY)
+  const width = Math.abs(selection.value.currentX - selection.value.startX)
+  const height = Math.abs(selection.value.currentY - selection.value.startY)
+
+  return {
+    display: 'block',
+    left: `${left}px`,
+    top: `${top}px`,
+    width: `${width}px`,
+    height: `${height}px`
+  }
+})
+
+// 处理鼠标按下
+const handleMouseDown = (e) => {
+  if (e.button !== 0) return // 如果不是左键则返回
+
+  const rect = msgListDiv.value.getBoundingClientRect()
+  selection.value.isSelecting = true
+  selection.value.startX = e.clientX - rect.left
+  selection.value.startY = e.clientY - rect.top
+  selection.value.currentX = selection.value.startX
+  selection.value.currentY = selection.value.startY
+
+  // 添加全局监听
+  document.addEventListener('mousemove', handleGlobalMouseMove)
+  document.addEventListener('mouseup', handleGlobalMouseUp)
+}
+
+// 处理鼠标移动（节流处理）
+const handleGlobalMouseMove = (e) => {
+  if (!selection.value.isSelecting) return
+
+  const rect = msgListDiv.value.getBoundingClientRect()
+  selection.value.currentX = e.clientX - rect.left
+  selection.value.currentY = e.clientY - rect.top
+}
+
+// 处理鼠标释放
+const handleGlobalMouseUp = (e) => {
+  // 只在鼠标左键释放时处理
+  if (e.button !== 0) return
+
+  document.removeEventListener('mousemove', handleGlobalMouseMove)
+  document.removeEventListener('mouseup', handleGlobalMouseUp)
+
+  if (
+    !selection.value.isSelecting ||
+    (selection.value.isSelecting &&
+      selection.value.currentX === selection.value.startX &&
+      selection.value.currentY === selection.value.startY)
+  ) {
+    selection.value.isSelecting = false
+    return
+  }
+
+  selection.value.isSelecting = false
+
+  // 检测选区内的消息项
+  const selectionRect = {
+    left: Math.min(selection.value.startX, selection.value.currentX),
+    top: Math.min(selection.value.startY, selection.value.currentY),
+    right: Math.max(selection.value.startX, selection.value.currentX),
+    bottom: Math.max(selection.value.startY, selection.value.currentY)
+  }
+
+  const rect = msgListDiv.value.getBoundingClientRect()
+  msgListDiv.value.querySelectorAll('.message-item').forEach((el) => {
+    const itemRect = el.getBoundingClientRect()
+    const itemLeft = itemRect.left - rect.left
+    const itemTop = itemRect.top - rect.top
+    const itemRight = itemRect.right - rect.left
+    const itemBottom = itemRect.bottom - rect.top
+
+    const isIntersect = !(
+      itemBottom < selectionRect.top ||
+      itemTop > selectionRect.bottom ||
+      itemRight < selectionRect.left ||
+      itemLeft > selectionRect.right
+    )
+
+    if (isIntersect) {
+      if (!isMultiSelect.value) {
+        isMultiSelect.value = true
+      }
+
+      const msgId = el.dataset.msgId
+      const isRecording = el.dataset.isRecording
+      if (multiSelectedMsgIds.value.has(msgId)) {
+        multiSelectedMsgIds.value.delete(msgId)
+      } else if (isRecording !== 'true') {
+        // 语音消息不能被选中
+        multiSelectedMsgIds.value.add(msgId)
+      }
+    }
+  })
+}
+
 const isShowForwardMsgDialog = ref(false)
 let forwardMsg = {} // 待转发的消息
 const sessionListSortedKey = computed(() => {
@@ -1429,7 +1578,9 @@ const onShowRecorder = () => {
                 class="message-main my-scrollbar"
                 ref="msgListDiv"
                 @wheel="handleMsgListWheel"
+                @mousedown="handleMouseDown"
               >
+                <div class="selection-box" :style="selectionStyle"></div>
                 <MenuMsgMain @selectMenu="onSelectMsgMainMenu">
                   <MessageItem
                     v-for="item in msgKeysShow"
@@ -1447,6 +1598,8 @@ const onShowRecorder = () => {
                     :hasNoMoreMsg="hasNoMoreMsg"
                     :isLoadMoreLoading="selectedSessionCache[selectedSessionId]?.isLoadMoreLoading"
                     :inputEditorRef="inputEditorRef"
+                    :isMultiSelect="isMultiSelect"
+                    :isSelected="multiSelectedMsgIds.has(item)"
                     @loadMore="onLoadMore"
                     @showUserCard="onShowUserCard"
                     @showGroupCard="onShowGroupCard"
@@ -1454,6 +1607,7 @@ const onShowRecorder = () => {
                     @loadFinished="updateScroll"
                     @showHighlight="handleShowHighlight"
                     @forwardMsg="showForwardMsgDialog"
+                    @select="handleMsgItemSelect"
                   ></MessageItem>
                 </MenuMsgMain>
               </div>
@@ -1495,7 +1649,14 @@ const onShowRecorder = () => {
               </transition>
             </div>
             <div class="input-box bdr-t" :style="{ height: inputBoxHeight + 'px' }">
-              <el-container v-if="isShowRecorder">
+              <el-container v-if="isMultiSelect">
+                <InputMultiSelect
+                  ref="inputMultiSelectRef"
+                  :selectedCount="multiSelectedMsgIds.size"
+                  @exit="handleCancleMultiSelect"
+                ></InputMultiSelect>
+              </el-container>
+              <el-container v-else-if="isShowRecorder">
                 <InputRecorder
                   ref="inputRecorderRef"
                   @exit="isShowRecorder = false"
@@ -1748,6 +1909,13 @@ const onShowRecorder = () => {
               width: 100%;
               padding: 10px;
               overflow-y: scroll; // 用它的滚动条
+
+              .selection-box {
+                position: absolute;
+                background-color: rgba(0, 0, 0, 0.1);
+                pointer-events: none;
+                z-index: 1000;
+              }
 
               .message-item {
                 transition: all 1s ease;

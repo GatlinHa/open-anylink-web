@@ -36,7 +36,9 @@ const props = defineProps([
   'lastMsgId',
   'hasNoMoreMsg',
   'isLoadMoreLoading',
-  'inputEditorRef'
+  'inputEditorRef',
+  'isMultiSelect',
+  'isSelected'
 ])
 const emit = defineEmits([
   'loadMore',
@@ -45,7 +47,8 @@ const emit = defineEmits([
   'resendMsg',
   'loadFinished',
   'showHighlight',
-  'forwardMsg'
+  'forwardMsg',
+  'select'
 ])
 
 const userData = useUserStore()
@@ -344,6 +347,21 @@ const renderDocument = (content) => {
     return h('span', `[${content}]`)
   }
 }
+
+const contentType = computed(() => {
+  const contentJson = jsonParseSafe(msg.value.content)
+  if (!contentJson) {
+    return msgContentType.MIX
+  }
+
+  const type = contentJson['type']
+  const value = contentJson['value']
+  if (!type || !value) {
+    return msgContentType.MIX
+  } else {
+    return type
+  }
+})
 
 const msg = computed(() => {
   return messageData.getMsg(props.sessionId, props.msgKey)
@@ -854,6 +872,9 @@ const onSelectMenuMsgItem = async (label) => {
     case 'forward':
       emit('forwardMsg', props.msgKey)
       break
+    case 'multiSelect':
+      emit('select', props.msgKey, true)
+      break
     default:
       break
   }
@@ -876,132 +897,191 @@ watch(
     }
   }
 )
+
+const handleItemClick = () => {
+  if (props.isMultiSelect && contentType.value !== msgContentType.RECORDING) {
+    emit('select', props.msgKey, !props.isSelected)
+  }
+}
 </script>
 
 <template>
-  <div class="message-item" :class="{ unreadMsg: isUnreadMsg }">
-    <span v-if="isShowNoMoreMsg" class="no-more-message">当前无更多消息</span>
-    <div v-if="isShowLoadMore" class="load-more-wrapper">
-      <div
-        class="load-more"
-        v-loading="props.isLoadMoreLoading"
-        @click="onLoadMore"
-        :style="{ cursor: loadMoreCursor }"
-      >
-        {{ loadMoreTips }}
-      </div>
+  <div
+    class="message-item-wrapper"
+    :class="{
+      'multi-select-mode': props.isMultiSelect,
+      'is-selected': props.isSelected,
+      'is-valid-option': props.isMultiSelect && contentType !== msgContentType.RECORDING
+    }"
+    @click="handleItemClick"
+  >
+    <div v-if="props.isMultiSelect" class="message-checkbox">
+      <el-checkbox
+        :model-value="props.isSelected"
+        :disabled="contentType === msgContentType.RECORDING"
+        @update:model-value="handleItemClick"
+        @click.stop
+      />
     </div>
-    <el-divider v-if="props.extend.isFirstNew" class="new-messages-tips" content-position="center"
-      >以下是新消息</el-divider
-    >
-    <span v-if="!isContinuousSession" class="datetime">{{ sysShowTime }}</span>
     <div
-      v-if="isSystemMsg"
-      class="system-message"
-      v-html="systemMsgContent"
-      @click="onClickSystemMsg"
-    ></div>
-    <div v-else-if="!isSystemMsg && isRevoke" class="revoke-delete">
-      <div v-if="isSelf">
-        <span>你撤回了一条消息</span>
-        <span
-          v-if="isReedit && !isReeditTimeOut"
-          style="margin-left: 2px; color: #409eff; cursor: pointer"
-          @click="handleReedit"
+      class="message-item"
+      :data-msg-id="props.msgKey"
+      :data-is-recording="contentType === msgContentType.RECORDING"
+      :class="{ unreadMsg: isUnreadMsg }"
+    >
+      <span v-if="isShowNoMoreMsg" class="no-more-message">当前无更多消息</span>
+      <div v-if="isShowLoadMore" class="load-more-wrapper">
+        <div
+          class="load-more"
+          v-loading="props.isLoadMoreLoading"
+          @click="onLoadMore"
+          :style="{ cursor: loadMoreCursor }"
         >
-          重新编辑
-        </span>
+          {{ loadMoreTips }}
+        </div>
       </div>
-      <div v-else>
-        <div v-if="isChatMsgType">对方撤回了一条消息</div>
-        <div v-else>{{ `“${objectInfoFromMsg.nickName}”撤回了一条消息` }}</div>
+      <el-divider v-if="props.extend.isFirstNew" class="new-messages-tips" content-position="center"
+        >以下是新消息</el-divider
+      >
+      <span v-if="!isContinuousSession" class="datetime">{{ sysShowTime }}</span>
+      <div
+        v-if="isSystemMsg"
+        class="system-message"
+        v-html="systemMsgContent"
+        @click="onClickSystemMsg"
+      ></div>
+      <div v-else-if="!isSystemMsg && isRevoke" class="revoke-delete">
+        <div v-if="isSelf">
+          <span>你撤回了一条消息</span>
+          <span
+            v-if="isReedit && !isReeditTimeOut"
+            style="margin-left: 2px; color: #409eff; cursor: pointer"
+            @click="handleReedit"
+          >
+            重新编辑
+          </span>
+        </div>
+        <div v-else>
+          <div v-if="isChatMsgType">对方撤回了一条消息</div>
+          <div v-else>{{ `“${objectInfoFromMsg.nickName}”撤回了一条消息` }}</div>
+        </div>
       </div>
-    </div>
-    <div v-else-if="!isSystemMsg && isDelete" class="revoke-delete">
-      <span>消息已删除</span>
-    </div>
-    <div v-else class="message-container-wrapper">
-      <el-container class="el-container-right" v-if="isSelf">
-        <el-main class="el-main-right">
-          <el-container class="message-content-wrapper">
-            <el-header class="message-time">
-              <span v-if="isGroupChatMsgType">{{ nickName }}</span>
-              <span style="margin-left: 5px">{{ msgTime }}</span>
-            </el-header>
-            <el-main class="message-content">
-              <div
-                v-if="msgStatus === msgSendStatus.PENDING"
-                class="my-message-status my-message-status-pending"
-              >
-                <div class="loading-circular" v-loading="true"></div>
-              </div>
-              <div
-                v-else-if="
-                  msgStatus === msgSendStatus.FAILED || msgStatus === msgSendStatus.UPLOAD_FAILED
-                "
-                class="my-message-status my-message-status-failed"
-              >
-                <el-icon
-                  color="red"
-                  :title="msgStatus === msgSendStatus.FAILED ? '点击重发' : ''"
-                  @click="onResendMsg"
-                  ><WarningFilled
-                /></el-icon>
-              </div>
-              <div v-else-if="isChatMsgType" class="my-message-status">
-                <div v-if="myMsgIsRead" class="remote_read"></div>
-                <div v-else class="remote_unread"></div>
-              </div>
-              <MenuMsgItem :msg="msg" @selectMenu="onSelectMenuMsgItem">
-                <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
-              </MenuMsgItem>
-            </el-main>
-          </el-container>
-        </el-main>
-        <el-aside class="el-aside-right">
-          <UserAvatarIcon
-            class="avatar-message-item"
-            :showId="account"
-            :showName="nickName"
-            :showAvatarThumb="avatarThumb"
-            @click="onShowUserCard"
-          ></UserAvatarIcon>
-        </el-aside>
-      </el-container>
+      <div v-else-if="!isSystemMsg && isDelete" class="revoke-delete">
+        <span>消息已删除</span>
+      </div>
+      <div v-else class="message-container-wrapper">
+        <el-container class="el-container-right" v-if="isSelf">
+          <el-main class="el-main-right">
+            <el-container class="message-content-wrapper">
+              <el-header class="message-time">
+                <span v-if="isGroupChatMsgType">{{ nickName }}</span>
+                <span style="margin-left: 5px">{{ msgTime }}</span>
+              </el-header>
+              <el-main class="message-content">
+                <div
+                  v-if="msgStatus === msgSendStatus.PENDING"
+                  class="my-message-status my-message-status-pending"
+                >
+                  <div class="loading-circular" v-loading="true"></div>
+                </div>
+                <div
+                  v-else-if="
+                    msgStatus === msgSendStatus.FAILED || msgStatus === msgSendStatus.UPLOAD_FAILED
+                  "
+                  class="my-message-status my-message-status-failed"
+                >
+                  <el-icon
+                    color="red"
+                    :title="msgStatus === msgSendStatus.FAILED ? '点击重发' : ''"
+                    @click="onResendMsg"
+                    ><WarningFilled
+                  /></el-icon>
+                </div>
+                <div v-else-if="isChatMsgType" class="my-message-status">
+                  <div v-if="myMsgIsRead" class="remote_read"></div>
+                  <div v-else class="remote_unread"></div>
+                </div>
+                <MenuMsgItem :msg="msg" @selectMenu="onSelectMenuMsgItem">
+                  <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
+                </MenuMsgItem>
+              </el-main>
+            </el-container>
+          </el-main>
+          <el-aside class="el-aside-right">
+            <UserAvatarIcon
+              class="avatar-message-item"
+              :showId="account"
+              :showName="nickName"
+              :showAvatarThumb="avatarThumb"
+              @click="onShowUserCard"
+            ></UserAvatarIcon>
+          </el-aside>
+        </el-container>
 
-      <el-container class="el-container-left" v-else>
-        <el-aside class="el-aside-left">
-          <UserAvatarIcon
-            class="avatar-message-item"
-            :showId="account"
-            :showName="nickName"
-            :showAvatarThumb="avatarThumb"
-            @click="onShowUserCard"
-          ></UserAvatarIcon>
-        </el-aside>
-        <el-main class="el-main-left">
-          <el-container class="message-content-wrapper">
-            <el-header class="message-time">
-              <span v-if="isGroupChatMsgType" style="margin-right: 5px">{{ nickName }}</span>
-              <span>{{ msgTime }}</span>
-            </el-header>
-            <el-main class="message-content">
-              <MenuMsgItem :msg="msg" @selectMenu="onSelectMenuMsgItem">
-                <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
-              </MenuMsgItem>
-            </el-main>
-          </el-container>
-        </el-main>
-      </el-container>
+        <el-container class="el-container-left" v-else>
+          <el-aside class="el-aside-left">
+            <UserAvatarIcon
+              class="avatar-message-item"
+              :showId="account"
+              :showName="nickName"
+              :showAvatarThumb="avatarThumb"
+              @click="onShowUserCard"
+            ></UserAvatarIcon>
+          </el-aside>
+          <el-main class="el-main-left">
+            <el-container class="message-content-wrapper">
+              <el-header class="message-time">
+                <span v-if="isGroupChatMsgType" style="margin-right: 5px">{{ nickName }}</span>
+                <span>{{ msgTime }}</span>
+              </el-header>
+              <el-main class="message-content">
+                <MenuMsgItem :msg="msg" @selectMenu="onSelectMenuMsgItem">
+                  <div class="div-content" :id="`div-content-${msg.msgId}`"></div>
+                </MenuMsgItem>
+              </el-main>
+            </el-container>
+          </el-main>
+        </el-container>
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.message-item-wrapper {
+  position: relative;
+  padding-left: 8px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+
+  &.multi-select-mode {
+    padding-left: 32px;
+  }
+
+  &.is-selected {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  &.is-valid-option {
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .message-checkbox {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+}
+
 .message-item {
   width: 100%;
   margin-top: 10px;
-  border-radius: 5px;
   display: flex;
   flex-direction: column;
   justify-content: center;
