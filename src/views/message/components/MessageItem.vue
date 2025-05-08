@@ -909,8 +909,12 @@ watch(
   }
 )
 
+const multiSelectOptionDisabled = computed(() => {
+  return contentType.value === msgContentType.RECORDING || isSystemMsg.value || isRevoke.value
+})
+
 const handleItemClick = () => {
-  if (props.isMultiSelect && contentType.value !== msgContentType.RECORDING) {
+  if (props.isMultiSelect && !multiSelectOptionDisabled.value) {
     emit('select', props.msgKey, !props.isSelected)
   }
 }
@@ -922,14 +926,14 @@ const handleItemClick = () => {
     :class="{
       'multi-select-mode': props.isMultiSelect,
       'is-selected': props.isSelected,
-      'is-valid-option': props.isMultiSelect && contentType !== msgContentType.RECORDING
+      'is-valid-option': props.isMultiSelect && !multiSelectOptionDisabled
     }"
     @click="handleItemClick"
   >
     <div v-if="props.isMultiSelect" class="message-checkbox">
       <el-checkbox
         :model-value="props.isSelected"
-        :disabled="contentType === msgContentType.RECORDING"
+        :disabled="multiSelectOptionDisabled"
         @update:model-value="handleItemClick"
         @click.stop
       />
@@ -937,7 +941,7 @@ const handleItemClick = () => {
     <div
       class="message-item"
       :data-msg-id="props.msgKey"
-      :data-is-recording="contentType === msgContentType.RECORDING"
+      :data-disabled="multiSelectOptionDisabled"
       :class="{ unreadMsg: isUnreadMsg }"
     >
       <span v-if="isShowNoMoreMsg" class="no-more-message">当前无更多消息</span>

@@ -1291,10 +1291,10 @@ const handleGlobalMouseUp = (e) => {
       }
 
       const msgId = el.dataset.msgId
-      const isRecording = el.dataset.isRecording
+      const disabled = el.dataset.disabled
       if (multiSelectedMsgIds.value.has(msgId)) {
         multiSelectedMsgIds.value.delete(msgId)
-      } else if (isRecording !== 'true') {
+      } else if (disabled !== 'true') {
         // 语音消息不能被选中
         multiSelectedMsgIds.value.add(msgId)
       }
