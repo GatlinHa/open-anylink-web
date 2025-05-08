@@ -1231,6 +1231,11 @@ const selectionStyle = computed(() => {
 const handleMouseDown = (e) => {
   if (e.button !== 0) return // 如果不是左键则返回
 
+  // 检查是否已有选中内容，如果已有选中文本则终止多选操作
+  if (window.getSelection().toString().trim() !== '') {
+    return
+  }
+
   const rect = msgListDiv.value.getBoundingClientRect()
   selection.value.isSelecting = true
   selection.value.startX = e.clientX - rect.left
@@ -1243,9 +1248,15 @@ const handleMouseDown = (e) => {
   document.addEventListener('mouseup', handleGlobalMouseUp)
 }
 
-// 处理鼠标移动（节流处理）
+// 处理鼠标移动
 const handleGlobalMouseMove = (e) => {
   if (!selection.value.isSelecting) return
+
+  // 检查是否已有选中内容，如果已有选中文本则终止多选操作
+  if (window.getSelection().toString().trim() !== '') {
+    selection.value.isSelecting = false
+    return
+  }
 
   const rect = msgListDiv.value.getBoundingClientRect()
   selection.value.currentX = e.clientX - rect.left
@@ -1256,6 +1267,12 @@ const handleGlobalMouseMove = (e) => {
 const handleGlobalMouseUp = (e) => {
   // 只在鼠标左键释放时处理
   if (e.button !== 0) return
+
+  // 检查是否已有选中内容，如果已有选中文本则终止多选操作
+  if (window.getSelection().toString().trim() !== '') {
+    selection.value.isSelecting = false
+    return
+  }
 
   document.removeEventListener('mousemove', handleGlobalMouseMove)
   document.removeEventListener('mouseup', handleGlobalMouseUp)
