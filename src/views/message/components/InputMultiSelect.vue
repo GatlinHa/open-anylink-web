@@ -29,6 +29,12 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
 })
 
+const handleForwardOneByOne = () => {
+  if (props.selectedCount > 0) {
+    emit('forwardOneByOne')
+  }
+}
+
 const handleBatchDelete = () => {
   if (props.selectedCount > 0) {
     ElMessageBox.confirm(`确定删除选中的消息记录吗？`, '温馨提示', {
@@ -53,7 +59,7 @@ const handleBatchDelete = () => {
         <span>合并转发</span>
       </div>
       <div class="function-item">
-        <div class="fun-icon">
+        <div class="fun-icon" @click="handleForwardOneByOne">
           <ForwardoboIcon style="width: 20px; height: 20px"></ForwardoboIcon>
         </div>
         <span>逐条转发</span>

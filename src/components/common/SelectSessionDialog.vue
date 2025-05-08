@@ -7,6 +7,7 @@ import { userQueryService, userQueryByNickService } from '@/api/user'
 import { combineId, smartMatch } from '@/js/utils/common'
 import { useUserStore, useMessageStore } from '@/stores'
 import { MsgType } from '@/proto/msg'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps(['isShow', 'sessionListSortedKey'])
 const emit = defineEmits(['update:isShow', 'showUserCard', 'showGroupCard', 'confirm'])
@@ -103,11 +104,15 @@ const onShowGroupCard = (groupId) => {
 }
 
 const onConfirm = () => {
-  const data = []
-  selected.value.forEach((account) => {
-    data.push(optionsAll.value[account])
-  })
-  emit('confirm', data)
+  if (selected.value.length === 0) {
+    ElMessage.warning('您还没有选择目标会话')
+  } else {
+    const data = []
+    selected.value.forEach((account) => {
+      data.push(optionsAll.value[account])
+    })
+    emit('confirm', data)
+  }
 }
 
 const onOpen = () => {

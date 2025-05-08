@@ -1176,12 +1176,10 @@ const handleCancleMultiSelect = () => {
   multiSelectedMsgIds.value.clear()
 }
 
-// const toggleMultiSelect = () => {
-//   isMultiSelect.value = !isMultiSelect.value
-//   if (!isMultiSelect.value) {
-//     multiSelectedMsgIds.value.clear()
-//   }
-// }
+const handleForwardOneByOne = () => {
+  isShowForwardMsgDialog.value = true
+  showForwardMsgDialogTitle.value = '逐条转发'
+}
 
 const handleBatchDeleteMsg = () => {
   msgChatDeleteMsgService({
@@ -1201,10 +1199,6 @@ const handleBatchDeleteMsg = () => {
       console.error(error)
     })
 }
-
-// const handleForwardSelected = () => {
-//   // 实现批量转发逻辑
-// }
 
 // 选区相关状态
 const selection = ref({
@@ -1316,7 +1310,20 @@ const handleGlobalMouseUp = (e) => {
 }
 
 const isShowForwardMsgDialog = ref(false)
-let forwardMsg = {} // 待转发的消息
+const showForwardMsgDialogTitle = ref('')
+// 待转发的消息
+const forwardMsgs = computed(() => {
+  let msgs = []
+  multiSelectedMsgIds.value.forEach((item) => {
+    msgs.push(messageData.getMsg(selectedSessionId.value, item))
+  })
+
+  return msgs.sort((a, b) => {
+    const timeA = new Date(a.sendTime || a.msgTime).getTime()
+    const timeB = new Date(b.sendTime || b.msgTime).getTime()
+    return timeA - timeB
+  })
+})
 const sessionListSortedKey = computed(() => {
   return sessionListSorted.value
     .filter((item) => {
@@ -1326,8 +1333,10 @@ const sessionListSortedKey = computed(() => {
 })
 
 const showForwardMsgDialog = (msgId) => {
-  forwardMsg = messageData.getMsg(selectedSessionId.value, msgId)
+  multiSelectedMsgIds.value.clear()
+  multiSelectedMsgIds.value.add(msgId)
   isShowForwardMsgDialog.value = true
+  showForwardMsgDialogTitle.value = '转发消息'
 }
 
 const handleConfirmForwardMsg = async (sessions) => {
@@ -1346,31 +1355,35 @@ const handleConfirmForwardMsg = async (sessions) => {
         messageData.addSession(res.data.data.session)
       }
 
-      await handleSendForwardMsg({
-        session: item,
-        content: forwardMsg.content
-          .split(/(<.*?>)/)
-          .map((item) => {
-            const sliceStr = item.slice(1, -1)
-            const index = sliceStr.indexOf('-')
-            if (index !== -1) {
-              const nickName = sliceStr.slice(index + 1)
-              if (nickName) {
-                return `@${nickName}`
-              } else {
-                return item
+      for (const forwardMsg of forwardMsgs.value) {
+        await handleSendForwardMsg({
+          session: item,
+          content: forwardMsg.content
+            .split(/(<.*?>)/)
+            .map((item) => {
+              const sliceStr = item.slice(1, -1)
+              const index = sliceStr.indexOf('-')
+              if (index !== -1) {
+                const nickName = sliceStr.slice(index + 1)
+                if (nickName) {
+                  return `@${nickName}`
+                } else {
+                  return item
+                }
               }
-            }
-            return item
-          })
-          .join('')
-      })
+              return item
+            })
+            .join('')
+        })
+      }
     }
   } catch (error) {
     console.error('forward msg error: ', error)
   } finally {
-    loadingInstance.close()
     isShowForwardMsgDialog.value = false
+    showForwardMsgDialogTitle.value = ''
+    handleCancleMultiSelect()
+    loadingInstance.close()
   }
 }
 
@@ -1667,6 +1680,7 @@ const onShowRecorder = () => {
                   ref="inputMultiSelectRef"
                   :selectedCount="multiSelectedMsgIds.size"
                   @exit="handleCancleMultiSelect"
+                  @forwardOneByOne="handleForwardOneByOne"
                   @batchDelete="handleBatchDeleteMsg"
                 ></InputMultiSelect>
               </el-container>
@@ -1762,7 +1776,9 @@ const onShowRecorder = () => {
     @confirm="handleConfirmForwardMsg"
   >
     <template #title>
-      <div style="font-size: 16px; font-weight: bold; white-space: nowrap">转发消息</div>
+      <div style="font-size: 16px; font-weight: bold; white-space: nowrap">
+        {{ showForwardMsgDialogTitle }}
+      </div>
     </template>
   </SelectSessionDialog>
 </template>
