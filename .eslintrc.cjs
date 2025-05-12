@@ -9,7 +9,10 @@ module.exports = {
     '@vue/eslint-config-prettier/skip-formatting'
   ],
   parserOptions: {
-    ecmaVersion: 'latest'
+    ecmaVersion: 'latest',
+    ecmaFeatures: {
+      jsx: true
+    }
   },
   rules: {
     'prettier/prettier': [
@@ -27,6 +30,7 @@ module.exports = {
       {
         ignores: ['index'] // vue组件名称多单词组成（忽略index.vue）
       }
-    ]
+    ],
+    'vue/jsx-uses-vars': 'error' // 确保 JSX 中使用的变量被正确识别
   }
 }
