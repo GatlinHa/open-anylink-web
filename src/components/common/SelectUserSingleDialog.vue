@@ -69,7 +69,7 @@ const onConfirm = () => {
     :modal="false"
     :top="'30vh'"
     :width="'300px'"
-    :z-index="1"
+    :z-index="1000"
     style="height: 460px; border-radius: 10px"
     @open="onOpen"
     @close="onClose"

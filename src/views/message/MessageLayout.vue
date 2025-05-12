@@ -1176,6 +1176,11 @@ const handleCancleMultiSelect = () => {
   multiSelectedMsgIds.value.clear()
 }
 
+const handleForwardTogether = () => {
+  isShowForwardMsgDialog.value = true
+  showForwardMsgDialogTitle.value = '合并转发'
+}
+
 const handleForwardOneByOne = () => {
   isShowForwardMsgDialog.value = true
   showForwardMsgDialogTitle.value = '逐条转发'
@@ -1312,7 +1317,11 @@ const handleGlobalMouseUp = (e) => {
       itemLeft > selectionRect.right
     )
 
-    if (isIntersect) {
+    if (
+      isIntersect &&
+      (selectionRect.right - selectionRect.left > 50 || // 移动超过50 + 50才算有效
+        selectionRect.bottom - selectionRect.top > 50)
+    ) {
       if (!isMultiSelect.value) {
         isMultiSelect.value = true
       }
@@ -1341,15 +1350,37 @@ const showForwardMsgDialogTitle = ref('')
 const forwardMsgs = computed(() => {
   let msgs = []
   multiSelectedMsgIds.value.forEach((item) => {
-    msgs.push(messageData.getMsg(selectedSessionId.value, item))
+    const msg = messageData.getMsg(selectedSessionId.value, item)
+    let nickName = ''
+    if (msg.msgType === MsgType.CHAT) {
+      if (myAccount.value === msg.fromId) {
+        nickName = userData.user.nickName
+      } else {
+        nickName = messageData.sessionList[msg.sessionId].objectInfo.nickName
+      }
+    } else if (msg.msgType === MsgType.GROUP_CHAT) {
+      const groupId = messageData.sessionList[msg.sessionId].remoteId
+      const members = groupData.groupMembersList[groupId]
+      nickName = members[msg.fromId].nickName
+    }
+    msgs.push({
+      ...msg,
+      nickName
+    })
   })
 
-  return msgs.sort((a, b) => {
-    const timeA = new Date(a.sendTime || a.msgTime).getTime()
-    const timeB = new Date(b.sendTime || b.msgTime).getTime()
-    return timeA - timeB
-  })
+  if (showForwardMsgDialogTitle.value === '合并转发') {
+    return [
+      {
+        type: msgContentType.FORWARD_TOGETHER,
+        value: msgs
+      }
+    ]
+  } else {
+    return msgs
+  }
 })
+
 const sessionListSortedKey = computed(() => {
   return sessionListSorted.value
     .filter((item) => {
@@ -1382,24 +1413,13 @@ const handleConfirmForwardMsg = async (sessions) => {
       }
 
       for (const forwardMsg of forwardMsgs.value) {
+        const content =
+          showForwardMsgDialogTitle.value !== '合并转发'
+            ? forwardMsg.content
+            : JSON.stringify(forwardMsg)
         await handleSendForwardMsg({
           session: item,
-          content: forwardMsg.content
-            .split(/(<.*?>)/)
-            .map((item) => {
-              const sliceStr = item.slice(1, -1)
-              const index = sliceStr.indexOf('-')
-              if (index !== -1) {
-                const nickName = sliceStr.slice(index + 1)
-                if (nickName) {
-                  return `@${nickName}`
-                } else {
-                  return item
-                }
-              }
-              return item
-            })
-            .join('')
+          content: content
         })
       }
     }
@@ -1710,6 +1730,7 @@ const onShowRecorder = () => {
                   ref="inputMultiSelectRef"
                   :selectedCount="multiSelectedMsgIds.size"
                   @exit="handleCancleMultiSelect"
+                  @forwardTogether="handleForwardTogether"
                   @forwardOneByOne="handleForwardOneByOne"
                   @batchDelete="handleBatchDeleteMsg"
                 ></InputMultiSelect>

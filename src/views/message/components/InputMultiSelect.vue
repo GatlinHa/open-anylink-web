@@ -29,6 +29,12 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
 })
 
+const handleForwardTogether = () => {
+  if (props.selectedCount > 0) {
+    emit('forwardTogether')
+  }
+}
+
 const handleForwardOneByOne = () => {
   if (props.selectedCount > 0) {
     emit('forwardOneByOne')
@@ -53,7 +59,7 @@ const handleBatchDelete = () => {
     <span class="selected-count">已选中：{{ props.selectedCount || 0 }}条消息</span>
     <div class="multi-select-funtions">
       <div class="function-item">
-        <div class="fun-icon">
+        <div class="fun-icon" @click="handleForwardTogether">
           <ForwardIcon></ForwardIcon>
         </div>
         <span>合并转发</span>

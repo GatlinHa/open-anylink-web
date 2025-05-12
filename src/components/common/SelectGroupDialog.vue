@@ -118,7 +118,7 @@ const onRemoveSelectedItem = (index) => {
     :modal="false"
     :top="'30vh'"
     :width="'610px'"
-    :z-index="1"
+    :z-index="1000"
     style="border-radius: 10px"
     @open="onOpen"
     @close="onClose"

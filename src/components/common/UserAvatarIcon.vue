@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { getAvatarColor, getFontColor } from '@/js/utils/common'
 import { STATUS } from '@/const/userConst'
 import default_avatar from '@/assets/image/default_avatar.png'
+import { ElAvatar } from 'element-plus'
 
 const props = defineProps(['showName', 'showId', 'showAvatarThumb', 'userStatus', 'size'])
 

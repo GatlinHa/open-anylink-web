@@ -257,6 +257,8 @@ const showDetailContent = computed(() => {
         template = '[视频]'
       } else if (jsonContent['type'] == msgContentType.DOCUMENT) {
         template = '[文件]'
+      } else if (jsonContent['type'] == msgContentType.FORWARD_TOGETHER) {
+        template = '[聊天记录]'
       } else {
         template = jsonContent['value']
       }

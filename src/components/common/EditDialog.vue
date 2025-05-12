@@ -28,7 +28,7 @@ watch([() => props.isShow, () => props.defaultInput], ([newIsShow, newDefaultInp
     :modal="false"
     :top="'40vh'"
     :width="'360px'"
-    :z-index="1"
+    :z-index="1000"
     style="border-radius: 10px"
     @close="onClose"
   >

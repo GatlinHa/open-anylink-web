@@ -24,6 +24,7 @@ import MsgBoxDocument from '@/views/message/components/MsgBoxDocument.vue'
 import MenuMsgItem from '@/views/message/components/MenuMsgItem.vue'
 import { ElMessage } from 'element-plus'
 import { msgChatDeleteMsgService, msgChatRevokeMsgService } from '@/api/message'
+import DialogForMsgList from '@/views/message/components/DialogForMsgList.vue'
 
 const props = defineProps([
   'sessionId',
@@ -112,6 +113,8 @@ const renderComponent = (content) => {
       return renderVideo(value)
     case msgContentType.DOCUMENT:
       return renderDocument(value)
+    case msgContentType.FORWARD_TOGETHER:
+      return renderForwardTogether(value)
     default:
       return h('span', content)
   }
@@ -215,6 +218,104 @@ const renderQuote = (quoteContent) => {
         h('span', { class: 'quote-content' }, showContent)
       ]
     )
+  )
+}
+
+const showMsgContentInForwardTogether = (content) => {
+  const jsonContent = jsonParseSafe(content)
+  let template
+  if (jsonContent && jsonContent['type'] && jsonContent['value']) {
+    if (jsonContent['type'] == msgContentType.IMAGE) {
+      template = '[图片]'
+    } else if (jsonContent['type'] == msgContentType.AUDIO) {
+      template = '[音频]'
+    } else if (jsonContent['type'] == msgContentType.RECORDING) {
+      template = '[语音]'
+    } else if (jsonContent['type'] == msgContentType.VIDEO) {
+      template = '[视频]'
+    } else if (jsonContent['type'] == msgContentType.DOCUMENT) {
+      template = '[文件]'
+    } else if (jsonContent['type'] == msgContentType.FORWARD_TOGETHER) {
+      template = '[聊天记录]'
+    } else {
+      template = jsonContent['value']
+    }
+    return template
+  } else {
+    return content
+      .replace(/\{\d+\}/g, '[图片]')
+      .replace(/(「\{.*?\}」)/, '[引用]')
+      .split(/(<.*?>)/)
+      .map((item) => {
+        const sliceStr = item.slice(1, -1)
+        const index = sliceStr.indexOf('-')
+        if (index !== -1) {
+          const nickName = sliceStr.slice(index + 1)
+          if (nickName) {
+            return `@${nickName}`
+          } else {
+            return item
+          }
+        }
+        return item
+      })
+      .join('')
+  }
+}
+
+const renderForwardTogether = (msgs) => {
+  const title =
+    (msgs[0].msgType === MsgType.GROUP_CHAT ? '群聊' : nickNameFromMsg.value) + '的聊天记录'
+
+  const msgsSorted = msgs.sort((a, b) => {
+    const timeA = new Date(a.sendTime || a.msgTime).getTime()
+    const timeB = new Date(b.sendTime || b.msgTime).getTime()
+    return timeA - timeB
+  })
+
+  return h(
+    'div',
+    {
+      class: 'forward-together',
+      onClick: () => {
+        // 创建挂载容器
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+        const app = createApp({
+          render: () => {
+            return h(DialogForMsgList, {
+              isShow: true,
+              title,
+              sessionId: msgsSorted[0].sessionId,
+              msgs: msgsSorted,
+              onClose: () => {
+                app.unmount()
+                document.body.removeChild(container)
+              }
+            })
+          }
+        })
+        // 挂载到新创建的容器
+        app.mount(container)
+      }
+    },
+    [
+      h('div', { class: 'main' }, [
+        h('span', { class: 'title' }, title),
+        h(
+          'div',
+          { class: 'msg-list' },
+          msgsSorted.map((msg, index) => {
+            return h('div', { class: 'msg-item', key: index }, [
+              h('span', { class: 'msg-item-nickname' }, msg.nickName || msg.fromId),
+              h('span', '：'),
+              h('span', { class: 'msg-item-content' }, showMsgContentInForwardTogether(msg.content))
+            ])
+          })
+        )
+      ]),
+      h('span', { class: 'footer bdr-t' }, `查看${msgsSorted.length}条转发消息`)
+    ]
   )
 }
 
@@ -712,7 +813,7 @@ const isSelf = computed(() => {
 })
 
 const objectInfoFromMsg = computed(() => {
-  if (msg.value.msgType === MsgType.GROUP_CHAT) {
+  if (isGroupChatMsgType.value) {
     const groupId = messageData.sessionList[props.sessionId]?.remoteId
     const members = groupData.groupMembersList[groupId]
     return members ? members[msg.value.fromId] : { account: msg.value.fromId }
@@ -1329,5 +1430,62 @@ const handleItemClick = () => {
 .el-container {
   width: 100%;
   display: flex;
+}
+
+// h函数中动态生成的组件，这里的样式需要用deep穿透
+:deep(.forward-together) {
+  width: 240px;
+
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    .msg-list {
+      max-height: 72px;
+      color: gray;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      .msg-item {
+        display: flex;
+        font-size: 12px;
+
+        .msg-item-nickname {
+          max-width: 80px;
+          white-space: nowrap; //防止文本自动换行，确保在一行内显示，这样当文本超出宽度时才会触发省略号
+          overflow: hidden; //当文本超出元素范围时，隐藏超出的部分。
+          text-overflow: ellipsis; //在文本溢出并且overflow属性设置为hidden时，显示省略号。
+        }
+
+        .msg-item-content {
+          flex: 1;
+          white-space: nowrap; //防止文本自动换行，确保在一行内显示，这样当文本超出宽度时才会触发省略号
+          overflow: hidden; //当文本超出元素范围时，隐藏超出的部分。
+          text-overflow: ellipsis; //在文本溢出并且overflow属性设置为hidden时，显示省略号。
+        }
+      }
+    }
+  }
+
+  .footer {
+    font-size: 12px;
+    color: gray;
+  }
 }
 </style>

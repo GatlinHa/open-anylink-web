@@ -689,7 +689,7 @@ const onChangePartition = () => {
     :modelValue="groupCardData.isShow"
     :direction="'rtl'"
     :size="385"
-    :z-index="1"
+    :z-index="1000"
     modal-class="group-card-modal"
     :show-close="false"
     @close="groupCardData.setClosed()"
