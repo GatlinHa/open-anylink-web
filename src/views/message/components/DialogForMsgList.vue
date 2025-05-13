@@ -1,5 +1,5 @@
 <script setup lang="jsx">
-import { onMounted, computed, watch, createApp, h } from 'vue'
+import { ref, onMounted, computed, watch, createApp, h } from 'vue'
 import { ElDialog, ElLoading } from 'element-plus'
 import {
   useUserStore,
@@ -24,6 +24,7 @@ import MsgBoxDocument from '@/views/message/components/MsgBoxDocument.vue'
 import DialogForMsgList from '@/views/message/components/DialogForMsgList.vue'
 import { emojis } from '@/js/utils/emojis'
 import { MsgType } from '@/proto/msg'
+import { msgChatQueryMessagesService } from '@/api/message'
 
 const props = defineProps(['isShow', 'title', 'sessionId', 'msgs', 'tier'])
 const emit = defineEmits(['update:isShow', 'showUserCard', 'close'])
@@ -36,8 +37,16 @@ const audioData = useAudioStore()
 const videoData = useVideoStore()
 const documentData = useDocumentStore()
 
+const msgsFromServer = ref({})
+
 onMounted(async () => {
-  await messageData.preloadResource(props.msgs)
+  const loadingInstance = ElLoading.service(el_loading_options)
+  try {
+    await messageData.preloadResource(props.msgs)
+    await loadForwardTogetherMsgs()
+  } finally {
+    loadingInstance.close()
+  }
 })
 
 /**
@@ -49,6 +58,65 @@ watch(
     onClose()
   }
 )
+
+const loadForwardTogetherMsgs = async () => {
+  for (const msg of props.msgs) {
+    const content = msg.content
+    const contentJson = jsonParseSafe(content)
+    if (!contentJson) {
+      return
+    }
+
+    const type = contentJson['type']
+    const value = contentJson['value']
+    if (!type || !value) {
+      return
+    } else {
+      if (type === msgContentType.FORWARD_TOGETHER) {
+        let res
+        try {
+          const msgIds = value.data
+            .map((item) => {
+              return item.msgId
+            })
+            .join(',')
+          res = await msgChatQueryMessagesService({
+            sessionId: value.sessionId,
+            msgIds
+          })
+        } catch (error) {
+          console.error(error)
+          return
+        }
+
+        const msgs = res.data.data
+        if (!res.data.data || res.data.data.length == 0) {
+          return
+        }
+
+        // value.data(取里面的nickName) 和 msgs合一
+        const newMsgs = {}
+        msgs.forEach((item) => {
+          newMsgs[item.msgId] = item
+        })
+        value.data.forEach((item) => {
+          if (item.msgId in newMsgs) {
+            newMsgs[item.msgId] = {
+              ...newMsgs[item.msgId],
+              ...item
+            }
+          }
+        })
+
+        msgsFromServer.value[msg.msgId] = Object.values(newMsgs).sort((a, b) => {
+          const timeA = new Date(a.sendTime || a.msgTime).getTime()
+          const timeB = new Date(b.sendTime || b.msgTime).getTime()
+          return timeA - timeB
+        })
+      }
+    }
+  }
+}
 
 const myAccount = computed(() => {
   return userData.user.account
@@ -91,7 +159,7 @@ const renderContent = ({ msg }) => {
     case msgContentType.DOCUMENT:
       return renderDocument(value)
     case msgContentType.FORWARD_TOGETHER:
-      return renderForwardTogether(value)
+      return renderForwardTogether(msgId)
     default:
       return <span>{content}</span>
   }
@@ -232,13 +300,13 @@ const renderDocument = (content) => {
   }
 }
 
-const renderForwardTogether = (msgs) => {
+const renderForwardTogether = (msgId) => {
   const title = '聊天记录'
-  const msgsSorted = msgs.sort((a, b) => {
-    const timeA = new Date(a.sendTime || a.msgTime).getTime()
-    const timeB = new Date(b.sendTime || b.msgTime).getTime()
-    return timeA - timeB
-  })
+  const msgsSorted = msgsFromServer.value[msgId]
+
+  if (!msgsSorted) {
+    return <div class={'forward-together'}></div>
+  }
 
   return (
     <div

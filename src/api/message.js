@@ -32,6 +32,10 @@ export const msgChatQuerySessionService = (obj) => {
   return request.get('/chat/querySession', { params: obj })
 }
 
+export const msgChatQueryMessagesService = (obj) => {
+  return request.get('/chat/queryMessages', { params: obj })
+}
+
 export const msgChatCloseSessionService = (obj) => {
   return request.post('/chat/closeSession', obj)
 }

@@ -1158,22 +1158,22 @@ const onSelectOprMenu = (label) => {
 
 const inputMultiSelectRef = ref(null)
 const isMultiSelect = ref(false)
-const multiSelectedMsgIds = ref(new Set())
+const multiSelectedMsgKeys = ref(new Set())
 const handleMsgItemSelect = (msgKey, selected) => {
   if (!isMultiSelect.value) {
     isMultiSelect.value = true
   }
 
   if (selected) {
-    multiSelectedMsgIds.value.add(msgKey)
+    multiSelectedMsgKeys.value.add(msgKey)
   } else {
-    multiSelectedMsgIds.value.delete(msgKey)
+    multiSelectedMsgKeys.value.delete(msgKey)
   }
 }
 
 const handleCancleMultiSelect = () => {
   isMultiSelect.value = false
-  multiSelectedMsgIds.value.clear()
+  multiSelectedMsgKeys.value.clear()
 }
 
 const handleForwardTogether = () => {
@@ -1187,14 +1187,17 @@ const handleForwardOneByOne = () => {
 }
 
 const handleBatchDeleteMsg = () => {
+  const deleteMsgIds = [...multiSelectedMsgKeys.value].map((item) => {
+    return messageData.getMsg(selectedSessionId.value, item).msgId
+  })
   msgChatDeleteMsgService({
     sessionId: selectedSessionId.value,
-    deleteMsgIds: [...multiSelectedMsgIds.value]
+    deleteMsgIds: [...deleteMsgIds]
   })
     .then((res) => {
       if (res.data.code === 0) {
-        multiSelectedMsgIds.value.forEach((item) => {
-          messageData.removeMsgRecord(selectedSessionId.value, item)
+        multiSelectedMsgKeys.value.forEach((msgKey) => {
+          messageData.removeMsgRecord(selectedSessionId.value, msgKey)
         })
         handleCancleMultiSelect()
         ElMessage.success('消息已删除')
@@ -1326,10 +1329,10 @@ const handleGlobalMouseUp = (e) => {
         isMultiSelect.value = true
       }
 
-      const msgId = el.dataset.msgId
+      const msgKey = el.dataset.msgKey
       const disabled = el.dataset.disabled
-      if (disabled !== 'true' && !multiSelectedMsgIds.value.has(msgId)) {
-        multiSelectedMsgIds.value.add(msgId)
+      if (disabled !== 'true' && !multiSelectedMsgKeys.value.has(msgKey)) {
+        multiSelectedMsgKeys.value.add(msgKey)
       }
 
       const cancelClick = (e) => {
@@ -1346,40 +1349,6 @@ const handleGlobalMouseUp = (e) => {
 
 const isShowForwardMsgDialog = ref(false)
 const showForwardMsgDialogTitle = ref('')
-// 待转发的消息
-const forwardMsgs = computed(() => {
-  let msgs = []
-  multiSelectedMsgIds.value.forEach((item) => {
-    const msg = messageData.getMsg(selectedSessionId.value, item)
-    let nickName = ''
-    if (msg.msgType === MsgType.CHAT) {
-      if (myAccount.value === msg.fromId) {
-        nickName = userData.user.nickName
-      } else {
-        nickName = messageData.sessionList[msg.sessionId].objectInfo.nickName
-      }
-    } else if (msg.msgType === MsgType.GROUP_CHAT) {
-      const groupId = messageData.sessionList[msg.sessionId].remoteId
-      const members = groupData.groupMembersList[groupId]
-      nickName = members[msg.fromId].nickName
-    }
-    msgs.push({
-      ...msg,
-      nickName
-    })
-  })
-
-  if (showForwardMsgDialogTitle.value === '合并转发') {
-    return [
-      {
-        type: msgContentType.FORWARD_TOGETHER,
-        value: msgs
-      }
-    ]
-  } else {
-    return msgs
-  }
-})
 
 const sessionListSortedKey = computed(() => {
   return sessionListSorted.value
@@ -1389,11 +1358,11 @@ const sessionListSortedKey = computed(() => {
     .map((item) => item.sessionId)
 })
 
-const showForwardMsgDialog = (msgId) => {
-  multiSelectedMsgIds.value.clear()
-  multiSelectedMsgIds.value.add(msgId)
+const showForwardMsgDialog = (msgKey) => {
+  multiSelectedMsgKeys.value.clear()
+  multiSelectedMsgKeys.value.add(msgKey)
   isShowForwardMsgDialog.value = true
-  showForwardMsgDialogTitle.value = '转发消息'
+  showForwardMsgDialogTitle.value = '逐条转发'
 }
 
 const handleConfirmForwardMsg = async (sessions) => {
@@ -1412,14 +1381,43 @@ const handleConfirmForwardMsg = async (sessions) => {
         messageData.addSession(res.data.data.session)
       }
 
-      for (const forwardMsg of forwardMsgs.value) {
-        const content =
-          showForwardMsgDialogTitle.value !== '合并转发'
-            ? forwardMsg.content
-            : JSON.stringify(forwardMsg)
+      if (showForwardMsgDialogTitle.value === '逐条转发') {
+        for (const msgKey of multiSelectedMsgKeys.value) {
+          const msg = messageData.getMsg(selectedSessionId.value, msgKey)
+          await handleSendForwardMsg({
+            session: item,
+            content: msg.content
+          })
+        }
+      } else if (showForwardMsgDialogTitle.value === '合并转发') {
+        const msgs = [...multiSelectedMsgKeys.value].map((item) => {
+          const msg = messageData.getMsg(selectedSessionId.value, item)
+          let nickName = ''
+          if (selectedSession.value.sessionType === MsgType.CHAT) {
+            if (myAccount.value === msg.fromId) {
+              nickName = userData.user.nickName
+            } else {
+              nickName = selectedSession.value.objectInfo.nickName
+            }
+          } else if (selectedSession.value.sessionType === MsgType.GROUP_CHAT) {
+            const groupId = selectedSession.value.remoteId
+            const members = groupData.groupMembersList[groupId]
+            nickName = members[msg.fromId].nickName
+          }
+          return {
+            nickName,
+            msgId: msg.msgId
+          }
+        })
         await handleSendForwardMsg({
           session: item,
-          content: content
+          content: JSON.stringify({
+            type: msgContentType.FORWARD_TOGETHER,
+            value: {
+              sessionId: selectedSessionId.value,
+              data: [...msgs]
+            }
+          })
         })
       }
     }
@@ -1675,7 +1673,7 @@ const onShowRecorder = () => {
                     :isLoadMoreLoading="selectedSessionCache[selectedSessionId]?.isLoadMoreLoading"
                     :inputEditorRef="inputEditorRef"
                     :isMultiSelect="isMultiSelect"
-                    :isSelected="multiSelectedMsgIds.has(item)"
+                    :isSelected="multiSelectedMsgKeys.has(item)"
                     @loadMore="onLoadMore"
                     @showUserCard="onShowUserCard"
                     @showGroupCard="onShowGroupCard"
@@ -1728,7 +1726,7 @@ const onShowRecorder = () => {
               <el-container v-if="isMultiSelect">
                 <InputMultiSelect
                   ref="inputMultiSelectRef"
-                  :selectedCount="multiSelectedMsgIds.size"
+                  :selectedCount="multiSelectedMsgKeys.size"
                   @exit="handleCancleMultiSelect"
                   @forwardTogether="handleForwardTogether"
                   @forwardOneByOne="handleForwardOneByOne"

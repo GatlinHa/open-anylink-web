@@ -21,7 +21,7 @@ export const msgContentType = {
   EMOJI: 5, // 表情
   VIDEO: 6, // 视频
   DOCUMENT: 7, // 文档
-  FORWARD_TOGETHER: 8 // 合并转发消息
+  FORWARD_TOGETHER: 10 // 合并转发消息
 }
 
 // 消息发送状态

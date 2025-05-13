@@ -23,7 +23,11 @@ import MsgBoxVideo from '@/views/message/components/MsgBoxVideo.vue'
 import MsgBoxDocument from '@/views/message/components/MsgBoxDocument.vue'
 import MenuMsgItem from '@/views/message/components/MenuMsgItem.vue'
 import { ElMessage } from 'element-plus'
-import { msgChatDeleteMsgService, msgChatRevokeMsgService } from '@/api/message'
+import {
+  msgChatDeleteMsgService,
+  msgChatQueryMessagesService,
+  msgChatRevokeMsgService
+} from '@/api/message'
 import DialogForMsgList from '@/views/message/components/DialogForMsgList.vue'
 
 const props = defineProps([
@@ -61,18 +65,18 @@ const audioData = useAudioStore()
 const videoData = useVideoStore()
 const documentData = useDocumentStore()
 
-onMounted(() => {
-  rendering()
+onMounted(async () => {
+  await rendering()
 })
 
 let app = null
-const rendering = () => {
+const rendering = async () => {
   const msgContent = document.querySelector(`#div-content-${msg.value.msgId}`)
   if (msgContent) {
     if (app) {
       app.unmount()
     }
-    const vnode = renderComponent(msg.value.content)
+    const vnode = await renderComponent(msg.value.content)
     app = createApp({
       render: () => vnode
     })
@@ -84,7 +88,7 @@ const rendering = () => {
  * 动态渲染消息内容
  * @param content 消息内容
  */
-const renderComponent = (content) => {
+const renderComponent = async (content) => {
   const contentJson = jsonParseSafe(content)
   if (!contentJson) {
     return renderMix(content)
@@ -114,7 +118,7 @@ const renderComponent = (content) => {
     case msgContentType.DOCUMENT:
       return renderDocument(value)
     case msgContentType.FORWARD_TOGETHER:
-      return renderForwardTogether(value)
+      return await renderForwardTogether(value)
     default:
       return h('span', content)
   }
@@ -263,11 +267,46 @@ const showMsgContentInForwardTogether = (content) => {
   }
 }
 
-const renderForwardTogether = (msgs) => {
+const renderForwardTogether = async (content) => {
+  let res
+  try {
+    const msgIds = content.data
+      .map((item) => {
+        return item.msgId
+      })
+      .join(',')
+    res = await msgChatQueryMessagesService({
+      sessionId: content.sessionId,
+      msgIds
+    })
+  } catch (error) {
+    console.error(error)
+    return h('span', content)
+  }
+
+  const msgs = res.data.data
+  if (!res.data.data || res.data.data.length == 0) {
+    return h('span', content)
+  }
+
+  // 把content.data(取里面的nickName) 和 msgs合一
+  const newMsgs = {}
+  msgs.forEach((item) => {
+    newMsgs[item.msgId] = item
+  })
+  content.data.forEach((item) => {
+    if (item.msgId in newMsgs) {
+      newMsgs[item.msgId] = {
+        ...newMsgs[item.msgId],
+        ...item
+      }
+    }
+  })
+
   const title =
     (msgs[0].msgType === MsgType.GROUP_CHAT ? '群聊' : nickNameFromMsg.value) + '的聊天记录'
 
-  const msgsSorted = msgs.sort((a, b) => {
+  const msgsSorted = Object.values(newMsgs).sort((a, b) => {
     const timeA = new Date(a.sendTime || a.msgTime).getTime()
     const timeB = new Date(b.sendTime || b.msgTime).getTime()
     return timeA - timeB
@@ -1046,7 +1085,7 @@ const handleItemClick = () => {
     </div>
     <div
       class="message-item"
-      :data-msg-id="props.msgKey"
+      :data-msg-key="props.msgKey"
       :data-disabled="multiSelectOptionDisabled"
       :class="{ unreadMsg: isUnreadMsg }"
     >
