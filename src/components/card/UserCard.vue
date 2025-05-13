@@ -157,10 +157,6 @@ watch(
       :show-close="false"
       @close="onClose"
     >
-      <template #header>
-        <div style="background-color: red"></div>
-      </template>
-
       <div class="user-card" @click.self="preventClose($event)">
         <div class="header">
           <el-icon class="close-button" @click="onClose"><Close /></el-icon>
