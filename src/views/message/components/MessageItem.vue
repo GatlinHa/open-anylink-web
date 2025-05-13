@@ -1063,7 +1063,8 @@ const multiSelectOptionDisabled = computed(() => {
     contentType.value === msgContentType.RECORDING ||
     isSystemMsg.value ||
     isRevoke.value ||
-    isDelete.value
+    isDelete.value ||
+    msgStatus.value !== msgSendStatus.OK
   )
 })
 
