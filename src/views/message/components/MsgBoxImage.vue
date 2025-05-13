@@ -47,7 +47,7 @@ const url = computed(() => {
 })
 
 const imageInSessionSort = computed(() => {
-  const imageList = imageData.imageInSession[props.sessionId]
+  const imageList = Object.values(imageData.imageInSession[props.sessionId])
   return imageList.sort((a, b) => {
     const bTime = new Date(b.createdTime).getTime()
     const aTime = new Date(a.createdTime).getTime()

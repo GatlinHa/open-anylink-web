@@ -17,7 +17,12 @@ export const useImageStore = defineStore('anylink-image', () => {
   const image = ref({})
 
   /**
-   * 在同一个session中的需要渲染的image对象数组
+   * 在同一个session中的需要渲染的image对象
+   *
+   * {
+   *   sessionId_01: {objectId_x: {objectId: objectId_x, originUrl: xxx, thumbUrl: xxx}...},
+   *   sessionId_02: {objectId_x: {objectId: objectId_x, originUrl: xxx, thumbUrl: xxx}...},
+   * }
    */
   const imageInSession = ref({})
 
@@ -27,14 +32,14 @@ export const useImageStore = defineStore('anylink-image', () => {
 
   const setImageInSession = (sessionId, obj) => {
     if (!imageInSession.value[sessionId]) {
-      imageInSession.value[sessionId] = []
+      imageInSession.value[sessionId] = {}
     }
-    imageInSession.value[sessionId].push(obj)
+    imageInSession.value[sessionId][obj.objectId] = obj
   }
 
   const clearImageInSession = (sessionId) => {
     if (imageInSession.value[sessionId]) {
-      imageInSession.value[sessionId] = []
+      imageInSession.value[sessionId] = {}
     }
   }
 
