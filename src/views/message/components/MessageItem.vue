@@ -997,20 +997,26 @@ const onSelectMenuMsgItem = async (label) => {
       }
       break
     case 'delete':
-      msgChatDeleteMsgService({
-        sessionId: props.sessionId,
-        deleteMsgIds: [msg.value.msgId] // 服务器上删除用msg.value.msgId
-      })
-        .then((res) => {
-          if (res.data.code === 0) {
-            // 本地删除用props.msgKey，因为key有可能是发送消息时产生的本地UUID
-            messageData.removeMsgRecord(props.sessionId, props.msgKey)
-            ElMessage.success('消息已删除')
-          }
+      if (msgStatus.value !== msgSendStatus.OK) {
+        // 本地删除用props.msgKey，因为key有可能是发送消息时产生的本地UUID
+        messageData.removeMsgRecord(props.sessionId, props.msgKey)
+        ElMessage.success('消息已删除')
+      } else {
+        msgChatDeleteMsgService({
+          sessionId: props.sessionId,
+          deleteMsgIds: [msg.value.msgId] // 服务器上删除用msg.value.msgId
         })
-        .catch((error) => {
-          console.error(error)
-        })
+          .then((res) => {
+            if (res.data.code === 0) {
+              // 本地删除用props.msgKey，因为key有可能是发送消息时产生的本地UUID
+              messageData.removeMsgRecord(props.sessionId, props.msgKey)
+              ElMessage.success('消息已删除')
+            }
+          })
+          .catch((error) => {
+            console.error(error)
+          })
+      }
       break
     case 'quote':
       // 非输入框模式无法引用
