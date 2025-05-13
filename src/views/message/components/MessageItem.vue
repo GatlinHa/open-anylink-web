@@ -316,6 +316,9 @@ const renderForwardTogether = async (content) => {
     'div',
     {
       class: 'forward-together',
+      onVnodeMounted: () => {
+        emit('loadFinished')
+      },
       onClick: () => {
         // 创建挂载容器
         const container = document.createElement('div')
