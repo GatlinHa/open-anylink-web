@@ -1,6 +1,7 @@
 <script setup lang="jsx">
 import { ref, onMounted, computed, watch, createApp, h } from 'vue'
-import { ElDialog, ElLoading } from 'element-plus'
+import { ElDialog, ElLoading, ElIcon } from 'element-plus'
+import { Close } from '@element-plus/icons-vue'
 import {
   useUserStore,
   useUserCardStore,
@@ -493,7 +494,6 @@ const onShowUserCard = (account) => {
       class="dialog-msg-list"
       :model-value="props.isShow"
       :modal="false"
-      draggable
       :width="'600px'"
       :top="`${30 + (props.tier || 0)}vh`"
       :z-index="1000"
@@ -501,10 +501,12 @@ const onShowUserCard = (account) => {
         minHeight: '360px',
         marginLeft: `calc(50% - 300px + ${props.tier || 0} * 1vw)`
       }"
+      :show-close="false"
       @closed="onClose"
     >
       <template #header>
         <span class="title bdr-b">{{ props.title }}</span>
+        <el-icon class="close-button" @click="onClose"><Close /></el-icon>
       </template>
       <div class="dialog-msg-item-container my-scrollbar">
         <div
@@ -563,12 +565,30 @@ const onShowUserCard = (account) => {
 .dialog-msg-list-wrapper {
   :deep(.el-dialog) {
     .el-dialog__header {
+      position: relative;
       .title {
         width: 100%;
         display: flex;
         justify-content: center;
-        padding-bottom: 4px;
+        padding-bottom: 16px;
         font-size: 16px;
+      }
+
+      .close-button {
+        width: 16px;
+        height: 16px;
+        color: gray;
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 1;
+
+        &:hover {
+          color: #409eff;
+        }
       }
     }
   }
