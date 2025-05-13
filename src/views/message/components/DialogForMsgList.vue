@@ -65,13 +65,13 @@ const loadForwardTogetherMsgs = async () => {
     const content = msg.content
     const contentJson = jsonParseSafe(content)
     if (!contentJson) {
-      return
+      continue
     }
 
     const type = contentJson['type']
     const value = contentJson['value']
     if (!type || !value) {
-      return
+      continue
     } else {
       if (type === msgContentType.FORWARD_TOGETHER) {
         let res
@@ -87,12 +87,12 @@ const loadForwardTogetherMsgs = async () => {
           })
         } catch (error) {
           console.error(error)
-          return
+          continue
         }
 
         const msgs = res.data.data
         if (!res.data.data || res.data.data.length == 0) {
-          return
+          continue
         }
 
         // value.data(取里面的nickName) 和 msgs合一
