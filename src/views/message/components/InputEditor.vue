@@ -487,6 +487,7 @@ const parseContent = async (callbacks) => {
         mtsUploadServiceForImage(requestBody, files)
           .then((res) => {
             imageData.setImage(res.data.data) // 缓存image数据
+            imageData.setLocalServerMap(tempObjectId, res.data.data.objectId)
             uploadSuccessCount++
             contentFromServer[index] = {
               type: msgContentType.SCREENSHOT,
@@ -642,24 +643,28 @@ const handlePaste = (range, text) => {
       type === msgContentType.DOCUMENT
     ) {
       clearPasteObj()
-      pasteObj.content = item
+      pasteObj.content = { type }
       pasteObj.contentType = type
       const fileId = value
       switch (type) {
         case msgContentType.IMAGE:
+          pasteObj.content.value = imageData.localServerMap[value] || value // 避免使用本地对象ID
           pasteObj.fileName = imageData.image[fileId]?.fileName
           pasteObj.fileSize = imageData.image[fileId]?.size
           pasteObj.url = imageData.image[fileId]?.thumbUrl
           break
         case msgContentType.AUDIO:
+          pasteObj.content.value = audioData.localServerMap[value] || value
           pasteObj.fileName = audioData.audio[fileId]?.fileName
           pasteObj.fileSize = audioData.audio[fileId]?.size
           break
         case msgContentType.VIDEO:
+          pasteObj.content.value = videoData.localServerMap[value] || value
           pasteObj.fileName = videoData.video[fileId]?.fileName
           pasteObj.fileSize = videoData.video[fileId]?.size
           break
         case msgContentType.DOCUMENT:
+          pasteObj.content.value = documentData.localServerMap[value] || value
           pasteObj.fileName = documentData.document[fileId]?.fileName
           pasteObj.fileSize = documentData.document[fileId]?.size
           break
@@ -687,11 +692,12 @@ const handlePaste = (range, text) => {
           break
         }
         case msgContentType.SCREENSHOT: {
-          const imageUrl = imageData.image[value]?.originUrl
+          const imageId = imageData.localServerMap[value] || value
+          const imageUrl = imageData.image[imageId]?.originUrl
           if (imageUrl) {
-            delta.insert({ image: imageUrl }, { alt: `{${value}}` }) // 添加区别于emoji表情alt的符号，方便parse时识别
+            delta.insert({ image: imageUrl }, { alt: `{${imageId}}` }) // 添加区别于emoji表情alt的符号，方便parse时识别
           } else {
-            delta.insert(value)
+            delta.insert(imageId)
           }
           break
         }

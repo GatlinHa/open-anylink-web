@@ -190,6 +190,7 @@ const uploadRecord = async () => {
     .then((res) => {
       if (res.data.code === 0) {
         audioData.setAudio(res.data.data) // 缓存服务端响应的audio数据
+        audioData.setLocalServerMap(tempObjectId, res.data.data.objectId)
         messageData.updateMsg(msg.sessionId, msg.msgId, {
           uploadStatus: msgFileUploadStatus.UPLOAD_SUCCESS,
           uploadProgress: 100

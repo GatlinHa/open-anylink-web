@@ -206,16 +206,20 @@ const setStoreData = (data) => {
   switch (contentType) {
     case msgContentType.IMAGE:
       imageData.setImage(data)
+      imageData.setLocalServerMap(selectedFile.uid, data.objectId)
       break
     case msgContentType.AUDIO:
       audioData.setAudio(data)
+      audioData.setLocalServerMap(selectedFile.uid, data.objectId)
       break
     case msgContentType.VIDEO:
       videoData.setVideo(data)
+      videoData.setLocalServerMap(selectedFile.uid, data.objectId)
       break
     case msgContentType.DOCUMENT:
     default:
       documentData.setDocument(data)
+      documentData.setLocalServerMap(selectedFile.uid, data.objectId)
   }
 }
 

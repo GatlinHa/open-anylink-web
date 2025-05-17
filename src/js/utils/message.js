@@ -37,19 +37,19 @@ export const showSimplifyMsgContent = (content) => {
         break
       case msgContentType.RECORDING:
         simplifyContent =
-          simplifyContent + `[语音] ${showDurationFormat(audioData.audio[item.value].duration)}`
+          simplifyContent + `[语音] ${showDurationFormat(audioData.audio[item.value]?.duration)}`
         break
       case msgContentType.IMAGE:
-        simplifyContent = simplifyContent + `[图片] ${imageData.image[item.value].fileName}`
+        simplifyContent = simplifyContent + `[图片] ${imageData.image[item.value]?.fileName}`
         break
       case msgContentType.AUDIO:
-        simplifyContent = simplifyContent + `[音频] ${audioData.audio[item.value].fileName}`
+        simplifyContent = simplifyContent + `[音频] ${audioData.audio[item.value]?.fileName}`
         break
       case msgContentType.VIDEO:
-        simplifyContent = simplifyContent + `[视频] ${videoData.video[item.value].fileName}`
+        simplifyContent = simplifyContent + `[视频] ${videoData.video[item.value]?.fileName}`
         break
       case msgContentType.DOCUMENT:
-        simplifyContent = simplifyContent + `[文件] ${documentData.document[item.value].fileName}`
+        simplifyContent = simplifyContent + `[文件] ${documentData.document[item.value]?.fileName}`
         break
       case msgContentType.FORWARD_TOGETHER:
         simplifyContent = simplifyContent + '[聊天记录]'

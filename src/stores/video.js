@@ -18,6 +18,17 @@ export const useVideoStore = defineStore('anylink-video', () => {
     video.value[obj.objectId] = obj
   }
 
+  /**
+   * 本地对象ID到服务器对象ID的映射
+   * 在某些场景下需要通过本地对象ID找到服务器对象ID，例如复制刚刚发送的媒体消息
+   *
+   */
+  const localServerMap = ref({})
+
+  const setLocalServerMap = (localObjectId, serverObjectId) => {
+    localServerMap.value[localObjectId] = serverObjectId
+  }
+
   const preloadVideoFromMsgList = async (msgRecords) => {
     const videoIds = new Set()
     msgRecords.forEach((item) => {
@@ -53,6 +64,8 @@ export const useVideoStore = defineStore('anylink-video', () => {
   return {
     video,
     setVideo,
+    localServerMap,
+    setLocalServerMap,
     preloadVideoFromMsgList,
     clear
   }
