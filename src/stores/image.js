@@ -4,8 +4,6 @@ import { jsonParseSafe } from '@/js/utils/common'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-const pattern = /\{[a-f0-9]+\}/g
-
 // image的缓存数据，不持久化存储
 export const useImageStore = defineStore('anylink-image', () => {
   /**
@@ -43,19 +41,20 @@ export const useImageStore = defineStore('anylink-image', () => {
     }
   }
 
-  const loadImageInfoFromContent = async (content) => {
+  const preloadImageFromMsg = async (content) => {
+    if (!content) return
+
     const imageIds = new Set()
-    const matches = content.match(pattern)
-    if (matches && matches.length > 0) {
-      matches.forEach((item) => {
-        let startIndex = item.indexOf('{')
-        let endIndex = item.indexOf('}')
-        const objectId = item.slice(startIndex + 1, endIndex)
+    const aar = jsonParseSafe(content)
+    aar.forEach((item) => {
+      if (item.type === msgContentType.SCREENSHOT || item.type === msgContentType.IMAGE) {
+        const objectId = item.value
         if (!image.value[objectId]) {
           imageIds.add(objectId)
         }
-      })
-    }
+      }
+    })
+
     if (imageIds.size > 0) {
       const res = await mtsImageService({ objectIds: [...imageIds].join(',') })
       res.data.data.forEach((item) => {
@@ -64,29 +63,18 @@ export const useImageStore = defineStore('anylink-image', () => {
     }
   }
 
-  const preloadImage = async (msgRecords) => {
+  const preloadImageFromMsgList = async (msgRecords) => {
     const imageIds = new Set()
     msgRecords.forEach((item) => {
-      const content = item.content
-      const contentJson = jsonParseSafe(content)
-      if (contentJson && contentJson['type'] === msgContentType.IMAGE) {
-        const objectId = contentJson['value']
-        if (!image.value[objectId]) {
-          imageIds.add(objectId)
+      const aar = jsonParseSafe(item.content)
+      aar.forEach((item) => {
+        if (item.type === msgContentType.SCREENSHOT || item.type === msgContentType.IMAGE) {
+          const objectId = item.value
+          if (!image.value[objectId]) {
+            imageIds.add(objectId)
+          }
         }
-      } else {
-        const matches = content.match(pattern)
-        if (matches && matches.length > 0) {
-          matches.forEach((item) => {
-            let startIndex = item.indexOf('{')
-            let endIndex = item.indexOf('}')
-            const objectId = item.slice(startIndex + 1, endIndex)
-            if (!image.value[objectId]) {
-              imageIds.add(objectId)
-            }
-          })
-        }
-      }
+      })
     })
 
     if (imageIds.size > 0) {
@@ -117,8 +105,8 @@ export const useImageStore = defineStore('anylink-image', () => {
     setImage,
     setImageInSession,
     clearImageInSession,
-    loadImageInfoFromContent,
-    preloadImage,
+    preloadImageFromMsg,
+    preloadImageFromMsgList,
     clear
   }
 })

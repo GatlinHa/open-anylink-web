@@ -43,7 +43,7 @@ import { onReceiveChatMsg, onReceiveGroupChatMsg, onReceiveGroupSystemMsg } from
 import { userQueryService } from '@/api/user'
 import { ElLoading, ElMessage } from 'element-plus'
 import { el_loading_options } from '@/const/commonConst'
-import { combineId, sessionIdConvert } from '@/js/utils/common'
+import { combineId, jsonParseSafe, sessionIdConvert } from '@/js/utils/common'
 import MenuSession from '@/views/message/components/MenuSession.vue'
 import router from '@/router'
 import { BEGIN_MSG_ID, msgContentType, msgSendStatus } from '@/const/msgConst'
@@ -120,29 +120,45 @@ const unreadAtRecords = computed(() => {
 })
 
 const handleShowHighlight = (msgId) => {
-  const readElement = document.querySelector(
+  let targetKey = msgId
+  let element = document.querySelector(
     `#message-item-${sessionIdConvert(selectedSessionId.value)}-${msgId}`
-  )
-  if (!readElement) {
-    ElMessage.success('请加载更多消息后查找')
-  } else {
-    const msgListRect = msgListDiv.value.getBoundingClientRect()
-    const rect = readElement.getBoundingClientRect()
-    // 判断 readElement 是否在 msgListDiv 的视口内
-    const isInViewport = rect.top >= msgListRect.top && rect.bottom <= msgListRect.bottom
-    if (!isInViewport) {
-      nextTick(() => {
-        msgListDiv.value.scrollTo({
-          top: msgListDiv.value.scrollTop - (msgListRect.top - rect.top),
-          behavior: 'smooth'
-        })
-      })
+  ) // 先拿msgId定位到元素，如果不行再用msgKey
+  if (!element) {
+    // 用msgId逆向找msgKey
+    for (const msgKey of msgKeysShow.value) {
+      const msg = messageData.getMsg(selectedSessionId.value, msgKey)
+      if (msg.msgId == msgId) {
+        targetKey = msgKey
+        element = document.querySelector(
+          `#message-item-${sessionIdConvert(selectedSessionId.value)}-${msgKey}`
+        )
+        break
+      }
     }
-    highlightedMsgIds.value.add(msgId + '')
-    setTimeout(() => {
-      highlightedMsgIds.value.delete(msgId + '')
-    }, 2000)
+
+    if (!element) {
+      ElMessage.success('请加载更多消息后查找')
+      return
+    }
   }
+
+  const msgListRect = msgListDiv.value.getBoundingClientRect()
+  const rect = element.getBoundingClientRect()
+  // 判断 element 是否在 msgListDiv 的视口内
+  const isInViewport = rect.top >= msgListRect.top && rect.bottom <= msgListRect.bottom
+  if (!isInViewport) {
+    nextTick(() => {
+      msgListDiv.value.scrollTo({
+        top: msgListDiv.value.scrollTop - (msgListRect.top - rect.top),
+        behavior: 'smooth'
+      })
+    })
+  }
+  highlightedMsgIds.value.add(targetKey + '')
+  setTimeout(() => {
+    highlightedMsgIds.value.delete(targetKey + '')
+  }, 2000)
 }
 
 const handleReadAt = () => {
@@ -563,7 +579,7 @@ const sendRead = () => {
       selectedSession.value.sessionType === MsgType.CHAT
         ? MsgType.CHAT_READ
         : MsgType.GROUP_CHAT_READ
-    wsConnect.sendMsg(selectedSessionId.value, showId.value, msgType, content + '', '', () => {})
+    wsConnect.sendMsg(selectedSessionId.value, showId.value, msgType, content + '', 0, '', () => {})
     // 更新本地缓存的已读位置
     messageData.updateSession({
       sessionId: selectedSessionId.value,
@@ -577,7 +593,7 @@ const sendRead = () => {
 /**
  * 处理发送转发的消息
  */
-const handleSendForwardMsg = async ({ session, content }) => {
+const handleSendForwardMsg = async ({ session, content, contentType }) => {
   if (session.sessionType === MsgType.GROUP_CHAT && session.leave) {
     ElMessage.warning('您已离开该群或群已被解散')
     return
@@ -609,12 +625,13 @@ const handleSendForwardMsg = async ({ session, content }) => {
   const seq = uuidv4()
   const msg = {
     msgId: seq,
-    seq: seq,
+    seq,
     sessionId: session.sessionId,
     fromId: myAccount.value,
     remoteId: session.remoteId,
     msgType: session.sessionType,
-    content: content,
+    content,
+    contentType,
     status: msgSendStatus.PENDING,
     msgTime: new Date(),
     sendTime: new Date()
@@ -657,13 +674,22 @@ const handleSendForwardMsg = async ({ session, content }) => {
   const after = (msgId) => {
     messageData.updateMsg(msg.sessionId, msg.msgId, { msgId, status: msgSendStatus.OK })
   }
-  wsConnect.sendMsg(msg.sessionId, msg.remoteId, msg.msgType, msg.content, msg.seq, before, after)
+  wsConnect.sendMsg(
+    msg.sessionId,
+    msg.remoteId,
+    msg.msgType,
+    msg.content,
+    msg.contentType,
+    msg.seq,
+    before,
+    after
+  )
 }
 
 /**
  * 发送时先添加本地消息，可以立即渲染
  */
-const handleLocalMsg = ({ content, contentType, objectId, fn }) => {
+const handleLocalMsg = ({ content, contentType, fn }) => {
   const seq = uuidv4()
   const msg = {
     msgId: seq,
@@ -671,10 +697,8 @@ const handleLocalMsg = ({ content, contentType, objectId, fn }) => {
     sessionId: selectedSessionId.value,
     fromId: myAccount.value,
     msgType: selectedSession.value.sessionType,
-    content:
-      contentType === msgContentType.MIX
-        ? content
-        : JSON.stringify({ type: contentType, value: objectId }),
+    content,
+    contentType,
     status: msgSendStatus.PENDING,
     msgTime: new Date(),
     sendTime: new Date()
@@ -693,7 +717,7 @@ const handleLocalMsg = ({ content, contentType, objectId, fn }) => {
   fn(msg)
 }
 
-const handleSendMessage = ({ msg, at }) => {
+const handleSendMessage = ({ msg, content, at }) => {
   if (isNotInGroup.value) {
     ElMessage.warning('您已离开该群或群已被解散')
     return
@@ -754,7 +778,8 @@ const handleSendMessage = ({ msg, at }) => {
     msg.sessionId,
     showId.value,
     selectedSession.value.sessionType,
-    msg.content,
+    content,
+    msg.contentType,
     msg.seq,
     before,
     after
@@ -774,10 +799,9 @@ const handleResendMessage = (msg) => {
   })
 
   const toSendAtList = []
-  msg.content.split(/(<.*?>)/).forEach((item) => {
-    if (item && item.startsWith('<') && item.endsWith('>')) {
-      const index = item.indexOf('-')
-      const account = item.slice(1, index) // 第一个字符是<，所以起点从1开始
+  jsonParseSafe(msg.content).forEach((item) => {
+    if (item.type === msgContentType.AT) {
+      const account = item.value.account
       if (account == 0) {
         toSendAtList.push(account)
       } else {
@@ -787,6 +811,7 @@ const handleResendMessage = (msg) => {
       }
     }
   })
+
   handleSendMessage({ msg, at: toSendAtList })
 }
 
@@ -800,7 +825,7 @@ const handleSendAt = (at, sessionId, referMsgId) => {
     contentObj.isAtAll = true
   } else {
     contentObj.isAtAll = false
-    contentObj.atList = at.filter((item) => groupMembers.value[item]) // 过滤脏数据
+    contentObj.atList = at.filter((item) => groupMembers.value[item]) // 过滤不是当前合法群成员的数据
   }
 
   if (contentObj.isAtAll || (!contentObj.isAtAll && contentObj.atList.length > 0)) {
@@ -809,6 +834,7 @@ const handleSendAt = (at, sessionId, referMsgId) => {
       showId.value,
       MsgType.AT,
       JSON.stringify(contentObj),
+      0,
       null,
       () => {},
       () => {}
@@ -1386,7 +1412,8 @@ const handleConfirmForwardMsg = async (sessions) => {
           const msg = messageData.getMsg(selectedSessionId.value, msgKey)
           await handleSendForwardMsg({
             session: item,
-            content: msg.content
+            content: msg.content,
+            contentType: msg.contentType
           })
         }
       } else if (showForwardMsgDialogTitle.value === '合并转发') {
@@ -1411,13 +1438,16 @@ const handleConfirmForwardMsg = async (sessions) => {
         })
         await handleSendForwardMsg({
           session: item,
-          content: JSON.stringify({
-            type: msgContentType.FORWARD_TOGETHER,
-            value: {
-              sessionId: selectedSessionId.value,
-              data: [...msgs]
+          content: JSON.stringify([
+            {
+              type: msgContentType.FORWARD_TOGETHER,
+              value: {
+                sessionId: selectedSessionId.value,
+                data: [...msgs]
+              }
             }
-          })
+          ]),
+          contentType: msgContentType.FORWARD_TOGETHER
         })
       }
     }
@@ -1513,7 +1543,7 @@ const onConfirmSelect = async (selected) => {
 
 const inputEditorRef = ref()
 const onSendEmoji = (key) => {
-  inputEditorRef.value.addEmoji(key)
+  inputEditorRef.value?.addEmoji(key)
 }
 
 const inputRecorderRef = ref(null)

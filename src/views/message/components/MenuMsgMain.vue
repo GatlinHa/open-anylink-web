@@ -111,6 +111,7 @@ const handleClick = (item) => {
   background-color: #fff;
   position: absolute;
   box-shadow: 2px 2px 20px gray;
+  z-index: 1000;
 
   .menu-item {
     padding: 5px;

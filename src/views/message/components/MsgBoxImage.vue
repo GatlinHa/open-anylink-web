@@ -5,17 +5,17 @@ import { formatFileSize } from '@/js/utils/common'
 import { useImageStore } from '@/stores'
 import ImageloadfailedIcon from '@/assets/svg/imageloadfailed.svg'
 
-const props = defineProps(['sessionId', 'imgId', 'isForMix', 'thumbWidth', 'thumbHeight'])
+const props = defineProps(['sessionId', 'imgId', 'isScreenShot', 'thumbWidth', 'thumbHeight'])
 const emits = defineEmits(['load'])
 
 const imageData = useImageStore()
 
 const maxWidth = computed(() => {
-  return props.isForMix ? Math.min(props.thumbWidth, 360) : 360
+  return props.isScreenShot ? Math.min(props.thumbWidth, 360) : 360
 })
 
 const maxHeight = computed(() => {
-  return props.isForMix ? Math.min(props.thumbHeight, 270) : 270
+  return props.isScreenShot ? Math.min(props.thumbHeight, 270) : 270
 })
 
 const renderWidth = computed(() => {
@@ -65,11 +65,11 @@ const initialIndex = computed(() => {
 })
 
 const fileName = computed(() => {
-  return props.isForMix ? '' : imageData.image[props.imgId]?.fileName
+  return props.isScreenShot ? '' : imageData.image[props.imgId]?.fileName
 })
 
 const size = computed(() => {
-  return props.isForMix ? '' : imageData.image[props.imgId]?.size
+  return props.isScreenShot ? '' : imageData.image[props.imgId]?.size
 })
 
 const formatSize = computed(() => {

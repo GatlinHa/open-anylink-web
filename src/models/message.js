@@ -64,6 +64,7 @@ class Message {
     fromId,
     msgType,
     content,
+    contentType,
     msgTime,
     sendTime = undefined,
     msgId = undefined,
@@ -78,6 +79,7 @@ class Message {
     this.fromId = fromId
     this.msgType = msgType
     this.content = content
+    this.contentType = contentType
     this.status = status
     this.msgTime = msgTime
     this.sendTime = sendTime

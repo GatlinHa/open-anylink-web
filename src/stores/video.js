@@ -18,17 +18,18 @@ export const useVideoStore = defineStore('anylink-video', () => {
     video.value[obj.objectId] = obj
   }
 
-  const preloadVideo = async (msgRecords) => {
+  const preloadVideoFromMsgList = async (msgRecords) => {
     const videoIds = new Set()
     msgRecords.forEach((item) => {
-      const content = item.content
-      const contentJson = jsonParseSafe(content)
-      if (contentJson && contentJson['type'] === msgContentType.VIDEO) {
-        const objectId = contentJson['value']
-        if (!video.value[objectId]) {
-          videoIds.add(objectId)
+      const aar = jsonParseSafe(item.content)
+      aar.forEach((item) => {
+        if (item.type === msgContentType.VIDEO) {
+          const objectId = item.value
+          if (!video.value[objectId]) {
+            videoIds.add(objectId)
+          }
         }
-      }
+      })
     })
 
     if (videoIds.size > 0) {
@@ -52,7 +53,7 @@ export const useVideoStore = defineStore('anylink-video', () => {
   return {
     video,
     setVideo,
-    preloadVideo,
+    preloadVideoFromMsgList,
     clear
   }
 })

@@ -164,6 +164,16 @@ export const showTimeFormatDay = (datatime) => {
   return `${year}-${month}-${day}`
 }
 
+export const showDurationFormat = (duration) => {
+  if (!duration) {
+    return '0:00'
+  }
+
+  const minutes = Math.floor(duration / 60)
+  const seconds = Math.floor(duration % 60)
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+}
+
 export const combineId = (fromId, toId) => {
   if (fromId < toId) {
     return fromId + '@' + toId

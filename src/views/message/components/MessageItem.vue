@@ -29,6 +29,7 @@ import {
   msgChatRevokeMsgService
 } from '@/api/message'
 import DialogForMsgList from '@/views/message/components/DialogForMsgList.vue'
+import { showSimplifyMsgContent } from '@/js/utils/message'
 
 const props = defineProps([
   'sessionId',
@@ -65,18 +66,76 @@ const audioData = useAudioStore()
 const videoData = useVideoStore()
 const documentData = useDocumentStore()
 
+const forwardMsgs = ref([])
+const quoteMsg = ref({})
+
 onMounted(async () => {
-  await rendering()
+  await loadRelatedMsg()
+  rendering()
 })
 
+/**
+ * 加载和本消息相关的消息：引用消息，合并转发消息
+ */
+const loadRelatedMsg = async () => {
+  const arr = jsonParseSafe(msg.value.content)
+  if (!arr) {
+    return
+  }
+
+  for (const item of arr) {
+    if (item.type === msgContentType.QUOTE) {
+      // 先从本地消息缓存中获取
+      const msg = messageData.getMsg(props.sessionId, item.value.msgId)
+      if (!msg.msgId) {
+        // 如果本地消息缓存中没有，再去服务器查询
+        const res = await msgChatQueryMessagesService({
+          sessionId: props.sessionId,
+          msgIds: item.value.msgId
+        })
+
+        if (res.data.data && res.data.data.length > 0) {
+          quoteMsg.value = res.data.data[0]
+        }
+      } else {
+        quoteMsg.value = msg
+      }
+    } else if (item.type === msgContentType.FORWARD_TOGETHER) {
+      const forwatdMsgIds = item.value.data.map((item) => item.msgId)
+
+      const toQueryMsgIds = []
+      for (const msgId of forwatdMsgIds) {
+        // 先从本地消息缓存中获取
+        const msg = messageData.getMsg(props.sessionId, msgId)
+        if (!msg.msgId) {
+          // 如果本地消息缓存中没有，再去服务器查询
+          toQueryMsgIds.push(msgId)
+        } else {
+          forwardMsgs.value.push(msg)
+        }
+      }
+
+      if (toQueryMsgIds.length > 0) {
+        const res = await msgChatQueryMessagesService({
+          sessionId: item.value.sessionId,
+          msgIds: toQueryMsgIds.join(',')
+        })
+        res.data.data.forEach((item) => {
+          forwardMsgs.value.push(item)
+        })
+      }
+    }
+  }
+}
+
 let app = null
-const rendering = async () => {
+const rendering = () => {
   const msgContent = document.querySelector(`#div-content-${msg.value.msgId}`)
   if (msgContent) {
     if (app) {
       app.unmount()
     }
-    const vnode = await renderComponent(msg.value.content)
+    const vnode = renderComponent(msg.value.content)
     app = createApp({
       render: () => vnode
     })
@@ -88,117 +147,55 @@ const rendering = async () => {
  * 动态渲染消息内容
  * @param content 消息内容
  */
-const renderComponent = async (content) => {
-  const contentJson = jsonParseSafe(content)
-  if (!contentJson) {
-    return renderMix(content)
+const renderComponent = (content) => {
+  const arr = jsonParseSafe(content)
+
+  // 不允许非结构化的content
+  if (!arr) {
+    return h('span', '')
   }
 
-  const type = contentJson['type']
-  const value = contentJson['value']
-  if (!type || !value) {
-    return renderMix(content)
-  }
+  return arr.map((item) => {
+    if (!item.type || !item.value) {
+      return h('span', '')
+    }
 
-  switch (type) {
-    case msgContentType.MIX:
-      return renderMix(value)
-    case msgContentType.TEXT:
-      return renderText(value)
-    case msgContentType.RECORDING:
-      return renderRecording(value)
-    case msgContentType.AUDIO:
-      return renderAudio(value)
-    case msgContentType.IMAGE:
-      return renderImage(value)
-    case msgContentType.EMOJI:
-      return renderEmoji(value)
-    case msgContentType.VIDEO:
-      return renderVideo(value)
-    case msgContentType.DOCUMENT:
-      return renderDocument(value)
-    case msgContentType.FORWARD_TOGETHER:
-      return await renderForwardTogether(value)
-    default:
-      return h('span', content)
-  }
-}
+    switch (item.type) {
+      case msgContentType.TEXT:
+        return renderText(item.value)
+      case msgContentType.EMOJI:
+        return renderEmoji(item.value)
+      case msgContentType.SCREENSHOT:
+        return renderImage(item.value, true)
+      case msgContentType.AT:
+        return renderAt(item.value)
+      case msgContentType.QUOTE:
+        return renderQuote(item.value)
 
-const renderText = (content) => {
-  return h('span', content)
-}
-
-const renderMix = (content) => {
-  if (!content) return h('div', [])
-  let contentArray = []
-
-  // 1. 先匹配quote引用内容
-  content.split(/(「\{.*?\}」)/).forEach((item) => {
-    if (item.startsWith('「{') && item.endsWith('}」')) {
-      // quote引用内容直接添加如数组
-      contentArray.push(item)
-    } else {
-      //2. 匹配内容中的图片
-      item.split(/(\{\d+\})/).forEach((item) => {
-        //3. 匹配内容中的表情
-        item.split(/(\[.*?\])/).forEach((item) => {
-          item.split(/(<.*?>)/).forEach((item) => {
-            if (item) {
-              contentArray.push(item)
-            }
-          })
-        })
-      })
+      case msgContentType.IMAGE:
+        return renderImage(item.value)
+      case msgContentType.RECORDING:
+        return renderRecording(item.value)
+      case msgContentType.AUDIO:
+        return renderAudio(item.value)
+      case msgContentType.VIDEO:
+        return renderVideo(item.value)
+      case msgContentType.DOCUMENT:
+        return renderDocument(item.value)
+      case msgContentType.FORWARD_TOGETHER:
+        return renderForwardTogether(item.value)
+      default:
+        return h('span', content)
     }
   })
+}
 
-  return contentArray.map((item) => {
-    if (item.startsWith('{') && item.endsWith('}')) {
-      return renderImage(item.slice(1, -1), true)
-    } else if (item.startsWith('[') && item.endsWith(']')) {
-      return renderEmoji(item.slice(1, -1))
-    } else if (item.startsWith('<') && item.endsWith('>')) {
-      return renderAt(item.slice(1, -1))
-    } else if (item.startsWith('「{') && item.endsWith('}」')) {
-      return renderQuote(item.slice(1, -1))
-    } else {
-      return h('span', item.trim())
-    }
-  })
+const renderText = (text) => {
+  return h('span', text)
 }
 
 const renderQuote = (quoteContent) => {
-  const { msgId, nickName, content, msgTime } = jsonParseSafe(quoteContent)
-  let showContent = content || ''
-  if (content) {
-    const defaultContent = content.replace(/<(?:.*?)-(.*?)>/g, '@$1').replace(/\{\d+\}/g, '[图片]')
-    showContent = defaultContent
-    const contentJson = jsonParseSafe(defaultContent)
-    if (contentJson) {
-      const type = contentJson['type']
-      const objectId = contentJson['value']
-      switch (type) {
-        case msgContentType.RECORDING:
-          showContent = '[语音]'
-          break
-        case msgContentType.AUDIO:
-          showContent = `[音频] ${audioData.audio[objectId].fileName}`
-          break
-        case msgContentType.IMAGE:
-          showContent = `[图片] ${imageData.image[objectId].fileName}`
-          break
-        case msgContentType.VIDEO:
-          showContent = `[视频] ${videoData.video[objectId].fileName}`
-          break
-        case msgContentType.DOCUMENT:
-          showContent = `[文档] ${documentData.document[objectId].fileName}`
-          break
-        default:
-          break
-      }
-    }
-  }
-
+  const { nickName, msgId } = quoteContent
   return h(
     // 和InputEditor.vue中的结构保持一致，使用相同class可以复用样式
     'div',
@@ -217,84 +214,25 @@ const renderQuote = (quoteContent) => {
       [
         h('div', { class: 'quote-sender' }, [
           h('span', { class: 'quote-nickName' }, nickName + '  '),
-          h('span', { class: 'quote-msgTime' }, msgTime + '：')
+          h('span', { class: 'quote-msgTime' }, showTimeFormat(quoteMsg.value.msgTime) + '：')
         ]),
-        h('span', { class: 'quote-content' }, showContent)
+        h('span', { class: 'quote-content' }, showSimplifyMsgContent(quoteMsg.value.content))
       ]
     )
   )
 }
 
-const showMsgContentInForwardTogether = (content) => {
-  const jsonContent = jsonParseSafe(content)
-  let template
-  if (jsonContent && jsonContent['type'] && jsonContent['value']) {
-    if (jsonContent['type'] == msgContentType.IMAGE) {
-      template = '[图片]'
-    } else if (jsonContent['type'] == msgContentType.AUDIO) {
-      template = '[音频]'
-    } else if (jsonContent['type'] == msgContentType.RECORDING) {
-      template = '[语音]'
-    } else if (jsonContent['type'] == msgContentType.VIDEO) {
-      template = '[视频]'
-    } else if (jsonContent['type'] == msgContentType.DOCUMENT) {
-      template = '[文件]'
-    } else if (jsonContent['type'] == msgContentType.FORWARD_TOGETHER) {
-      template = '[聊天记录]'
-    } else {
-      template = jsonContent['value']
-    }
-    return template
-  } else {
-    return content
-      .replace(/\{\d+\}/g, '[图片]')
-      .replace(/(「\{.*?\}」)/, '[引用]')
-      .split(/(<.*?>)/)
-      .map((item) => {
-        const sliceStr = item.slice(1, -1)
-        const index = sliceStr.indexOf('-')
-        if (index !== -1) {
-          const nickName = sliceStr.slice(index + 1)
-          if (nickName) {
-            return `@${nickName}`
-          } else {
-            return item
-          }
-        }
-        return item
-      })
-      .join('')
-  }
-}
-
-const renderForwardTogether = async (content) => {
-  let res
-  try {
-    const msgIds = content.data
-      .map((item) => {
-        return item.msgId
-      })
-      .join(',')
-    res = await msgChatQueryMessagesService({
-      sessionId: content.sessionId,
-      msgIds
-    })
-  } catch (error) {
-    console.error(error)
-    return h('span', content)
-  }
-
-  const msgs = res.data.data
-  if (!res.data.data || res.data.data.length == 0) {
-    return h('span', content)
+const renderForwardTogether = (forwardContent) => {
+  if (!forwardMsgs.value || forwardMsgs.value.length == 0) {
+    return h('span', '')
   }
 
   // 把content.data(取里面的nickName) 和 msgs合一
   const newMsgs = {}
-  msgs.forEach((item) => {
+  forwardMsgs.value.forEach((item) => {
     newMsgs[item.msgId] = item
   })
-  content.data.forEach((item) => {
+  forwardContent.data.forEach((item) => {
     if (item.msgId in newMsgs) {
       newMsgs[item.msgId] = {
         ...newMsgs[item.msgId],
@@ -303,14 +241,15 @@ const renderForwardTogether = async (content) => {
     }
   })
 
-  const title =
-    (msgs[0].msgType === MsgType.GROUP_CHAT ? '群聊' : nickNameFromMsg.value) + '的聊天记录'
-
   const msgsSorted = Object.values(newMsgs).sort((a, b) => {
     const timeA = new Date(a.sendTime || a.msgTime).getTime()
     const timeB = new Date(b.sendTime || b.msgTime).getTime()
     return timeA - timeB
   })
+
+  const title =
+    (forwardMsgs.value[0].msgType === MsgType.GROUP_CHAT ? '群聊' : nickNameFromMsg.value) +
+    '的聊天记录'
 
   return h(
     'div',
@@ -351,7 +290,7 @@ const renderForwardTogether = async (content) => {
             return h('div', { class: 'msg-item', key: index }, [
               h('span', { class: 'msg-item-nickname' }, msg.nickName || msg.fromId),
               h('span', '：'),
-              h('span', { class: 'msg-item-content' }, showMsgContentInForwardTogether(msg.content))
+              h('span', { class: 'msg-item-content' }, showSimplifyMsgContent(msg.content))
             ])
           })
         )
@@ -361,45 +300,33 @@ const renderForwardTogether = async (content) => {
   )
 }
 
-const renderAt = (content) => {
-  const index = content.indexOf('-')
-  if (index !== -1) {
-    const account = content.slice(0, index)
-    const nickName = content.slice(index + 1)
-    if (messageData.sessionList[props.sessionId].sessionType === MsgType.GROUP_CHAT && nickName) {
-      const style = {
-        color: '#337ECC',
-        fontWeight: account === myAccount.value || account === '0' ? 'bold' : 'normal'
-      }
-      return h('span', { style }, `@${nickName} `)
-    } else {
-      return h('span', `<${content}>`)
-    }
-  } else {
-    return h('span', `<${content}>`)
+const renderAt = (atContent) => {
+  const style = {
+    color: '#337ECC',
+    fontWeight:
+      atContent.account === myAccount.value || atContent.account === '0' ? 'bold' : 'normal'
   }
+  return h('span', { style }, `@${atContent.nickName} `)
 }
 
-const renderEmoji = (content) => {
-  const emojiId = `[${content}]`
+const renderEmoji = (emojiId) => {
   const url = emojis[emojiId]
   if (url) {
     return h('img', {
       class: 'emoji',
       src: url,
       alt: emojiId,
-      title: content,
+      title: emojiId.slice(1, -1),
       onLoad: () => {
         emit('loadFinished')
       }
     })
   } else {
-    return h('span', `[${content}]`)
+    return h('span', emojiId)
   }
 }
 
-const renderVideo = (content) => {
-  const videoId = content
+const renderVideo = (videoId) => {
   const url = videoData.video[videoId]?.downloadUrl
   if (url) {
     return h(MsgBoxVideo, {
@@ -415,19 +342,18 @@ const renderVideo = (content) => {
       }
     })
   } else {
-    return h('span', `[${content}]`)
+    return h('span', `[${videoId}]`)
   }
 }
 
-const renderImage = (content, isForMix = false) => {
-  const imgId = content
+const renderImage = (imgId, isScreenShot = false) => {
   if (imageData.image[imgId]) {
     // 只要这里渲染，就收集该session下的所有image，用于preview-src-list
     imageData.setImageInSession(props.sessionId, imageData.image[imgId])
     return h(MsgBoxImage, {
       sessionId: props.sessionId,
       imgId,
-      isForMix,
+      isScreenShot,
       thumbWidth: imageData.image[imgId].thumbWidth,
       thumbHeight: imageData.image[imgId].thumbHeight,
       onLoad: () => {
@@ -435,12 +361,11 @@ const renderImage = (content, isForMix = false) => {
       }
     })
   } else {
-    return h('span', isForMix ? `{${content}}` : `[${content}]`)
+    return h('span', `[${imgId}]`)
   }
 }
 
-const renderRecording = (content) => {
-  const audioId = content
+const renderRecording = (audioId) => {
   const url = audioData.audio[audioId]?.downloadUrl
   const duration = audioData.audio[audioId]?.duration
   if (url) {
@@ -452,12 +377,11 @@ const renderRecording = (content) => {
       }
     })
   } else {
-    return h('span', `[${content}]`)
+    return h('span', '[语音]')
   }
 }
 
-const renderAudio = (content) => {
-  const audioId = content
+const renderAudio = (audioId) => {
   const url = audioData.audio[audioId]?.downloadUrl
   if (url) {
     return h(MsgBoxAudio, {
@@ -469,12 +393,11 @@ const renderAudio = (content) => {
       }
     })
   } else {
-    return h('span', `[${content}]`)
+    return h('span', `[${audioId}]`)
   }
 }
 
-const renderDocument = (content) => {
-  const documentId = content
+const renderDocument = (documentId) => {
   const url = documentData.document[documentId]?.downloadUrl
   if (url) {
     return h(MsgBoxDocument, {
@@ -487,24 +410,9 @@ const renderDocument = (content) => {
       }
     })
   } else {
-    return h('span', `[${content}]`)
+    return h('span', `[${documentId}]`)
   }
 }
-
-const contentType = computed(() => {
-  const contentJson = jsonParseSafe(msg.value.content)
-  if (!contentJson) {
-    return msgContentType.MIX
-  }
-
-  const type = contentJson['type']
-  const value = contentJson['value']
-  if (!type || !value) {
-    return msgContentType.MIX
-  } else {
-    return type
-  }
-})
 
 const msg = computed(() => {
   return messageData.getMsg(props.sessionId, props.msgKey)
@@ -892,13 +800,11 @@ const isDelete = computed(() => {
   return msg.value.delete
 })
 
+/**
+ * 是否支持撤回重新编辑
+ */
 const isReedit = computed(() => {
-  const contentJson = jsonParseSafe(msg.value.content)
-  if (!contentJson) {
-    return true
-  }
-
-  const type = contentJson['type']
+  const type = msg.value.contentType
   if (
     type === msgContentType.IMAGE ||
     type === msgContentType.RECORDING ||
@@ -964,10 +870,34 @@ const onSelectMenuMsgItem = async (label) => {
   switch (label) {
     case 'copy':
       try {
-        await navigator.clipboard.writeText(msg.value.content)
+        let text = ''
+        const arr = jsonParseSafe(msg.value.content)
+        if (arr && Array.isArray(arr)) {
+          for (const item of arr) {
+            if (item.type === msgContentType.TEXT) {
+              text += item.value
+            }
+          }
+        }
+
+        const clipboardItem = new ClipboardItem({
+          'text/html': new Blob(
+            [`<div data-quill-custom=${encodeURIComponent(msg.value.content)}></div>`],
+            {
+              type: 'text/html'
+            }
+          ), // 在html自定义属性data-quill-custom中传递clipboardContent结构化数据
+          'text/plain': new Blob([text], { type: 'text/plain' }) // 纯文本
+        })
+
+        try {
+          await navigator.clipboard.write([clipboardItem])
+        } catch (error) {
+          await navigator.clipboard.writeText(text) // 降级方案：仅写入纯文本
+        }
         ElMessage.success('已复制到剪贴板')
       } catch (error) {
-        ElMessage.error('复制出错')
+        ElMessage.error('复制出错 ', error)
       }
       break
     case 'revoke':
@@ -1023,6 +953,7 @@ const onSelectMenuMsgItem = async (label) => {
       props.inputEditorRef?.insertQuote({
         account: msg.value.fromId,
         nickName: nickNameFromMsg.value,
+        msgKey: props.msgKey, // 引用本地缓存消息的时候用
         msgId: msg.value.msgId, // 引用要用msg.value.msgId
         content: msg.value.content,
         msgTime: msg.value.msgTime
@@ -1058,9 +989,12 @@ watch(
   }
 )
 
+/**
+ * 哪些情况在多选模式下是禁选的
+ */
 const multiSelectOptionDisabled = computed(() => {
   return (
-    contentType.value === msgContentType.RECORDING ||
+    msg.value.contentType === msgContentType.RECORDING ||
     isSystemMsg.value ||
     isRevoke.value ||
     isDelete.value ||
@@ -1468,6 +1402,8 @@ const handleItemClick = () => {
               border-top-left-radius: 0;
               user-select: text;
               white-space: pre-wrap;
+              word-break: break-word; /* 长单词或URL强制换行 */
+              overflow-wrap: break-word; /* 兼容性更好的换行 */
             }
           }
         }

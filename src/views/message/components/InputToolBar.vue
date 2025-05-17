@@ -92,8 +92,8 @@ const onConfirmSendFile = () => {
   // 写本地消息
   let msg = {}
   emit('saveLocalMsg', {
+    content: JSON.stringify([{ type: contentType, value: selectedFile.uid }]),
     contentType: contentType,
-    objectId: selectedFile.uid,
     fn: (result) => {
       msg = result
     }
@@ -134,8 +134,8 @@ const onConfirmSendFile = () => {
           uploadStatus: msgFileUploadStatus.UPLOAD_SUCCESS,
           uploadProgress: 100
         })
-        msg.content = JSON.stringify({ type: contentType, value: res.data.data.objectId })
-        emit('sendMessage', { msg }) // 上传完成后发网络消息
+        const content = JSON.stringify([{ type: contentType, value: res.data.data.objectId }])
+        emit('sendMessage', { msg, content }) // 上传完成后发网络消息
       }
     })
     .catch((error) => {

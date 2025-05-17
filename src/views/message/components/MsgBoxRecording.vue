@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElIcon, ElMessage } from 'element-plus'
 import PlayIcon from '@/assets/svg/play.svg'
 import PauseIcon from '@/assets/svg/pause.svg'
 import { AVWaveform } from 'vue-audio-visual'
+import { showDurationFormat } from '@/js/utils/common'
 
 const props = defineProps(['audioUrl', 'duration'])
 const emits = defineEmits(['load'])
@@ -11,17 +12,6 @@ const emits = defineEmits(['load'])
 const waveformRef = ref(null)
 const isPlaying = ref(false)
 const audioDuration = ref(null)
-
-// 格式化时间
-const formatDuration = computed(() => {
-  if (!audioDuration.value) {
-    return '0:00'
-  }
-
-  const minutes = Math.floor(audioDuration.value / 60)
-  const seconds = Math.floor(audioDuration.value % 60)
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`
-})
 
 const playAudio = async () => {
   const audioPlayer = waveformRef.value.querySelector('audio')
@@ -98,7 +88,7 @@ onMounted(() => {
       :playtime-slider-color="`#409eff`"
     ></AVWaveform>
 
-    <span class="time">{{ formatDuration }}</span>
+    <span class="time">{{ showDurationFormat(audioDuration) }}</span>
   </div>
 </template>
 

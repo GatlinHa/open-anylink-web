@@ -3,14 +3,15 @@ import { ref, computed, watch } from 'vue'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import GroupAvatarIcon from '@/components/common/GroupAvatarIcon.vue'
 import SessionTag from './SessionTag.vue'
-import { jsonParseSafe, sessionShowTime } from '@/js/utils/common'
+import { sessionShowTime } from '@/js/utils/common'
 import { Top, MuteNotification } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
 import { useUserStore, useMessageStore, useGroupStore } from '@/stores'
 import { msgChatCloseSessionService } from '@/api/message'
 import router from '@/router'
 import { ElMessage } from 'element-plus'
-import { msgContentType, msgSendStatus } from '@/const/msgConst'
+import { msgSendStatus } from '@/const/msgConst'
+import { showSimplifyMsgContent } from '@/js/utils/message'
 
 const props = defineProps([
   'sessionId',
@@ -217,122 +218,55 @@ const getGroupChatMsgTips = (content) => {
 
 const showDetailContent = computed(() => {
   if (isShowDraft.value) {
-    let formatDraft = sessionInfo.value.draft
-      ?.replace(/\{\d+\}/g, '[图片]') // 把内容中的`{xxxxxx}`格式的图片统一转成`[图片]`
-      .replace(/(「\{.*?\}」)/, '[引用]') // 把内容中的`「xxxxxx」`格式的图片统一转成`[图片]`
-    if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
-      formatDraft = formatDraft
-        .split(/(<.*?>)/)
-        .map((item) => {
-          const sliceStr = item.slice(1, -1)
-          const index = sliceStr.indexOf('-')
-          if (index !== -1) {
-            const nickName = sliceStr.slice(index + 1)
-            if (nickName) {
-              return `@${nickName}`
-            } else {
-              return item
-            }
-          }
-          return item
-        })
-        .join('')
-    }
-    return formatDraft
+    return showSimplifyMsgContent(sessionInfo.value.draft)
   } else {
     if (!lastMsg.value.content) {
       return '...'
     }
 
-    const jsonContent = jsonParseSafe(lastMsg.value.content)
-    let template
-    if (jsonContent && jsonContent['type'] && jsonContent['value']) {
-      if (jsonContent['type'] == msgContentType.IMAGE) {
-        template = '[图片]'
-      } else if (jsonContent['type'] == msgContentType.AUDIO) {
-        template = '[音频]'
-      } else if (jsonContent['type'] == msgContentType.RECORDING) {
-        template = '[语音]'
-      } else if (jsonContent['type'] == msgContentType.VIDEO) {
-        template = '[视频]'
-      } else if (jsonContent['type'] == msgContentType.DOCUMENT) {
-        template = '[文件]'
-      } else if (jsonContent['type'] == msgContentType.FORWARD_TOGETHER) {
-        template = '[聊天记录]'
-      } else {
-        template = jsonContent['value']
-      }
-
-      if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
-        return getGroupChatMsgTips(template)
-      } else {
-        return template
-      }
-    }
-
     if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
-      let content = jsonParseSafe(lastMsg.value.content)
       switch (lastMsg.value.msgType) {
         case MsgType.SYS_GROUP_CREATE:
-          return getSysGroupCreateMsgTips(content)
+          return getSysGroupCreateMsgTips(lastMsg.value.content)
         case MsgType.SYS_GROUP_ADD_MEMBER:
-          return getSysGroupAddMemberMsgTips(content)
+          return getSysGroupAddMemberMsgTips(lastMsg.value.content)
         case MsgType.SYS_GROUP_DEL_MEMBER:
-          return getSysGroupDelMemberMsgTips(content)
+          return getSysGroupDelMemberMsgTips(lastMsg.value.content)
         case MsgType.SYS_GROUP_UPDATE_ANNOUNCEMENT:
-          return getSysGroupUpdateAnnouncement(content)
+          return getSysGroupUpdateAnnouncement(lastMsg.value.content)
         case MsgType.SYS_GROUP_UPDATE_NAME:
-          return getSysGroupUpdateName(content)
+          return getSysGroupUpdateName(lastMsg.value.content)
         case MsgType.SYS_GROUP_UPDATE_AVATAR:
-          return getSysGroupUpdateAvatar(content)
+          return getSysGroupUpdateAvatar(lastMsg.value.content)
         case MsgType.SYS_GROUP_SET_ADMIN:
         case MsgType.SYS_GROUP_CANCEL_ADMIN:
-          return getSysGroupChangeRoleMsgTips(lastMsg.value.msgType, content)
+          return getSysGroupChangeRoleMsgTips(lastMsg.value.msgType, lastMsg.value.content)
         case MsgType.SYS_GROUP_SET_ALL_MUTED:
         case MsgType.SYS_GROUP_CANCEL_ALL_MUTED:
-          return getSysGroupUpdateAllMuted(lastMsg.value.msgType, content)
+          return getSysGroupUpdateAllMuted(lastMsg.value.msgType, lastMsg.value.content)
         case MsgType.SYS_GROUP_SET_JOIN_APPROVAL:
         case MsgType.SYS_GROUP_CANCEL_JOIN_APPROVAL:
-          return getSysGroupUpdateJoinApproval(lastMsg.value.msgType, content)
+          return getSysGroupUpdateJoinApproval(lastMsg.value.msgType, lastMsg.value.content)
         case MsgType.SYS_GROUP_SET_HISTORY_BROWSE:
         case MsgType.SYS_GROUP_CANCEL_HISTORY_BROWSE:
-          return getSysGroupUpdateHistoryBrowse(lastMsg.value.msgType, content)
+          return getSysGroupUpdateHistoryBrowse(lastMsg.value.msgType, lastMsg.value.content)
         case MsgType.SYS_GROUP_OWNER_TRANSFER:
-          return getSysGroupOwnerTransfer(content)
+          return getSysGroupOwnerTransfer(lastMsg.value.content)
         case MsgType.SYS_GROUP_UPDATE_MEMBER_MUTED:
-          return getSysGroupUpdateMemberMuted(content)
+          return getSysGroupUpdateMemberMuted(lastMsg.value.content)
         case MsgType.SYS_GROUP_LEAVE:
-          return getSysGroupLeave(content)
+          return getSysGroupLeave(lastMsg.value.content)
         case MsgType.SYS_GROUP_DROP:
-          return getSysGroupDrop(content)
+          return getSysGroupDrop(lastMsg.value.content)
         case MsgType.GROUP_CHAT:
-          //格式化图片内容
-          content = lastMsg.value.content
-            .replace(/\{\d+\}/g, '[图片]')
-            .replace(/(「\{.*?\}」)/, '[引用]')
-          //格式化@内容
-          content = content
-            .split(/(<.*?>)/)
-            .map((item) => {
-              const sliceStr = item.slice(1, -1)
-              const index = sliceStr.indexOf('-')
-              if (index !== -1) {
-                const nickName = sliceStr.slice(index + 1)
-                if (nickName) {
-                  return `@${nickName}`
-                } else {
-                  return item
-                }
-              }
-              return item
-            })
-            .join('')
-          return getGroupChatMsgTips(content)
+          return getGroupChatMsgTips(showSimplifyMsgContent(lastMsg.value.content))
         default:
-          return ''
+          return '...'
       }
+    } else if (sessionInfo.value.sessionType === MsgType.CHAT) {
+      return showSimplifyMsgContent(lastMsg.value.content)
     } else {
-      return lastMsg.value.content.replace(/\{\d+\}/g, '[图片]').replace(/(「\{.*?\}」)/, '[引用]')
+      return '...'
     }
   }
 })

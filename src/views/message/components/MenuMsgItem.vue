@@ -7,7 +7,6 @@ import CopyIcon from '@/assets/svg/copy.svg'
 import MultiselectIcon from '@/assets/svg/multiselect.svg'
 import RevokeIcon from '@/assets/svg/revoke.svg'
 import { useUserStore, useMenuStore } from '@/stores'
-import { jsonParseSafe } from '@/js/utils/common'
 import { MSG_REVOKE_TIME_LIMIT, msgContentType, msgSendStatus } from '@/const/msgConst'
 
 const props = defineProps(['msg'])
@@ -26,17 +25,7 @@ const myAccount = computed(() => {
 })
 
 const contentType = computed(() => {
-  const contentJson = jsonParseSafe(props.msg.content)
-  if (!contentJson) {
-    return msgContentType.MIX
-  }
-
-  const type = contentJson['type']
-  if (!type) {
-    return msgContentType.MIX
-  } else {
-    return type
-  }
+  return props.msg.contentType
 })
 
 const msgStatus = computed(() => {
@@ -53,7 +42,10 @@ const menu = computed(() => {
     }
   ]
 
-  if (contentType.value !== msgContentType.RECORDING) {
+  if (
+    contentType.value !== msgContentType.RECORDING &&
+    contentType.value !== msgContentType.FORWARD_TOGETHER
+  ) {
     o.push({
       label: 'copy',
       desc: '复制',
@@ -199,6 +191,7 @@ const handleClick = (item) => {
   background-color: #fff;
   position: absolute;
   box-shadow: 2px 2px 20px gray;
+  z-index: 1000;
 
   .menu-item {
     padding: 5px;

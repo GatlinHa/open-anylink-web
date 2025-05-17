@@ -20,14 +20,35 @@ import { prehandleImage } from '@/js/utils/image'
 import { MsgType } from '@/proto/msg'
 import AtList from '@/views/message/components/AtList.vue'
 import AgreeBeforeSend from '@/views/message/components/AgreeBeforeSend.vue'
+import { isMatchMsgStruct, showSimplifyMsgContent } from '@/js/utils/message'
+import { msgChatQueryMessagesService } from '@/api/message'
 
 /**
- * 处理粘贴格式问题
+ * 处理复制/粘贴结构化数据
  */
 const Clipboard = Quill.import('modules/clipboard')
 class PlainClipboard extends Clipboard {
-  onPaste(range, { text }) {
-    handlePaste(range, text)
+  onPaste(range, data) {
+    if (!data.html) {
+      handlePaste(range, data.text)
+      return
+    }
+
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(data.html, 'text/html')
+    const elements = doc.querySelectorAll('[data-quill-custom]') // 查找所有具有 data-quill-custom 属性的元素
+    if (elements.length > 0) {
+      // 取第一个匹配的元素
+      const encodedData = elements[0].getAttribute('data-quill-custom')
+      const decodedData = decodeURIComponent(encodedData)
+      handlePaste(range, decodedData)
+    } else {
+      handlePaste(range, data.text) // 降级方案
+    }
+  }
+
+  onCopy(range) {
+    return handleCopy(range)
   }
 }
 Quill.register(
@@ -96,53 +117,21 @@ class QuoteBlock extends Embed {
     super.remove()
   }
 
-  static create({ account, nickName, msgId, content, msgTime }) {
+  static create({ account, nickName, msgKey, msgId, content, msgTime }) {
     const node = super.create()
     node.dataset.account = account
     node.dataset.nickName = nickName
+    node.dataset.msgKey = msgKey
     node.dataset.msgId = msgId
     node.dataset.msgTime = showTimeFormat(msgTime)
     node.dataset.content = content
-      .split(/(「\{.*?\}」)/)
-      .filter((item) => !(item.startsWith('「{') && item.endsWith('}」'))) // 引用的引用不予展示
-      .join('')
-
-    const defaultContent = node.dataset.content
-      .replace(/<(?:.*?)-(.*?)>/g, '@$1')
-      .replace(/\{\d+\}/g, '[图片]')
-    const contentJson = jsonParseSafe(defaultContent)
-    let showContent = defaultContent
-    if (contentJson) {
-      const type = contentJson['type']
-      const objectId = contentJson['value']
-      switch (type) {
-        case msgContentType.RECORDING:
-          showContent = '[语音]'
-          break
-        case msgContentType.AUDIO:
-          showContent = `[音频] ${audioData.audio[objectId].fileName}`
-          break
-        case msgContentType.IMAGE:
-          showContent = `[图片] ${imageData.image[objectId].fileName}`
-          break
-        case msgContentType.VIDEO:
-          showContent = `[视频] ${videoData.video[objectId].fileName}`
-          break
-        case msgContentType.DOCUMENT:
-          showContent = `[文档] ${documentData.document[objectId].fileName}`
-          break
-        default:
-          break
-      }
-    }
-
     node.innerHTML = `
       <div class="quote-wrapper">
         <div class="quote-sender">
-          <span class="quote-nickName">${node.dataset.nickName}  </span>
+          <span class="quote-nickName">${node.dataset.nickName}</span>
           <span class="quote-msgTime">${node.dataset.msgTime}：</span>
         </div>
-        <span class="quote-content">${showContent}</span>
+        <span class="quote-content">${showSimplifyMsgContent(node.dataset.content)}</span>
         <button type="button" class="quote-close-btn">
           <span >&times;</span>
         </button>
@@ -155,6 +144,7 @@ class QuoteBlock extends Embed {
     return {
       account: node.dataset.account,
       nickName: node.dataset.nickName,
+      msgKey: node.dataset.msgKey,
       msgId: node.dataset.msgId,
       content: node.dataset.content,
       msgTime: node.dataset.msgTime
@@ -207,8 +197,8 @@ onMounted(async () => {
   toSendAtList.value = []
   // 给组件增加滚动条样式
   document.querySelector('.ql-editor').classList.add('my-scrollbar')
-  await imageData.loadImageInfoFromContent(props.draft)
-  renderContent(props.draft) // 渲染草稿
+  await imageData.preloadImageFromMsg(props.draft)
+  await renderContent(props.draft) // 渲染草稿
   quill.value.on('composition-start', () => {
     // 当用户使用拼音输入法开始输入汉字时，这个事件就会被触发
     quill.value.root.dataset.placeholder = ''
@@ -333,10 +323,10 @@ onBeforeUnmount(async () => {
     }
   }
 
-  fn(contentObj.contentFromLocal.join('').trim())
+  fn(JSON.stringify(contentObj.contentFromLocal.filter((item) => item)))
 
   callbacks.allUploadedSuccessFn = () => {
-    fn(contentObj.contentFromServer.join('').trim())
+    fn(JSON.stringify(contentObj.contentFromServer.filter((item) => item)))
   }
 })
 
@@ -383,8 +373,8 @@ const cursorProtectForQuote = () => {
  */
 const parseContent = async (callbacks) => {
   const delta = quill.value.getContents()
-  let contentFromLocal = new Array(delta.ops.length).fill('')
-  let contentFromServer = new Array(delta.ops.length).fill('')
+  let contentFromLocal = new Array(delta.ops.length).fill('') // 这里用new Array + index填充方式，而不用push，是为了保证内容的顺序
+  let contentFromServer = new Array(delta.ops.length).fill('') // contentFromServer更新了某些服务端返回的数据
   let needUploadCount = 0 // 需要上传的图片个数
   let uploadedTotalCount = 0 // 已发上传请求的图片个数，包括上传成功和失败
   let uploadSuccessCount = 0 // 已经上传成功的图片个数
@@ -405,39 +395,64 @@ const parseContent = async (callbacks) => {
     const insert = op.insert
     if (insert && typeof insert === 'string') {
       // 文本
-      contentFromLocal[index] = insert
-      contentFromServer[index] = insert
+      let contentText = {}
+      if (index === delta.ops.length - 1) {
+        const lastInsert = insert.endsWith('\n') ? insert.slice(0, -1) : insert // 去除最后一个换行符
+        if (lastInsert) {
+          contentText = {
+            type: msgContentType.TEXT,
+            value: lastInsert
+          }
+        } else {
+          break
+        }
+      } else {
+        contentText = {
+          type: msgContentType.TEXT,
+          value: insert
+        }
+      }
+      contentFromLocal[index] = contentText
+      contentFromServer[index] = contentText
     } else if (insert && insert.atMention) {
       // 处理用于@的自定义Blot
       const { account, nickName } = insert.atMention
-      contentFromLocal[index] = `<${account}-${nickName}>`
-      contentFromServer[index] = `<${account}-${nickName}>`
+      const contentAt = { type: msgContentType.AT, value: { account, nickName } }
+      contentFromLocal[index] = contentAt
+      contentFromServer[index] = contentAt
     } else if (insert && insert.quoteBlock) {
       // 处理用于引用的自定义Blot
-      const quoteContent = JSON.stringify({
-        account: insert.quoteBlock.account,
-        nickName: insert.quoteBlock.nickName,
-        msgId: insert.quoteBlock.msgId,
-        content: insert.quoteBlock.content,
-        msgTime: insert.quoteBlock.msgTime
-      })
-      contentFromLocal[index] = `「${quoteContent}」`
-      contentFromServer[index] = `「${quoteContent}」`
+      contentFromLocal[index] = {
+        type: msgContentType.QUOTE,
+        value: {
+          nickName: insert.quoteBlock.nickName,
+          msgId: insert.quoteBlock.msgKey // 注意这里的区别
+        }
+      }
+      contentFromServer[index] = {
+        type: msgContentType.QUOTE,
+        value: {
+          nickName: insert.quoteBlock.nickName,
+          msgId: insert.quoteBlock.msgId // 注意这里的区别
+        }
+      }
     } else if (insert && insert.image) {
       const alt = op.attributes?.alt
       if (alt && alt.startsWith('[') && alt.endsWith(']')) {
         // 表情id
-        contentFromLocal[index] = alt
-        contentFromServer[index] = alt
+        const contentEmoji = { type: msgContentType.EMOJI, value: alt }
+        contentFromLocal[index] = contentEmoji
+        contentFromServer[index] = contentEmoji
       } else if (alt && alt.startsWith('{') && alt.endsWith('}')) {
-        // 图片id
-        contentFromLocal[index] = alt
-        contentFromServer[index] = alt
+        // 已有objectId的截图，说明是已上传过服务端的
+        const contentSceenShot = { type: msgContentType.SCREENSHOT, value: alt.slice(1, -1) }
+        contentFromLocal[index] = contentSceenShot
+        contentFromServer[index] = contentSceenShot
       } else if (insert.image.startsWith('data:') && insert.image.includes('base64')) {
-        // base64编码的图片
+        // 截图的原始base64编码的图片
         const file = base64ToFile(insert.image, uuidv4()) // base64转file
         const tempObjectId = new Date().getTime()
-        contentFromLocal[index] = `{${tempObjectId}}`
+        contentFromLocal[index] = { type: msgContentType.SCREENSHOT, value: tempObjectId }
         // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
         const md5 = await getMd5(file)
         const prehandleImageObj = await prehandleImage(file)
@@ -473,7 +488,10 @@ const parseContent = async (callbacks) => {
           .then((res) => {
             imageData.setImage(res.data.data) // 缓存image数据
             uploadSuccessCount++
-            contentFromServer[index] = `{${res.data.data.objectId}}`
+            contentFromServer[index] = {
+              type: msgContentType.SCREENSHOT,
+              value: res.data.data.objectId
+            }
             callbacks.someOneUploadedSuccessFn()
             if (uploadSuccessCount === needUploadCount) {
               callbacks.allUploadedSuccessFn()
@@ -487,8 +505,9 @@ const parseContent = async (callbacks) => {
           })
       } else {
         // 当文本处理
-        contentFromLocal[index] = insert
-        contentFromServer[index] = insert
+        const contentText = { type: msgContentType.TEXT, value: insert }
+        contentFromLocal[index] = contentText
+        contentFromServer[index] = contentText
       }
     }
   }
@@ -525,21 +544,20 @@ watch(
     }
 
     callbacks.allUploadedSuccessFn = () => {
-      fn(contentObj.contentFromServer.join('').trim())
+      // JSON.stringify(contentObj.contentFromServer.filter((item) => item))在空值时返回'[]''
+      let inputContent = JSON.stringify(contentObj.contentFromServer.filter((item) => item))
+      fn(inputContent === '[]' ? '' : inputContent)
     }
 
-    fn(contentObj.contentFromLocal.join('').trim())
+    // JSON.stringify(contentObj.contentFromLocal.filter((item) => item))在空值时返回'[]''
+    let inputContent = JSON.stringify(contentObj.contentFromLocal.filter((item) => item))
+    fn(inputContent === '[]' ? '' : inputContent)
 
-    renderContent(messageData.sessionList[newSessionId].draft || '') // 切换session时渲染新session的草稿
+    await renderContent(messageData.sessionList[newSessionId].draft || '') // 切换session时渲染新session的草稿
   },
   { deep: true }
 )
 
-// 实现消息复制的效果，步骤如下
-// 1. 拷贝原消息中的content内容
-// 2. 粘贴时自动调用renderContent渲染内容
-// 3. 渲染时保存复制内容
-// 4. 发送时使用保存的复制内容
 const pasteObj = {
   content: null,
   contentType: null,
@@ -556,161 +574,235 @@ const clearPasteObj = () => {
   pasteObj.url = null
 }
 
-const handlePaste = (range, content) => {
-  if (!content) {
+/**
+ * 处理复制
+ */
+const handleCopy = ({ index, length }) => {
+  const delta = quill.value.getContents(index, length)
+
+  const clipboardContent = []
+  let clipboardText = ''
+
+  for (let index = 0; index < delta.ops.length; index++) {
+    const op = delta.ops[index]
+    const insert = op.insert
+    if (insert && typeof insert === 'string') {
+      // 文本
+      clipboardContent.push({
+        type: msgContentType.TEXT,
+        value: insert
+      })
+      clipboardText += insert
+    } else if (insert && insert.image) {
+      const alt = op.attributes?.alt
+      if (alt && alt.startsWith('[') && alt.endsWith(']')) {
+        // 表情
+        clipboardContent.push({ type: msgContentType.EMOJI, value: alt })
+      } else if (alt && alt.startsWith('{') && alt.endsWith('}')) {
+        // 已有objectId的截图，复制原消息粘贴的，撤回重新编辑，从草稿渲染
+        clipboardContent.push({ type: msgContentType.SCREENSHOT, value: alt.slice(1, -1) })
+      } else if (insert.image.startsWith('data:') && insert.image.includes('base64')) {
+        // 截图后原始的base64编码
+      }
+    }
+  }
+
+  return {
+    // 在html自定义属性data-quill-custom中传递clipboardContent结构化数据
+    html: `<div data-quill-custom=${encodeURIComponent(JSON.stringify(clipboardContent))}></div>`,
+    text: clipboardText // 纯文本
+  }
+}
+
+/**
+ * 处理粘贴
+ * @param range
+ */
+const handlePaste = (range, text) => {
+  if (!text) {
     return
   }
 
-  const jsonContent = jsonParseSafe(content)
-  if (jsonContent && jsonContent['type'] && jsonContent['value']) {
-    clearPasteObj()
-    pasteObj.content = content
-    pasteObj.contentType = jsonContent['type']
-    const fileId = jsonContent['value']
-    switch (pasteObj.contentType) {
-      case msgContentType.IMAGE:
-        pasteObj.fileName = imageData.image[fileId]?.fileName
-        pasteObj.fileSize = imageData.image[fileId]?.size
-        pasteObj.url = imageData.image[fileId]?.thumbUrl
-        break
-      case msgContentType.AUDIO:
-        pasteObj.fileName = audioData.audio[fileId]?.fileName
-        pasteObj.fileSize = audioData.audio[fileId]?.size
-        break
-      case msgContentType.VIDEO:
-        pasteObj.fileName = videoData.video[fileId]?.fileName
-        pasteObj.fileSize = videoData.video[fileId]?.size
-        break
-      case msgContentType.DOCUMENT:
-        pasteObj.fileName = documentData.document[fileId]?.fileName
-        pasteObj.fileSize = documentData.document[fileId]?.size
-        break
-      default:
-        break
-    }
-
-    // 文件确实存在才发送
-    if (pasteObj.fileName) {
-      showAgreeDialog.value = true
-      return
-    }
+  if (!isMatchMsgStruct(text)) {
+    const delta = new Delta().retain(range.index).delete(range.length).insert(text)
+    quill.value.updateContents(delta, Quill.sources.USER)
+    quill.value.setSelection(delta.length() - range.length, Quill.sources.USER)
+    return
   }
 
-  const delta = new Delta().retain(range.index).delete(range.length).insert(content)
+  const delta = new Delta().retain(range.index).delete(range.length)
+
+  const arr = jsonParseSafe(text)
+  for (const item of arr) {
+    const { type, value } = item
+    if (
+      type === msgContentType.IMAGE ||
+      type === msgContentType.AUDIO ||
+      type === msgContentType.VIDEO ||
+      type === msgContentType.DOCUMENT
+    ) {
+      clearPasteObj()
+      pasteObj.content = item
+      pasteObj.contentType = type
+      const fileId = value
+      switch (type) {
+        case msgContentType.IMAGE:
+          pasteObj.fileName = imageData.image[fileId]?.fileName
+          pasteObj.fileSize = imageData.image[fileId]?.size
+          pasteObj.url = imageData.image[fileId]?.thumbUrl
+          break
+        case msgContentType.AUDIO:
+          pasteObj.fileName = audioData.audio[fileId]?.fileName
+          pasteObj.fileSize = audioData.audio[fileId]?.size
+          break
+        case msgContentType.VIDEO:
+          pasteObj.fileName = videoData.video[fileId]?.fileName
+          pasteObj.fileSize = videoData.video[fileId]?.size
+          break
+        case msgContentType.DOCUMENT:
+          pasteObj.fileName = documentData.document[fileId]?.fileName
+          pasteObj.fileSize = documentData.document[fileId]?.size
+          break
+        default:
+          break
+      }
+
+      // 文件确实存在才发送
+      if (pasteObj.fileName) {
+        showAgreeDialog.value = true
+        return // 这四种类型的数组只能有1个元素，所以直接return
+      }
+    } else {
+      switch (type) {
+        case msgContentType.TEXT:
+          delta.insert(value)
+          break
+        case msgContentType.EMOJI: {
+          const emojiUrl = emojis[value]
+          if (emojiUrl) {
+            delta.insert({ image: emojiUrl }, { alt: value })
+          } else {
+            delta.insert(value)
+          }
+          break
+        }
+        case msgContentType.SCREENSHOT: {
+          const imageUrl = imageData.image[value]?.originUrl
+          if (imageUrl) {
+            delta.insert({ image: imageUrl }, { alt: `{${value}}` }) // 添加区别于emoji表情alt的符号，方便parse时识别
+          } else {
+            delta.insert(value)
+          }
+          break
+        }
+        case msgContentType.AT: {
+          const { account, nickName } = value
+          toSendAtList.value.push(account)
+          delta.insert({ atMention: { account, nickName } })
+          break
+        }
+        case msgContentType.QUOTE:
+        default:
+          break
+      }
+    }
+  }
   quill.value.updateContents(delta, Quill.sources.USER)
   quill.value.setSelection(delta.length() - range.length, Quill.sources.USER)
 }
 
 /**
- * 把输入框的字符串内容渲染成富媒体内容
- * @param content 字符串内容
+ * 输入框从空状态渲染可视内容
+ * 1. 渲染草稿
+ * 2. 消息撤回后的重新编辑
+ * @param content json结构化内容的字符串
  */
-const renderContent = (content) => {
+const renderContent = async (content) => {
   if (!content) {
     quill.value.setText('')
     return
   }
 
-  let contentArray = []
-  // 先匹配quote引用内容
-  content.split(/(「\{.*?\}」)/).forEach((item) => {
-    if (item.startsWith('「{') && item.endsWith('}」')) {
-      // quote引用内容直接添加如数组
-      contentArray.push(item)
-    } else {
-      //匹配内容中的图片
-      item.split(/(\{\d+\})/).forEach((item) => {
-        //匹配内容中的表情
-        item.split(/(\[.*?\])/).forEach((item) => {
-          //匹配内容中的@
-          item.split(/(<.*?>)/).forEach((item) => {
-            if (item) {
-              contentArray.push(item)
-            }
-          })
-        })
-      })
-    }
-  })
+  const arr = jsonParseSafe(content)
+  // 不允许非结构化的content
+  if (!arr) {
+    quill.value.setText('')
+    return
+  }
 
   // 创建一个新的 Delta 对象
   const delta = new Delta()
-  contentArray.map((item) => {
-    if (item.startsWith('{') && item.endsWith('}')) {
-      const imageId = item.slice(1, -1)
-      const imageUrl = imageData.image[imageId]?.originUrl
-      if (imageUrl) {
-        delta.insert({ image: imageUrl }, { alt: item })
-      } else {
-        delta.insert(item)
-      }
-    } else if (item.startsWith('[') && item.endsWith(']')) {
-      const emojiUrl = emojis[item]
-      if (emojiUrl) {
-        delta.insert({ image: emojiUrl }, { alt: item })
-      } else {
-        delta.insert(item)
-      }
-    } else if (item.startsWith('<') && item.endsWith('>')) {
-      const content = item.slice(1, -1)
-      const index = content.indexOf('-')
-      if (index !== -1) {
-        const account = content.slice(0, index)
-        const nickName = content.slice(index + 1)
-        if (nickName) {
-          toSendAtList.value.push(account)
-          delta.insert({ atMention: { account, nickName } })
+  for (const item of arr) {
+    if (!item.type || !item.value) {
+      delta.insert('')
+    }
+
+    switch (item.type) {
+      case msgContentType.TEXT:
+        delta.insert(item.value)
+        break
+      case msgContentType.EMOJI: {
+        const emojiUrl = emojis[item.value]
+        if (emojiUrl) {
+          delta.insert({ image: emojiUrl }, { alt: item.value })
         } else {
-          delta.insert(item)
+          delta.insert(item.value)
         }
-      } else {
-        delta.insert(item)
+        break
       }
-    } else if (item.startsWith('「{') && item.endsWith('}」')) {
-      const quoteContent = item.slice(1, -1)
-      const { account, nickName, msgId, content, msgTime } = jsonParseSafe(quoteContent)
-      let showContent = content || ''
-      if (content) {
-        const defaultContent = content
-          .replace(/<(?:.*?)-(.*?)>/g, '@$1')
-          .replace(/\{\d+\}/g, '[图片]')
-        showContent = defaultContent
-        const contentJson = jsonParseSafe(defaultContent)
-        if (contentJson) {
-          const type = contentJson['type']
-          const objectId = contentJson['value']
-          switch (type) {
-            case msgContentType.RECORDING:
-              showContent = '[语音]'
-              break
-            case msgContentType.AUDIO:
-              showContent = `[音频] ${audioData.audio[objectId].fileName}`
-              break
-            case msgContentType.IMAGE:
-              showContent = `[图片] ${imageData.image[objectId].fileName}`
-              break
-            case msgContentType.VIDEO:
-              showContent = `[视频] ${videoData.video[objectId].fileName}`
-              break
-            case msgContentType.DOCUMENT:
-              showContent = `[文档] ${documentData.document[objectId].fileName}`
-              break
-            default:
-              break
+      case msgContentType.SCREENSHOT: {
+        const imageUrl = imageData.image[item.value]?.originUrl
+        if (imageUrl) {
+          delta.insert({ image: imageUrl }, { alt: `{${item.value}}` }) // 添加区别于emoji表情alt的符号，方便parse时识别
+        } else {
+          delta.insert(item.value)
+        }
+        break
+      }
+      case msgContentType.AT: {
+        const { account, nickName } = item.value
+        toSendAtList.value.push(account)
+        delta.insert({ atMention: { account, nickName } })
+        break
+      }
+      case msgContentType.QUOTE: {
+        // 先从本地消息缓存中获取
+        let msg = messageData.getMsg(props.sessionId, item.value.msgId)
+        if (!msg) {
+          // 如果本地消息缓存中没有，再去服务器查询
+          const res = await msgChatQueryMessagesService({
+            sessionId: props.sessionId,
+            msgIds: [item.value.msgId]
+          })
+
+          if (res.data.data && res.data.data.length > 0) {
+            msg = res.data.data[0]
           }
         }
+        delta.insert({
+          quoteBlock: {
+            account: msg.fromId,
+            nickName: item.value.nickName,
+            msgId: msg.msgId,
+            content: showSimplifyMsgContent(msg.content),
+            msgTime: msg.msgTime
+          }
+        })
+        break
       }
-      delta.insert({ quoteBlock: { account, nickName, msgId, content: showContent, msgTime } })
-    } else {
-      delta.insert(item)
+      default:
+        delta.insert('')
     }
-  })
+  }
 
   quill.value.setText('') // 清空编辑器内容
   quill.value.updateContents(delta) // 使用 Delta 对象更新编辑器内容
   quill.value.setSelection(quill.value.getLength(), 0, Quill.sources.USER) // 设置光标位置
 }
 
+/**
+ * 处理Enter发送
+ */
 const handleEnter = async () => {
   if (isShowAtList.value) {
     return
@@ -726,12 +818,22 @@ const handleEnter = async () => {
     ? { contentFromLocal: [pasteObj.content], contentFromServer: [pasteObj.content] }
     : await parseContent(callbacks)
 
-  const content = contentObj.contentFromLocal.join('').trim()
-  if (!content) {
+  let textLength = 0
+  let contentType = 0
+  contentObj.contentFromLocal.forEach((item) => {
+    if (item.type === msgContentType.TEXT) {
+      textLength = textLength + item.value.length
+    }
+    contentType = contentType | item.type
+  })
+
+  if (contentType === 0) {
     ElMessage.warning('请勿发送空内容')
     quill.value.setText('')
     return
-  } else if (content.length > 3000) {
+  }
+
+  if (textLength > 3000) {
     ElMessage.warning('发送内容请不要超过3000个字')
     return
   }
@@ -739,8 +841,8 @@ const handleEnter = async () => {
   // 发送的时候设置本地缓存（非服务端数据），用于立即渲染
   let msg = {}
   emit('saveLocalMsg', {
-    contentType: msgContentType.MIX,
-    content: content,
+    contentType: contentType,
+    content: JSON.stringify(contentObj.contentFromLocal.filter((item) => item)),
     fn: (result) => {
       msg = result
     }
@@ -752,7 +854,8 @@ const handleEnter = async () => {
       uploadProgress: 0
     })
   } else {
-    emit('sendMessage', { msg, at: toSendAtList.value })
+    const content = JSON.stringify(contentObj.contentFromServer.filter((item) => item))
+    emit('sendMessage', { msg, content, at: toSendAtList.value }) // content 要更新后发给服务端，和saveLocalMsg的本地消息由些许差异
   }
 
   // callback：每成功上传一个图片，更新一下进度
@@ -771,14 +874,14 @@ const handleEnter = async () => {
   }
 
   // callback：所有图片均上传，则发送消息
-  const atTargets = toSendAtList.value
+  const atTargets = toSendAtList.value // 异步函数里避免调用响应式数据
   callbacks.allUploadedSuccessFn = () => {
     messageData.updateMsg(msg.sessionId, msg.msgId, {
       uploadStatus: msgFileUploadStatus.UPLOAD_SUCCESS,
       uploadProgress: 100
     })
-    msg.content = contentObj.contentFromServer.join('').trim()
-    emit('sendMessage', { msg, atTargets })
+    const content = JSON.stringify(contentObj.contentFromServer.filter((item) => item))
+    emit('sendMessage', { msg, content, at: atTargets })
   }
 
   clearPasteObj()
@@ -849,13 +952,13 @@ const onSelectedAtTarget = ({ account, nickName }) => {
   }
 }
 
-const reeditFromRevoke = (content) => {
+const reeditFromRevoke = async (content) => {
   quill.value.setText('') // 清空编辑器内容
   quill.value.setSelection(0, 0, Quill.sources.SILENT) // 设置光标位置
-  renderContent(content)
+  await renderContent(content)
 }
 
-const insertQuote = ({ account, nickName, msgId, content, msgTime }) => {
+const insertQuote = ({ account, nickName, msgKey, msgId, content, msgTime }) => {
   // 1. 保存原始选择范围
   quill.value.focus() // 先使 Quill 编辑器获取焦点，否则无法获取Selection
   const originalRange = quill.value.getSelection()
@@ -874,7 +977,7 @@ const insertQuote = ({ account, nickName, msgId, content, msgTime }) => {
   quill.value.insertEmbed(
     0,
     'quoteBlock',
-    { account, nickName, msgId, content, msgTime },
+    { account, nickName, msgKey, msgId, content, msgTime },
     Quill.sources.USER
   )
   quill.value.insertText(1, '\n', Quill.sources.SILENT)
@@ -993,6 +1096,7 @@ img {
   padding-right: 40px;
   display: flex;
   color: gray;
+  gap: 5px;
 }
 
 .quote-content {

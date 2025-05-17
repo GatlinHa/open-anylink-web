@@ -343,9 +343,15 @@ class WsConnect {
    * @param {*} before 发送前的处理，用于展示发送前状态
    * @param {*} after  发送后(接收MsgType.DELIVERED时)的处理，用于展示发送后状态
    */
-  sendMsg(sessionId, remoteId, msgType, content, seq, before, after) {
+  sendMsg(sessionId, remoteId, msgType, content, contentType, seq, before, after) {
     const sequence = seq || uuidv4()
-    const data = this.dataConstructor[msgType]({ sessionId, remoteId, content, sequence })
+    const data = this.dataConstructor[msgType]({
+      sessionId,
+      remoteId,
+      content,
+      contentType,
+      sequence
+    })
     before(data)
     this.msgIdRefillCallback[sequence] = after
     this.sendAgent(data)

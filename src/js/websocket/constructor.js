@@ -3,7 +3,7 @@ import { proto } from '@/const/msgConst'
 import { useUserStore } from '@/stores'
 import { v4 as uuidv4 } from 'uuid'
 
-export const chatConstructor = ({ sessionId, remoteId, content, sequence }) => {
+export const chatConstructor = ({ sessionId, remoteId, content, contentType, sequence }) => {
   const header = Header.create({
     magic: proto.magic,
     version: proto.version,
@@ -18,6 +18,7 @@ export const chatConstructor = ({ sessionId, remoteId, content, sequence }) => {
     toId: remoteId,
     sessionId: sessionId,
     content: content,
+    contentType: contentType,
     seq: sequence
   })
   const chatMsg = Msg.create({ header: header, body: body })
@@ -27,7 +28,7 @@ export const chatConstructor = ({ sessionId, remoteId, content, sequence }) => {
   return data
 }
 
-export const groupChatConstructor = ({ sessionId, remoteId, content, sequence }) => {
+export const groupChatConstructor = ({ sessionId, remoteId, content, contentType, sequence }) => {
   const header = Header.create({
     magic: proto.magic,
     version: proto.version,
@@ -42,6 +43,7 @@ export const groupChatConstructor = ({ sessionId, remoteId, content, sequence })
     sessionId: sessionId,
     groupId: remoteId,
     content: content,
+    contentType: contentType,
     seq: sequence
   })
   const msg = Msg.create({ header: header, body: body })

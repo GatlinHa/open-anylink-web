@@ -18,17 +18,18 @@ export const useDocumentStore = defineStore('anylink-document', () => {
     document.value[obj.objectId] = obj
   }
 
-  const preloadDocument = async (msgRecords) => {
+  const preloadDocumentFromMsgList = async (msgRecords) => {
     const documentIds = new Set()
     msgRecords.forEach((item) => {
-      const content = item.content
-      const contentJson = jsonParseSafe(content)
-      if (contentJson && contentJson['type'] === msgContentType.DOCUMENT) {
-        const objectId = contentJson['value']
-        if (!document.value[objectId]) {
-          documentIds.add(objectId)
+      const aar = jsonParseSafe(item.content)
+      aar.forEach((item) => {
+        if (item.type === msgContentType.DOCUMENT) {
+          const objectId = item.value
+          if (!document.value[objectId]) {
+            documentIds.add(objectId)
+          }
         }
-      }
+      })
     })
 
     if (documentIds.size > 0) {
@@ -52,7 +53,7 @@ export const useDocumentStore = defineStore('anylink-document', () => {
   return {
     document,
     setDocument,
-    preloadDocument,
+    preloadDocumentFromMsgList,
     clear
   }
 })

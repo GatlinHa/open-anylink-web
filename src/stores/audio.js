@@ -18,20 +18,18 @@ export const useAudioStore = defineStore('anylink-audio', () => {
     audio.value[obj.objectId] = obj
   }
 
-  const preloadAudio = async (msgRecords) => {
+  const preloadAudioFromMsgList = async (msgRecords) => {
     const audioIds = new Set()
     msgRecords.forEach((item) => {
-      const content = item.content
-      const contentJson = jsonParseSafe(content)
-      if (
-        (contentJson && contentJson['type'] === msgContentType.RECORDING) ||
-        (contentJson && contentJson['type'] === msgContentType.AUDIO)
-      ) {
-        const objectId = contentJson['value']
-        if (!audio.value[objectId]) {
-          audioIds.add(objectId)
+      const aar = jsonParseSafe(item.content)
+      aar.forEach((item) => {
+        if (item.type === msgContentType.AUDIO || item.type === msgContentType.RECORDING) {
+          const objectId = item.value
+          if (!audio.value[objectId]) {
+            audioIds.add(objectId)
+          }
         }
-      }
+      })
     })
 
     if (audioIds.size > 0) {
@@ -55,7 +53,7 @@ export const useAudioStore = defineStore('anylink-audio', () => {
   return {
     audio,
     setAudio,
-    preloadAudio,
+    preloadAudioFromMsgList,
     clear
   }
 })

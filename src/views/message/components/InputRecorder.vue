@@ -161,8 +161,8 @@ const uploadRecord = async () => {
   })
   let msg = {}
   emit('saveLocalMsg', {
+    content: JSON.stringify([{ type: msgContentType.RECORDING, value: tempObjectId }]),
     contentType: msgContentType.RECORDING,
-    objectId: tempObjectId,
     fn: (result) => {
       msg = result
     }
@@ -194,11 +194,13 @@ const uploadRecord = async () => {
           uploadStatus: msgFileUploadStatus.UPLOAD_SUCCESS,
           uploadProgress: 100
         })
-        msg.content = JSON.stringify({
-          type: msgContentType.RECORDING,
-          value: res.data.data.objectId
-        })
-        emit('sendMessage', { msg })
+        const content = JSON.stringify([
+          {
+            type: msgContentType.RECORDING,
+            value: res.data.data.objectId
+          }
+        ])
+        emit('sendMessage', { msg, content })
       }
     })
     .catch((error) => {

@@ -134,10 +134,10 @@ export const useMessageStore = defineStore('anylink-message', () => {
    * @param {*} msgRecords
    */
   const preloadResource = async (msgRecords) => {
-    await useImageStore().preloadImage(msgRecords)
-    await useAudioStore().preloadAudio(msgRecords)
-    await useVideoStore().preloadVideo(msgRecords)
-    await useDocumentStore().preloadDocument(msgRecords)
+    await useImageStore().preloadImageFromMsgList(msgRecords)
+    await useAudioStore().preloadAudioFromMsgList(msgRecords)
+    await useVideoStore().preloadVideoFromMsgList(msgRecords)
+    await useDocumentStore().preloadDocumentFromMsgList(msgRecords)
   }
 
   /**

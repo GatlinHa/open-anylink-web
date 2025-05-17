@@ -819,6 +819,7 @@ export const Body = ($root.Body = (() => {
    * @property {string|null} [groupId] Body groupId
    * @property {number|Long|null} [msgId] Body msgId
    * @property {string|null} [content] Body content
+   * @property {number|null} [contentType] Body contentType
    * @property {string|null} [seq] Body seq
    * @property {string|null} [sessionId] Body sessionId
    */
@@ -836,8 +837,9 @@ export const Body = ($root.Body = (() => {
    * | 5 | groupId      |   -  |    -      |    -    |     -     |       M       |        M        |     -    |        M       |    -     |       todo        |         todo        |
    * | 6 | msgId        |   -  |    -      |    -    |     M     |       -       |        M        |     O    |        O       |    M     |       todo        |         todo        |
    * | 7 | content      |   -  |    -      |    M    |     M     |       M       |        M        |     M    |        M       |    -     |       todo        |         todo        |
-   * | 8 | seq          |   -  |    -      |    M    |     M     |       M       |        M        |     O    |        O       |    M     |       todo        |         todo        |
-   * | 9 | sessionId    |   -  |    -      |    M    |     M     |       M       |        M        |     M    |        M       |    M     |       todo        |         todo        |
+   * | 8 | contentType  |   -  |    -      |    M    |     M     |       M       |        M        |     -    |        -       |    -     |       todo        |         todo        |
+   * | 9 | seq          |   -  |    -      |    M    |     M     |       M       |        M        |     O    |        O       |    M     |       todo        |         todo        |
+   * |10 | sessionId    |   -  |    -      |    M    |     M     |       M       |        M        |     M    |        M       |    M     |       todo        |         todo        |
    * +---+--------------+------+-----------+---------|-----------+---------------+-----------------+----------+----------------+----------+-------------------+---------------------+
    * NO      filed      STATUS_REQ   STATUS_RES   STATUS_SYNC  SYS_GROUP_XXX   AT(up)   AT(down)    REVOKE     DELETE
    * +---+--------------+------------+------------+-------------+------------+---------+---------+-----------+-----------+
@@ -848,8 +850,9 @@ export const Body = ($root.Body = (() => {
    * | 5 | groupId      |      -     |      -     |      -      |      M     |    M    |    M    |     o     |     -     |
    * | 6 | msgId        |      -     |      -     |      -      |      M     |    -    |    M    |     M     |     M     |
    * | 7 | content      |      M     |      M     |      M      |      M     |    M    |    M    |     M     |     -     |
-   * | 8 | seq          |      -     |      -     |      -      |      -     |    M    |    M    |     -     |     -     |
-   * | 9 | sessionId    |      -     |      -     |      -      |      M     |    M    |    M    |     M     |     M     |
+   * | 8 | contentType  |      -     |      -     |      -      |      -     |    -    |    -    |     -     |     -     |
+   * | 9 | seq          |      -     |      -     |      -      |      -     |    M    |    M    |     -     |     -     |
+   * |10 | sessionId    |      -     |      -     |      -      |      M     |    M    |    M    |     M     |     M     |
    * +---+--------------+------------+------------+-------------+------------+---------+---------+-----------+-----------+
    * @implements IBody
    * @constructor
@@ -918,6 +921,14 @@ export const Body = ($root.Body = (() => {
   Body.prototype.content = null
 
   /**
+   * Body contentType.
+   * @member {number|null|undefined} contentType
+   * @memberof Body
+   * @instance
+   */
+  Body.prototype.contentType = null
+
+  /**
    * Body seq.
    * @member {string|null|undefined} seq
    * @memberof Body
@@ -979,6 +990,12 @@ export const Body = ($root.Body = (() => {
   })
 
   // Virtual OneOf for proto3 optional field
+  Object.defineProperty(Body.prototype, '_contentType', {
+    get: $util.oneOfGetter(($oneOfFields = ['contentType'])),
+    set: $util.oneOfSetter($oneOfFields)
+  })
+
+  // Virtual OneOf for proto3 optional field
   Object.defineProperty(Body.prototype, '_seq', {
     get: $util.oneOfGetter(($oneOfFields = ['seq'])),
     set: $util.oneOfSetter($oneOfFields)
@@ -1027,10 +1044,12 @@ export const Body = ($root.Body = (() => {
       writer.uint32(/* id 6, wireType 0 =*/ 48).int64(message.msgId)
     if (message.content != null && Object.hasOwnProperty.call(message, 'content'))
       writer.uint32(/* id 7, wireType 2 =*/ 58).string(message.content)
+    if (message.contentType != null && Object.hasOwnProperty.call(message, 'contentType'))
+      writer.uint32(/* id 8, wireType 0 =*/ 64).int32(message.contentType)
     if (message.seq != null && Object.hasOwnProperty.call(message, 'seq'))
-      writer.uint32(/* id 8, wireType 2 =*/ 66).string(message.seq)
+      writer.uint32(/* id 9, wireType 2 =*/ 74).string(message.seq)
     if (message.sessionId != null && Object.hasOwnProperty.call(message, 'sessionId'))
-      writer.uint32(/* id 9, wireType 2 =*/ 74).string(message.sessionId)
+      writer.uint32(/* id 10, wireType 2 =*/ 82).string(message.sessionId)
     return writer
   }
 
@@ -1094,10 +1113,14 @@ export const Body = ($root.Body = (() => {
           break
         }
         case 8: {
-          message.seq = reader.string()
+          message.contentType = reader.int32()
           break
         }
         case 9: {
+          message.seq = reader.string()
+          break
+        }
+        case 10: {
           message.sessionId = reader.string()
           break
         }
@@ -1171,6 +1194,10 @@ export const Body = ($root.Body = (() => {
       properties._content = 1
       if (!$util.isString(message.content)) return 'content: string expected'
     }
+    if (message.contentType != null && message.hasOwnProperty('contentType')) {
+      properties._contentType = 1
+      if (!$util.isInteger(message.contentType)) return 'contentType: integer expected'
+    }
     if (message.seq != null && message.hasOwnProperty('seq')) {
       properties._seq = 1
       if (!$util.isString(message.seq)) return 'seq: string expected'
@@ -1208,6 +1235,7 @@ export const Body = ($root.Body = (() => {
           object.msgId.high >>> 0
         ).toNumber()
     if (object.content != null) message.content = String(object.content)
+    if (object.contentType != null) message.contentType = object.contentType | 0
     if (object.seq != null) message.seq = String(object.seq)
     if (object.sessionId != null) message.sessionId = String(object.sessionId)
     return message
@@ -1260,6 +1288,10 @@ export const Body = ($root.Body = (() => {
     if (message.content != null && message.hasOwnProperty('content')) {
       object.content = message.content
       if (options.oneofs) object._content = 'content'
+    }
+    if (message.contentType != null && message.hasOwnProperty('contentType')) {
+      object.contentType = message.contentType
+      if (options.oneofs) object._contentType = 'contentType'
     }
     if (message.seq != null && message.hasOwnProperty('seq')) {
       object.seq = message.seq
