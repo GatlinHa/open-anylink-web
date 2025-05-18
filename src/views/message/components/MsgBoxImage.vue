@@ -83,6 +83,8 @@ const formatSize = computed(() => {
       :src="url"
       :alt="props.imgId"
       :preview-src-list="srcList"
+      hide-on-click-modal
+      preview-teleported
       :initial-index="initialIndex"
       :infinite="false"
       :lazy="false"
