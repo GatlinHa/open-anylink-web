@@ -22,7 +22,7 @@ import MsgBoxImage from '@/views/message/components/MsgBoxImage.vue'
 import MsgBoxAudio from '@/views/message/components/MsgBoxAudio.vue'
 import MsgBoxVideo from '@/views/message/components/MsgBoxVideo.vue'
 import MsgBoxDocument from '@/views/message/components/MsgBoxDocument.vue'
-import DialogForMsgList from '@/views/message/components/DialogForMsgList.vue'
+import DialogForMsgForward from '@/views/message/components/DialogForMsgForward.vue'
 import { emojis } from '@/js/utils/emojis'
 import { msgChatQueryMessagesService } from '@/api/message'
 import { showSimplifyMsgContent } from '@/js/utils/message'
@@ -301,7 +301,7 @@ const renderForwardTogether = (forwardContent, msgId) => {
         document.body.appendChild(container)
         const app = createApp({
           render: () => {
-            return h(DialogForMsgList, {
+            return h(DialogForMsgForward, {
               isShow: true,
               title,
               sessionId: msgsSorted[0].sessionId,

@@ -28,7 +28,7 @@ import {
   msgChatQueryMessagesService,
   msgChatRevokeMsgService
 } from '@/api/message'
-import DialogForMsgList from '@/views/message/components/DialogForMsgList.vue'
+import DialogForMsgForward from '@/views/message/components/DialogForMsgForward.vue'
 import { showSimplifyMsgContent } from '@/js/utils/message'
 
 const props = defineProps([
@@ -264,7 +264,7 @@ const renderForwardTogether = (forwardContent) => {
         document.body.appendChild(container)
         const app = createApp({
           render: () => {
-            return h(DialogForMsgList, {
+            return h(DialogForMsgForward, {
               isShow: true,
               title,
               sessionId: msgsSorted[0].sessionId,
