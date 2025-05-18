@@ -673,6 +673,10 @@ const handleSendForwardMsg = async ({ session, content, contentType }) => {
 
   const after = (msgId) => {
     messageData.updateMsg(msg.sessionId, msg.msgId, { msgId, status: msgSendStatus.OK })
+
+    if (!messageData.sessionList[msg.sessionId].dnd) {
+      playMsgSend()
+    }
   }
   wsConnect.sendMsg(
     msg.sessionId,
