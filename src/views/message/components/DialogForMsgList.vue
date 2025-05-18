@@ -86,7 +86,7 @@ const loadRelatedMsg = async () => {
         } else {
           quoteMsg.value[msg.msgId] = msgFromStore
         }
-      } else if (item.type === msgContentType.FORWARD_TOGETHER) {
+      } else if (item.type === msgContentType.FORWARD) {
         if (!forwardMsgs.value[msg.msgId]) {
           forwardMsgs.value[msg.msgId] = []
         }
@@ -162,7 +162,7 @@ const renderContent = ({ msg }) => {
         return renderVideo(item.value, msgId)
       case msgContentType.DOCUMENT:
         return renderDocument(item.value)
-      case msgContentType.FORWARD_TOGETHER:
+      case msgContentType.FORWARD:
         return renderForwardTogether(item.value, msgId)
       default:
         return <span></span>

@@ -44,7 +44,7 @@ const menu = computed(() => {
 
   if (
     contentType.value !== msgContentType.RECORDING &&
-    contentType.value !== msgContentType.FORWARD_TOGETHER
+    contentType.value !== msgContentType.FORWARD
   ) {
     o.push({
       label: 'copy',

@@ -1440,14 +1440,14 @@ const handleConfirmForwardMsg = async (sessions) => {
           session: item,
           content: JSON.stringify([
             {
-              type: msgContentType.FORWARD_TOGETHER,
+              type: msgContentType.FORWARD,
               value: {
                 sessionId: selectedSessionId.value,
                 data: [...msgs]
               }
             }
           ]),
-          contentType: msgContentType.FORWARD_TOGETHER
+          contentType: msgContentType.FORWARD
         })
       }
     }

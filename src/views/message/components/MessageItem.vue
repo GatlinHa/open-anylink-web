@@ -100,7 +100,7 @@ const loadRelatedMsg = async () => {
       } else {
         quoteMsg.value = msg
       }
-    } else if (item.type === msgContentType.FORWARD_TOGETHER) {
+    } else if (item.type === msgContentType.FORWARD) {
       const forwatdMsgIds = item.value.data.map((item) => item.msgId)
 
       const toQueryMsgIds = []
@@ -182,7 +182,7 @@ const renderComponent = (content) => {
         return renderVideo(item.value)
       case msgContentType.DOCUMENT:
         return renderDocument(item.value)
-      case msgContentType.FORWARD_TOGETHER:
+      case msgContentType.FORWARD:
         return renderForwardTogether(item.value)
       default:
         return h('span', content)

@@ -51,7 +51,7 @@ export const showSimplifyMsgContent = (content) => {
       case msgContentType.DOCUMENT:
         simplifyContent = simplifyContent + `[文件] ${documentData.document[item.value]?.fileName}`
         break
-      case msgContentType.FORWARD_TOGETHER:
+      case msgContentType.FORWARD:
         simplifyContent = simplifyContent + '[聊天记录]'
         break
 
@@ -110,7 +110,7 @@ export const isMatchMsgStruct = (contentStr) => {
         }
         break
       }
-      case msgContentType.FORWARD_TOGETHER: {
+      case msgContentType.FORWARD: {
         const { sessionId, data } = value
         if (!sessionId || !data) {
           return false

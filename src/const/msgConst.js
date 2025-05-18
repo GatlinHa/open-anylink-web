@@ -27,7 +27,7 @@ export const msgContentType = {
   AUDIO: 0b0000100000000000, // 音频文件
   VIDEO: 0b0001000000000000, // 视频
   DOCUMENT: 0b0010000000000000, // 文档
-  FORWARD_TOGETHER: 0b0100000000000000 // 合并转发消息
+  FORWARD: 0b0100000000000000 // 合并转发消息
 }
 
 // 消息发送状态
