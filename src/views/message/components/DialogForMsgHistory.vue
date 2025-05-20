@@ -736,9 +736,6 @@ const handleListWheel = (tab) => {
   const scrollHeight = element.scrollHeight // 滚动条高度
   const scrollTop = element.scrollTop // 当前滚动位置
   const isScrollAtBottom = scrollTop + clientHeight >= scrollHeight - 10 // 判断是否滚动到底部, 10个像素点误差
-  console.log(
-    `clientHeight: ${clientHeight}, scrollHeight: ${scrollHeight}, scrollTop: ${scrollTop}`
-  )
 
   if (isScrollAtBottom) {
     isAtbottom.value = true
@@ -774,6 +771,14 @@ const handleConfirmTimeFilter = async () => {
   pullDoneFlag.value = false
   isAtbottom.value = false
   await pullMsg()
+
+  setTimeout(() => {
+    const element = document.querySelector(`#dialog-msg-item-container-${tabOption.value}`)
+    element.scrollTo({
+      top: 0,
+      behavior: 'instant'
+    })
+  }, 100)
 }
 </script>
 
@@ -982,7 +987,7 @@ const handleConfirmTimeFilter = async () => {
       padding: 24px 24px 16px 24px;
       box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
       border-radius: 5px;
-      background-color: #f5f5f5;
+      background-color: #409eff1a;
       .filter-time {
         :deep(.el-input__wrapper) {
           border-radius: 25px;
