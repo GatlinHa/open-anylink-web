@@ -160,29 +160,58 @@ export const imageTypes = () => {
   return [
     msgContentType.IMAGE,
     msgContentType.SCREENSHOT,
-    msgContentType.SCREENSHOT || msgContentType.TEXT,
-    msgContentType.SCREENSHOT || msgContentType.EMOJI,
-    msgContentType.SCREENSHOT || msgContentType.AT,
-    msgContentType.SCREENSHOT || msgContentType.QUOTE,
-    msgContentType.SCREENSHOT || msgContentType.TEXT || msgContentType.EMOJI,
-    msgContentType.SCREENSHOT || msgContentType.TEXT || msgContentType.AT,
-    msgContentType.SCREENSHOT || msgContentType.TEXT || msgContentType.QUOTE,
-    msgContentType.SCREENSHOT || msgContentType.EMOJI || msgContentType.AT,
-    msgContentType.SCREENSHOT || msgContentType.EMOJI || msgContentType.QUOTE,
-    msgContentType.SCREENSHOT || msgContentType.AT || msgContentType.QUOTE,
-    msgContentType.SCREENSHOT || msgContentType.TEXT || msgContentType.EMOJI || msgContentType.AT,
-    msgContentType.SCREENSHOT || msgContentType.TEXT || msgContentType.AT || msgContentType.QUOTE,
-    msgContentType.SCREENSHOT || msgContentType.EMOJI || msgContentType.AT || msgContentType.QUOTE,
+    msgContentType.SCREENSHOT | msgContentType.TEXT,
+    msgContentType.SCREENSHOT | msgContentType.EMOJI,
+    msgContentType.SCREENSHOT | msgContentType.AT,
+    msgContentType.SCREENSHOT | msgContentType.QUOTE,
+    msgContentType.SCREENSHOT | msgContentType.TEXT | msgContentType.EMOJI,
+    msgContentType.SCREENSHOT | msgContentType.TEXT | msgContentType.AT,
+    msgContentType.SCREENSHOT | msgContentType.TEXT | msgContentType.QUOTE,
+    msgContentType.SCREENSHOT | msgContentType.EMOJI | msgContentType.AT,
+    msgContentType.SCREENSHOT | msgContentType.EMOJI | msgContentType.QUOTE,
+    msgContentType.SCREENSHOT | msgContentType.AT | msgContentType.QUOTE,
+    msgContentType.SCREENSHOT | msgContentType.TEXT | msgContentType.EMOJI | msgContentType.AT,
+    msgContentType.SCREENSHOT | msgContentType.TEXT | msgContentType.AT | msgContentType.QUOTE,
+    msgContentType.SCREENSHOT | msgContentType.EMOJI | msgContentType.AT | msgContentType.QUOTE,
+    msgContentType.SCREENSHOT | msgContentType.TEXT | msgContentType.EMOJI | msgContentType.QUOTE,
 
-    msgContentType.SCREENSHOT ||
-      msgContentType.TEXT ||
-      msgContentType.EMOJI ||
-      msgContentType.QUOTE,
-
-    msgContentType.SCREENSHOT ||
-      msgContentType.TEXT ||
-      msgContentType.EMOJI ||
-      msgContentType.AT ||
+    msgContentType.SCREENSHOT |
+      msgContentType.TEXT |
+      msgContentType.EMOJI |
+      msgContentType.AT |
       msgContentType.QUOTE
+  ]
+}
+
+/**
+ * 所有包含Quote的type集合
+ * @returns
+ */
+export const quoteTypes = () => {
+  return [
+    msgContentType.QUOTE,
+
+    msgContentType.QUOTE | msgContentType.TEXT,
+    msgContentType.QUOTE | msgContentType.EMOJI,
+    msgContentType.QUOTE | msgContentType.AT,
+    msgContentType.QUOTE | msgContentType.SCREENSHOT,
+
+    msgContentType.QUOTE | msgContentType.TEXT | msgContentType.EMOJI,
+    msgContentType.QUOTE | msgContentType.TEXT | msgContentType.AT,
+    msgContentType.QUOTE | msgContentType.TEXT | msgContentType.SCREENSHOT,
+    msgContentType.QUOTE | msgContentType.EMOJI | msgContentType.AT,
+    msgContentType.QUOTE | msgContentType.EMOJI | msgContentType.SCREENSHOT,
+    msgContentType.QUOTE | msgContentType.AT | msgContentType.SCREENSHOT,
+
+    msgContentType.QUOTE | msgContentType.EMOJI | msgContentType.AT | msgContentType.SCREENSHOT,
+    msgContentType.QUOTE | msgContentType.TEXT | msgContentType.AT | msgContentType.SCREENSHOT,
+    msgContentType.QUOTE | msgContentType.TEXT | msgContentType.EMOJI | msgContentType.SCREENSHOT,
+    msgContentType.QUOTE | msgContentType.TEXT | msgContentType.EMOJI | msgContentType.AT,
+
+    msgContentType.QUOTE |
+      msgContentType.TEXT |
+      msgContentType.EMOJI |
+      msgContentType.AT |
+      msgContentType.SCREENSHOT
   ]
 }

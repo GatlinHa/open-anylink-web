@@ -1314,9 +1314,9 @@ const handleItemClick = () => {
               border-radius: 10px;
               border-top-right-radius: 0;
               user-select: text;
-              white-space: pre-wrap;
-              word-break: break-word; /* 长单词或URL强制换行 */
-              overflow-wrap: break-word; /* 兼容性更好的换行 */
+              // white-space: pre-wrap;
+              // word-break: break-word; /* 长单词或URL强制换行 */
+              // overflow-wrap: break-word; /* 兼容性更好的换行 */
             }
 
             .my-message-status {
@@ -1401,9 +1401,9 @@ const handleItemClick = () => {
               border-radius: 10px;
               border-top-left-radius: 0;
               user-select: text;
-              white-space: pre-wrap;
-              word-break: break-word; /* 长单词或URL强制换行 */
-              overflow-wrap: break-word; /* 兼容性更好的换行 */
+              // white-space: pre-wrap;
+              // word-break: break-word; /* 长单词或URL强制换行 */
+              // overflow-wrap: break-word; /* 兼容性更好的换行 */
             }
           }
         }

@@ -271,6 +271,18 @@ export const smartMatch = (content, key) => {
 }
 
 /**
+ * 基础匹配：忽略大小写
+ * @param {*} content 匹配内容
+ * @param {*} key 关键字
+ * @returns
+ */
+export const baseMatch = (content, key) => {
+  const lowerKey = key.toLowerCase()
+  const lowerContent = content.toLowerCase()
+  return lowerContent.includes(lowerKey)
+}
+
+/**
  * 汉字转全拼（小写，无空格）
  * @param {*} name
  * @returns

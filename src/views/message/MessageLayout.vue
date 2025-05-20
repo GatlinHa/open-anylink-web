@@ -579,7 +579,16 @@ const sendRead = () => {
       selectedSession.value.sessionType === MsgType.CHAT
         ? MsgType.CHAT_READ
         : MsgType.GROUP_CHAT_READ
-    wsConnect.sendMsg(selectedSessionId.value, showId.value, msgType, content + '', 0, '', () => {})
+    wsConnect.sendMsg(
+      selectedSessionId.value,
+      showId.value,
+      msgType,
+      content + '',
+      0,
+      null,
+      () => {},
+      () => {}
+    )
     // 更新本地缓存的已读位置
     messageData.updateSession({
       sessionId: selectedSessionId.value,

@@ -5,8 +5,8 @@ import { ElMessage } from 'element-plus'
 import EmojiIcon from '@/assets/svg/emoji.svg'
 import FileIcon from '@/assets/svg/file.svg'
 import ImageIcon from '@/assets/svg/image.svg'
-import CodeIcon from '@/assets/svg/code.svg'
-import VoteIcon from '@/assets/svg/vote.svg'
+// import CodeIcon from '@/assets/svg/code.svg'
+// import VoteIcon from '@/assets/svg/vote.svg'
 import EmojiBox from '@/views/message/components/EmojiBox.vue'
 import InputTool from '@/views/message/components/InputTool.vue'
 import { mtsUploadService, mtsUploadServiceForImage } from '@/api/mts'
@@ -23,6 +23,7 @@ import { prehandleImage } from '@/js/utils/image'
 import { prehandleVideo } from '@/js/utils/video'
 import { getMd5 } from '@/js/utils/file'
 import AgreeBeforeSend from '@/views/message/components/AgreeBeforeSend.vue'
+import DialogForMsgHistory from './DialogForMsgHistory.vue'
 
 const props = defineProps(['sessionId', 'isShowToolSet'])
 const emit = defineEmits(['sendEmoji', 'showRecorder', 'sendMessage', 'saveLocalMsg'])
@@ -34,6 +35,7 @@ const videoData = useVideoStore()
 const documentData = useDocumentStore()
 const isShowEmojiBox = ref(false)
 const showAgreeDialog = ref(false)
+const isShowHistoryDialog = ref(false)
 
 const session = computed(() => {
   return messageData.sessionList[props.sessionId]
@@ -238,6 +240,10 @@ const showRecorder = () => {
   emit('showRecorder')
 }
 
+const showHistory = () => {
+  isShowHistoryDialog.value = true
+}
+
 defineExpose({
   closeWindow
 })
@@ -279,17 +285,17 @@ defineExpose({
           <Microphone />
         </template>
       </InputTool>
-      <InputTool tips="代码" @click="ElMessage.warning('功能开发中')">
+      <!-- <InputTool tips="代码" @click="ElMessage.warning('功能开发中')">
         <template #iconSlot>
           <CodeIcon />
         </template>
-      </InputTool>
+      </InputTool> -->
       <!-- <InputTool tips="位置" @click="ElMessage.warning('功能开发中')">
         <template #iconSlot>
           <LocationInformation />
         </template>
       </InputTool> -->
-      <InputTool
+      <!-- <InputTool
         v-if="messageData.sessionList[props.sessionId].sessionType === MsgType.GROUP_CHAT"
         tips="群投票"
         @click="ElMessage.warning('功能开发中')"
@@ -297,10 +303,10 @@ defineExpose({
         <template #iconSlot>
           <VoteIcon />
         </template>
-      </InputTool>
+      </InputTool> -->
     </div>
     <div class="right-tools">
-      <InputTool tips="聊天记录" @click="ElMessage.warning('功能开发中')">
+      <InputTool tips="历史消息" @click="showHistory">
         <template #iconSlot>
           <Clock />
         </template>
@@ -321,6 +327,10 @@ defineExpose({
     :src="localSrc"
     @confirm="onConfirmSendFile"
   ></AgreeBeforeSend>
+  <DialogForMsgHistory
+    v-model:isShow="isShowHistoryDialog"
+    :sessionId="props.sessionId"
+  ></DialogForMsgHistory>
 </template>
 
 <style lang="scss" scoped>
