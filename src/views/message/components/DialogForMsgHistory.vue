@@ -703,30 +703,29 @@ const pullMsg = async () => {
   }
   const loadingInstance = ElLoading.service(el_loading_options)
   isLoadingMsg.value = true
-  msgChatHistoryService(params)
-    .then(async (res) => {
-      const list = res.data.data.msgList
-      const totalCount = res.data.data.count
-      if (totalCount > 0) {
-        await historyMsgsAddData(list)
-        isAtbottom.value = false
-      }
+  try {
+    const res = await msgChatHistoryService(params)
+    const list = res.data.data.msgList
+    const totalCount = res.data.data.count
+    if (totalCount > 0) {
+      await historyMsgsAddData(list)
+      isAtbottom.value = false
+    }
 
-      // 如果totalCount比pageSize少，说明服务器没有更多数据了
-      if (totalCount < pageSize) {
-        pullDoneFlag.value = true
-      }
+    // 如果totalCount比pageSize少，说明服务器没有更多数据了
+    if (totalCount < pageSize) {
+      pullDoneFlag.value = true
+    }
 
-      if (list.length > step) {
-        endIndex.value += step
-      } else {
-        endIndex.value += list.length
-      }
-    })
-    .finally(() => {
-      isLoadingMsg.value = false
-      loadingInstance.close()
-    })
+    if (list.length > step) {
+      endIndex.value += step
+    } else {
+      endIndex.value += list.length
+    }
+  } finally {
+    isLoadingMsg.value = false
+    loadingInstance.close()
+  }
 }
 
 let noMoreMsgTipsTimer = null
@@ -811,6 +810,7 @@ const handleConfirmTimeFilter = async () => {
           :name="item.name"
         >
           <div
+            v-if="item.name === tabOption"
             class="dialog-msg-item-container"
             :class="{ 'my-scrollbar': historyMsgsShow.length > 0 }"
             :id="`dialog-msg-item-container-${item.name}`"
@@ -987,7 +987,7 @@ const handleConfirmTimeFilter = async () => {
       padding: 24px 24px 16px 24px;
       box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
       border-radius: 5px;
-      background-color: #409eff1a;
+      background-color: #f5f5f5;
       .filter-time {
         :deep(.el-input__wrapper) {
           border-radius: 25px;
