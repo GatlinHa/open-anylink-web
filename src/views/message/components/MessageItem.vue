@@ -79,7 +79,7 @@ onMounted(async () => {
  */
 const loadRelatedMsg = async () => {
   const arr = jsonParseSafe(msg.value.content)
-  if (!arr) {
+  if (!arr || !Array.isArray(arr) || arr.length === 0) {
     return
   }
 
@@ -151,7 +151,7 @@ const renderComponent = (content) => {
   const arr = jsonParseSafe(content)
 
   // 不允许非结构化的content
-  if (!arr) {
+  if (!arr || !Array.isArray(arr) || arr.length === 0) {
     return h('span', '')
   }
 

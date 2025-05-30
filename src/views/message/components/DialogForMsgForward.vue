@@ -65,7 +65,7 @@ const loadRelatedMsg = async () => {
   for (const msg of props.msgs) {
     const content = msg.content
     const arr = jsonParseSafe(content)
-    if (!arr) {
+    if (!arr || !Array.isArray(arr) || arr.length === 0) {
       continue
     }
 
@@ -131,7 +131,7 @@ const renderContent = ({ msg }) => {
   const msgId = msg.msgId
   const arr = jsonParseSafe(content)
   // 不允许非结构化的content
-  if (!arr) {
+  if (!arr || !Array.isArray(arr) || arr.length === 0) {
     return <span></span>
   }
 
@@ -191,8 +191,7 @@ const renderAudio = (audioId) => {
       <MsgBoxAudio
         url={url}
         fileName={audioData.audio[audioId].fileName}
-        size={audioData.audio[audioId].size}
-      ></MsgBoxAudio>
+        size={audioData.audio[audioId].size}></MsgBoxAudio>
     )
   } else {
     return <span>{`[${audioId}]`}</span>
@@ -217,8 +216,7 @@ const renderImage = (imgId, isScreenShot = false) => {
         imgId={imgId}
         isScreenShot={isScreenShot}
         thumbWidth={imageData.image[imgId].thumbWidth}
-        thumbHeight={imageData.image[imgId].thumbHeight}
-      ></MsgBoxImage>
+        thumbHeight={imageData.image[imgId].thumbHeight}></MsgBoxImage>
     )
   } else {
     return <span>{`[${imgId}]`}</span>
@@ -236,8 +234,7 @@ const renderVideo = (videoId, msgId) => {
         fileName={videoData.video[videoId].fileName}
         size={videoData.video[videoId].size}
         width={videoData.video[videoId].width}
-        height={videoData.video[videoId].height}
-      ></MsgBoxVideo>
+        height={videoData.video[videoId].height}></MsgBoxVideo>
     )
   } else {
     return <span>{`[${videoId}]`}</span>
@@ -252,8 +249,7 @@ const renderDocument = (documentId) => {
         url={url}
         fileName={documentData.document[documentId].fileName}
         fileSize={documentData.document[documentId].size}
-        contentType={documentData.document[documentId].documentType}
-      ></MsgBoxDocument>
+        contentType={documentData.document[documentId].documentType}></MsgBoxDocument>
     )
   } else {
     return <span>{`[${documentId}]`}</span>
@@ -316,8 +312,7 @@ const renderForwardTogether = (forwardContent, msgId) => {
         })
         // 挂载到新创建的容器
         app.mount(container)
-      }}
-    >
+      }}>
       <div class={'main'}>
         <span class={'title'}>{title}</span>
         <div class={'msg-list'}>

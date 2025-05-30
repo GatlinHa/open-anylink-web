@@ -731,7 +731,7 @@ const renderContent = async (content) => {
 
   const arr = jsonParseSafe(content)
   // 不允许非结构化的content
-  if (!arr) {
+  if (!arr || !Array.isArray(arr) || arr.length === 0) {
     quill.value.setText('')
     return
   }

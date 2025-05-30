@@ -10,7 +10,7 @@ const documentData = useDocumentStore()
 
 export const showSimplifyMsgContent = (content) => {
   const arr = jsonParseSafe(content)
-  if (!arr) {
+  if (!arr || !Array.isArray(arr) || arr.length === 0) {
     return content
   }
 
