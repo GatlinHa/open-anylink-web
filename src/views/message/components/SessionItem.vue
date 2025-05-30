@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import UserAvatarIcon from '@/components/common/UserAvatarIcon.vue'
 import GroupAvatarIcon from '@/components/common/GroupAvatarIcon.vue'
 import SessionTag from './SessionTag.vue'
-import { sessionShowTime } from '@/js/utils/common'
+import { jsonParseSafe, sessionShowTime } from '@/js/utils/common'
 import { Top, MuteNotification } from '@element-plus/icons-vue'
 import { MsgType } from '@/proto/msg'
 import { useUserStore, useMessageStore, useGroupStore } from '@/stores'
@@ -225,39 +225,40 @@ const showDetailContent = computed(() => {
     }
 
     if (sessionInfo.value.sessionType === MsgType.GROUP_CHAT) {
+      const jsonContent = jsonParseSafe(lastMsg.value.content)
       switch (lastMsg.value.msgType) {
         case MsgType.SYS_GROUP_CREATE:
-          return getSysGroupCreateMsgTips(lastMsg.value.content)
+          return getSysGroupCreateMsgTips(jsonContent)
         case MsgType.SYS_GROUP_ADD_MEMBER:
-          return getSysGroupAddMemberMsgTips(lastMsg.value.content)
+          return getSysGroupAddMemberMsgTips(jsonContent)
         case MsgType.SYS_GROUP_DEL_MEMBER:
-          return getSysGroupDelMemberMsgTips(lastMsg.value.content)
+          return getSysGroupDelMemberMsgTips(jsonContent)
         case MsgType.SYS_GROUP_UPDATE_ANNOUNCEMENT:
-          return getSysGroupUpdateAnnouncement(lastMsg.value.content)
+          return getSysGroupUpdateAnnouncement(jsonContent)
         case MsgType.SYS_GROUP_UPDATE_NAME:
-          return getSysGroupUpdateName(lastMsg.value.content)
+          return getSysGroupUpdateName(jsonContent)
         case MsgType.SYS_GROUP_UPDATE_AVATAR:
-          return getSysGroupUpdateAvatar(lastMsg.value.content)
+          return getSysGroupUpdateAvatar(jsonContent)
         case MsgType.SYS_GROUP_SET_ADMIN:
         case MsgType.SYS_GROUP_CANCEL_ADMIN:
-          return getSysGroupChangeRoleMsgTips(lastMsg.value.msgType, lastMsg.value.content)
+          return getSysGroupChangeRoleMsgTips(lastMsg.value.msgType, jsonContent)
         case MsgType.SYS_GROUP_SET_ALL_MUTED:
         case MsgType.SYS_GROUP_CANCEL_ALL_MUTED:
-          return getSysGroupUpdateAllMuted(lastMsg.value.msgType, lastMsg.value.content)
+          return getSysGroupUpdateAllMuted(lastMsg.value.msgType, jsonContent)
         case MsgType.SYS_GROUP_SET_JOIN_APPROVAL:
         case MsgType.SYS_GROUP_CANCEL_JOIN_APPROVAL:
-          return getSysGroupUpdateJoinApproval(lastMsg.value.msgType, lastMsg.value.content)
+          return getSysGroupUpdateJoinApproval(lastMsg.value.msgType, jsonContent)
         case MsgType.SYS_GROUP_SET_HISTORY_BROWSE:
         case MsgType.SYS_GROUP_CANCEL_HISTORY_BROWSE:
-          return getSysGroupUpdateHistoryBrowse(lastMsg.value.msgType, lastMsg.value.content)
+          return getSysGroupUpdateHistoryBrowse(lastMsg.value.msgType, jsonContent)
         case MsgType.SYS_GROUP_OWNER_TRANSFER:
-          return getSysGroupOwnerTransfer(lastMsg.value.content)
+          return getSysGroupOwnerTransfer(jsonContent)
         case MsgType.SYS_GROUP_UPDATE_MEMBER_MUTED:
-          return getSysGroupUpdateMemberMuted(lastMsg.value.content)
+          return getSysGroupUpdateMemberMuted(jsonContent)
         case MsgType.SYS_GROUP_LEAVE:
-          return getSysGroupLeave(lastMsg.value.content)
+          return getSysGroupLeave(jsonContent)
         case MsgType.SYS_GROUP_DROP:
-          return getSysGroupDrop(lastMsg.value.content)
+          return getSysGroupDrop(jsonContent)
         case MsgType.GROUP_CHAT:
           return getGroupChatMsgTips(showSimplifyMsgContent(lastMsg.value.content))
         default:

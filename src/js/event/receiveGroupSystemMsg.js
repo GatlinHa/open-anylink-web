@@ -34,7 +34,6 @@ export const onReceiveGroupSystemMsg = (updateScroll, capacity) => {
       content: msg.body.content,
       msgTime: now
     }
-    await messageData.preloadResource([showMsg])
     messageData.addMsgRecords(sessionId, [showMsg])
     messageData.updateMsgKeySort(sessionId)
 

@@ -33,6 +33,7 @@ export const useVideoStore = defineStore('anylink-video', () => {
     const videoIds = new Set()
     msgRecords.forEach((item) => {
       const aar = jsonParseSafe(item.content)
+      if (!aar || !Array.isArray(aar)) return
       aar.forEach((item) => {
         if (item.type === msgContentType.VIDEO) {
           const objectId = item.value

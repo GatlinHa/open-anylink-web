@@ -33,6 +33,7 @@ export const useDocumentStore = defineStore('anylink-document', () => {
     const documentIds = new Set()
     msgRecords.forEach((item) => {
       const aar = jsonParseSafe(item.content)
+      if (!aar || !Array.isArray(aar)) return
       aar.forEach((item) => {
         if (item.type === msgContentType.DOCUMENT) {
           const objectId = item.value

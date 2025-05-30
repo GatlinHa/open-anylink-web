@@ -57,6 +57,7 @@ export const useImageStore = defineStore('anylink-image', () => {
 
     const imageIds = new Set()
     const aar = jsonParseSafe(content)
+    if (!aar || !Array.isArray(aar)) return
     aar.forEach((item) => {
       if (item.type === msgContentType.SCREENSHOT || item.type === msgContentType.IMAGE) {
         const objectId = item.value
@@ -78,6 +79,7 @@ export const useImageStore = defineStore('anylink-image', () => {
     const imageIds = new Set()
     msgRecords.forEach((item) => {
       const aar = jsonParseSafe(item.content)
+      if (!aar || !Array.isArray(aar)) return
       aar.forEach((item) => {
         if (item.type === msgContentType.SCREENSHOT || item.type === msgContentType.IMAGE) {
           const objectId = item.value
